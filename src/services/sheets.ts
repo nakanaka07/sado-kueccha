@@ -41,8 +41,7 @@ class SheetsService {
     const [name, gid] = configStr.split(":");
     return name && gid ? { name: name.trim(), gid: gid.trim() } : null;
   }
-
-  // シート名の解決（英語名または日本語名を受け取り、設定で使用される名前を返す）
+  // シート名の解決（英語名または日本語名を受け取り、日本語名を返す）
   private resolveSheetName(inputName: string): string {
     // 英語名から日本語名への変換を試行
     const mappedName = this.sheetNameMap.get(inputName);
@@ -51,7 +50,19 @@ class SheetsService {
     }
     // 日本語名の場合はそのまま返す
     return inputName;
-  } // スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
+  }
+
+  // 設定から英語キーを取得（設定検索用）
+  private getConfigKey(sheetName: string): string {
+    // 日本語名から英語キーを逆引きする
+    for (const [englishKey, japaneseName] of this.sheetNameMap.entries()) {
+      if (japaneseName === sheetName) {
+        return englishKey;
+      }
+    }
+    // 英語キーの場合はそのまま返す
+    return sheetName;
+  }// スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
   async fetchSheetData(sheetName: string, range: string): Promise<string[][]> {
     // 最初にCSV形式で取得を試行（公開スプレッドシートの場合はこれで動作する）
     try {
@@ -60,8 +71,7 @@ class SheetsService {
       console.log(`CSV形式での取得に失敗、API形式を試行: ${String(csvError)}`);
       return await this.fetchSheetDataViaAPI(sheetName, range);
     }
-  }
-  // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
+  }  // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
   private async fetchSheetDataAsCSV(sheetName: string): Promise<string[][]> {
     if (!this.spreadsheetId) {
       throw new Error("スプレッドシートIDが設定されていません。");
@@ -70,10 +80,14 @@ class SheetsService {
     // シート名を解決（英語名→日本語名）
     const resolvedSheetName = this.resolveSheetName(sheetName);
 
-    // シート名に対応するGIDを取得
-    const sheetConfig = this.sheetConfigs.find((config) => config.name === resolvedSheetName);
+    // 設定検索用のキーを取得（英語キー）
+    const configKey = this.getConfigKey(resolvedSheetName);
+
+    // 設定から対応するGIDを取得（英語キーで検索）
+    const sheetConfig = this.sheetConfigs.find((config) => config.name === configKey);
     if (!sheetConfig) {
-      throw new Error(`シート "${resolvedSheetName}" の設定が見つかりません。`);
+      console.warn(`利用可能な設定:`, this.sheetConfigs.map(c => c.name));
+      throw new Error(`シート "${configKey}" (${resolvedSheetName}) の設定が見つかりません。`);
     }
     const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
 
@@ -109,11 +123,9 @@ class SheetsService {
       throw new Error(
         "スプレッドシートIDが設定されていません。環境変数 VITE_GOOGLE_SPREADSHEET_ID を設定してください。",
       );
-    }
-
-    // シート名を解決（英語名→日本語名）
+    }    // シート名を解決（英語名→日本語名）
     const resolvedSheetName = this.resolveSheetName(sheetName);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${resolvedSheetName}!${range}?key=${this.apiKey}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(resolvedSheetName)}!${range}?key=${this.apiKey}`;
 
     try {
       console.log(`Google Sheets API呼び出し: ${resolvedSheetName}`);
@@ -276,7 +288,6 @@ class SheetsService {
       return null;
     }
   }
-
   // 複数シートからPOIデータを取得
   async fetchAllPOIs(): Promise<POI[]> {
     const allPOIs: POI[] = [];
@@ -284,7 +295,9 @@ class SheetsService {
     for (const config of this.sheetConfigs) {
       try {
         const range = "AB2:AX1000"; // 必要な列（AB〜AX）のみを取得
-        const rows = await this.fetchSheetData(config.name, range);
+        // 設定の英語キーから日本語名に変換してAPIを呼び出す
+        const japaneseName = this.sheetNameMap.get(config.name) || config.name;
+        const rows = await this.fetchSheetData(japaneseName, range);
 
         rows.forEach((row, index) => {
           const poi = this.convertToPOI(row, `${config.name}-${String(index + 1)}`);
