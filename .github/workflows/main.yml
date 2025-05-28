@@ -124,16 +124,40 @@ jobs:
         run: pnpm lint
 
       - name: Run tests
-        run: pnpm test # リポジトリ名から動的にベースパスを設定
-      - name: Set base path from repository name
+        run: pnpm test # リポジトリ名から動的にベースパスを設定      # 環境変数の検証
+      - name: Verify environment variables
         run: |
-          echo "VITE_BASE_PATH=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
-          echo "Base path set to: /${{ github.event.repository.name }}/"      # 環境変数の準備（GitHub Secretsから）      # アプリケーションのビルド（改良された設定）
-      - name: Build application
-        run: pnpm build
+          echo "Checking environment variables..."
+          echo "NODE_ENV: $NODE_ENV"
+          echo "CI: $CI"
+          [ -n "$VITE_GOOGLE_MAPS_API_KEY" ] && echo "✅ VITE_GOOGLE_MAPS_API_KEY is set" || echo "❌ VITE_GOOGLE_MAPS_API_KEY is missing"
+          [ -n "$VITE_EMAILJS_SERVICE_ID" ] && echo "✅ VITE_EMAILJS_SERVICE_ID is set" || echo "❌ VITE_EMAILJS_SERVICE_ID is missing"
         env:
           CI: true
-          # GitHub Secretsから環境変数を設定
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
+          NODE_ENV: production
+
+      # アプリケーションのビルド（改良された設定）
+      - name: Build application
+        run: |
+          echo "Starting build process..."
+          pnpm build
+          echo "Build process completed"
+          echo "Checking build output..."
+          ls -la
+          if [ -d "./dist" ]; then
+            echo "✅ dist directory found"
+            ls -la ./dist
+            echo "Dist directory size: $(du -sh ./dist)"
+          else
+            echo "❌ dist directory not found"
+            echo "Searching for build output..."
+            find . -name "*.html" -o -name "*.js" -o -name "*.css" | head -10
+            exit 1
+          fi
+        env:
+          CI: true
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
           VITE_GOOGLE_SHEETS_API_KEY: ${{ secrets.VITE_GOOGLE_SHEETS_API_KEY }}
@@ -144,17 +168,27 @@ jobs:
           NODE_ENV: production
           NODE_OPTIONS: "--max_old_space_size=4096"
 
-      # ビルド成果物の検証
+      # ビルド成果物の詳細検証
       - name: Verify build output
         run: |
+          echo "Verifying build output..."
           if [ ! -d "./dist" ]; then
-            echo "Error: Build output directory not found"
+            echo "❌ Error: Build output directory not found"
+            echo "Available directories:"
+            ls -la
             exit 1
           fi
-          echo "Build output size:"
-          du -sh ./dist
-          echo "Build output contents:"
-          ls -la ./dist
+
+          if [ ! -f "./dist/index.html" ]; then
+            echo "❌ Warning: index.html not found in dist"
+            echo "Contents of dist directory:"
+            ls -la ./dist
+            exit 1
+          fi
+
+          echo "✅ Build verification successful"
+          echo "Dist directory size: $(du -sh ./dist)"
+          echo "Number of files: $(find ./dist -type f | wc -l)"
 
       # GitHub Pagesの設定
       - name: Setup Pages

@@ -104,6 +104,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
     build: {
       // ビルド最適化設定
+      outDir: "dist", // 出力ディレクトリを明示的に指定
+      emptyOutDir: true, // ビルド前にディレクトリをクリア
       target: "es2022",
       sourcemap: !isProduction,
       chunkSizeWarningLimit: 1000,
