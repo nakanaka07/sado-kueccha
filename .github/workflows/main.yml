@@ -129,12 +129,16 @@ jobs:
           echo "CI: $CI"
           echo "VITE_BASE_PATH: $VITE_BASE_PATH"
           [ -n "$VITE_GOOGLE_MAPS_API_KEY" ] && echo "✅ VITE_GOOGLE_MAPS_API_KEY is set" || echo "❌ VITE_GOOGLE_MAPS_API_KEY is missing"
+          [ -n "$VITE_GOOGLE_SPREADSHEET_ID" ] && echo "✅ VITE_GOOGLE_SPREADSHEET_ID is set" || echo "❌ VITE_GOOGLE_SPREADSHEET_ID is missing"
           [ -n "$VITE_EMAILJS_SERVICE_ID" ] && echo "✅ VITE_EMAILJS_SERVICE_ID is set" || echo "❌ VITE_EMAILJS_SERVICE_ID is missing"
           [ -n "$VITE_BASE_PATH" ] && echo "✅ VITE_BASE_PATH is set" || echo "❌ VITE_BASE_PATH is missing"
+          [ -n "$VITE_SHEET_RECOMMENDED" ] && echo "✅ VITE_SHEET_RECOMMENDED is set" || echo "❌ VITE_SHEET_RECOMMENDED is missing"
         env:
           CI: true
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
+          VITE_SHEET_RECOMMENDED: "おすすめ:1043711248"
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
           NODE_ENV: production# アプリケーションのビルド（改良された設定）
       - name: Build application
@@ -155,14 +159,19 @@ jobs:
             echo "Searching for build output..."
             find . -name "*.html" -o -name "*.js" -o -name "*.css" | head -10
             exit 1
-          fi
-        env:
+          fi        env:
           CI: true
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
-          VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
-          VITE_GOOGLE_SHEETS_API_KEY: ${{ secrets.VITE_GOOGLE_SHEETS_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}          VITE_GOOGLE_SHEETS_API_KEY: ${{ secrets.VITE_GOOGLE_SHEETS_API_KEY }}
           VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
+          VITE_SHEET_RECOMMENDED: "おすすめ:1043711248"
+          VITE_SHEET_RYOTSU_AIKAWA: "両津・相川地区:95850266"
+          VITE_SHEET_KANAI_SAWADA: "金井・佐和田・新穂・畑野・真野地区:431330115"
+          VITE_SHEET_AKADOMARI_HAMOCHI: "赤泊・羽茂・小木地区:1375085632"
+          VITE_SHEET_SNACK: "スナック:490189070"
+          VITE_SHEET_TOILET: "公共トイレ:1271565248"
+          VITE_SHEET_PARKING: "駐車場:716861286"
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
