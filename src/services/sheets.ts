@@ -5,15 +5,15 @@ class SheetsService {
   private apiKey: string;
   private spreadsheetId: string;
   private sheetConfigs: Array<{ name: string; gid: string }>;
+  private sheetNameMap: Map<string, string>;
+
   constructor() {
     this.apiKey = String(
       import.meta.env["VITE_GOOGLE_SHEETS_API_KEY"] ||
         import.meta.env["VITE_GOOGLE_MAPS_API_KEY"] ||
         "",
     );
-    this.spreadsheetId = String(import.meta.env["VITE_GOOGLE_SPREADSHEET_ID"] || "");
-
-    // .envからシート設定を読み込み
+    this.spreadsheetId = String(import.meta.env["VITE_GOOGLE_SPREADSHEET_ID"] || ""); // .envからシート設定を読み込み
     this.sheetConfigs = [
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RECOMMENDED"] || ""),
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RYOTSU_AIKAWA"] || ""),
@@ -23,13 +23,34 @@ class SheetsService {
       this.parseSheetConfig(import.meta.env["VITE_SHEET_TOILET"] || ""),
       this.parseSheetConfig(import.meta.env["VITE_SHEET_PARKING"] || ""),
     ].filter((config): config is { name: string; gid: string } => config !== null);
-  }
 
+    // シート名のマッピング（英語名から日本語名への変換）
+    this.sheetNameMap = new Map([
+      ["recommended", "おすすめ"],
+      ["ryotsu_aikawa", "両津・相川地区"],
+      ["kanai_sawada", "金井・佐和田・新穂・畑野・真野地区"],
+      ["akadomari_hamochi", "赤泊・羽茂・小木地区"],
+      ["snack", "スナック"],
+      ["toilet", "公共トイレ"],
+      ["parking", "駐車場"],
+    ]);
+  }
   // シート設定文字列を解析（例: "おすすめ:1043711248"）
   private parseSheetConfig(configStr: string): { name: string; gid: string } | null {
     if (!configStr) return null;
     const [name, gid] = configStr.split(":");
     return name && gid ? { name: name.trim(), gid: gid.trim() } : null;
+  }
+
+  // シート名の解決（英語名または日本語名を受け取り、設定で使用される名前を返す）
+  private resolveSheetName(inputName: string): string {
+    // 英語名から日本語名への変換を試行
+    const mappedName = this.sheetNameMap.get(inputName);
+    if (mappedName) {
+      return mappedName;
+    }
+    // 日本語名の場合はそのまま返す
+    return inputName;
   } // スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
   async fetchSheetData(sheetName: string, range: string): Promise<string[][]> {
     // 最初にCSV形式で取得を試行（公開スプレッドシートの場合はこれで動作する）
@@ -40,22 +61,24 @@ class SheetsService {
       return await this.fetchSheetDataViaAPI(sheetName, range);
     }
   }
-
   // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
   private async fetchSheetDataAsCSV(sheetName: string): Promise<string[][]> {
     if (!this.spreadsheetId) {
       throw new Error("スプレッドシートIDが設定されていません。");
     }
 
+    // シート名を解決（英語名→日本語名）
+    const resolvedSheetName = this.resolveSheetName(sheetName);
+
     // シート名に対応するGIDを取得
-    const sheetConfig = this.sheetConfigs.find((config) => config.name === sheetName);
+    const sheetConfig = this.sheetConfigs.find((config) => config.name === resolvedSheetName);
     if (!sheetConfig) {
-      throw new Error(`シート "${sheetName}" の設定が見つかりません。`);
+      throw new Error(`シート "${resolvedSheetName}" の設定が見つかりません。`);
     }
     const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
 
     try {
-      console.log(`CSV形式で取得 (B:U列): ${sheetName}`);
+      console.log(`CSV形式で取得 (B:U列): ${resolvedSheetName}`);
       const response = await fetch(csvUrl);
 
       if (!response.ok) {
@@ -63,17 +86,16 @@ class SheetsService {
       }
 
       const csvText = await response.text();
-      const data: string[][] = this.parseCSV(csvText);
-
-      // ヘッダー行をスキップ（A2:Z1000の範囲に合わせる）
-      console.log(`CSV形式でデータを取得: ${sheetName} - ${(data.length - 1).toString()}行`);
+      const data: string[][] = this.parseCSV(csvText); // ヘッダー行をスキップ（A2:Z1000の範囲に合わせる）
+      console.log(
+        `CSV形式でデータを取得: ${resolvedSheetName} - ${(data.length - 1).toString()}行`,
+      );
       return data.slice(1); // ヘッダー行をスキップ
     } catch (error) {
       console.error(`CSV取得エラー:`, error);
       throw error;
     }
   }
-
   // API形式でスプレッドシートからデータを取得（従来の方法）
   private async fetchSheetDataViaAPI(sheetName: string, range: string): Promise<string[][]> {
     // APIキーとスプレッドシートIDのチェック
@@ -89,10 +111,12 @@ class SheetsService {
       );
     }
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${sheetName}!${range}?key=${this.apiKey}`;
+    // シート名を解決（英語名→日本語名）
+    const resolvedSheetName = this.resolveSheetName(sheetName);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${resolvedSheetName}!${range}?key=${this.apiKey}`;
 
     try {
-      console.log(`Google Sheets API呼び出し: ${sheetName}`);
+      console.log(`Google Sheets API呼び出し: ${resolvedSheetName}`);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -115,10 +139,9 @@ class SheetsService {
 
         throw new Error(`HTTP error! status: ${response.status.toString()}`);
       }
-
       const data = (await response.json()) as { values?: string[][] };
       console.log(
-        `シート "${sheetName}" からデータを取得: ${(data.values?.length || 0).toString()}行`,
+        `シート "${resolvedSheetName}" からデータを取得: ${(data.values?.length || 0).toString()}行`,
       );
       return data.values || [];
     } catch (error) {
