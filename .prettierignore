@@ -1,0 +1,20 @@
+# ビルド出力やキャッシュ
+/dist/
+/.cache/
+/node_modules/
+
+# 設定ファイル
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# 証明書ファイル
+.local/
+
+# IDE設定
+.vscode/
+.idea/
+
+# その他
+*.min.js
+*.min.css

@@ -1,0 +1,49 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.requireConfig": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "emmet.includeLanguages": {
+        "typescript": "typescriptreact",
+        "javascript": "javascriptreact"
+    },
+    "files.associations": {
+        "*.css": "css"
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.git": true,
+        "**/coverage": true,
+        "**/*.lock": true,
+        "**/.local": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.local": true
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "react.snippets.enabled": true,
+    "javascript.suggest.includeCompletions": true,
+    "typescript.suggest.includeCompletions": true,
+    "css.validate": true,
+    "scss.validate": true,
+    "less.validate": true
+}

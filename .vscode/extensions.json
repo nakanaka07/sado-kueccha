@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-css",
+        "ms-vscode.vscode-html",
+        "vitest.explorer",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-react-next"
+    ]
+}
