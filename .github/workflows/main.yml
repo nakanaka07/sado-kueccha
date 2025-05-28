@@ -94,23 +94,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 完全な履歴を取得
-
-      # pnpmのインストール
+          fetch-depth: 0 # 完全な履歴を取得      # pnpmのインストール
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-          run_install: false # Node.jsのセットアップ（シンプルで安全なキャッシュ戦略）
+          run_install: false
+
+      # Node.jsのセットアップ（公式推奨のシンプルなキャッシュ戦略）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
-
-      - name: Configure pnpm store
-        run: pnpm config set store-dir ~/.pnpm-store
 
       # 依存関係のインストール（セキュリティ強化）
       - name: Install dependencies
