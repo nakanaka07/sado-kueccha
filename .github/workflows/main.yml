@@ -5,15 +5,23 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "vite.config.ts"
+      - "tsconfig*.json"
   pull_request:
     branches:
       - main
     paths-ignore:
       - "**.md"
       - "docs/**"
+  # リリースタグでのデプロイ
+  release:
+    types: [published]
   # 手動実行のためのオプション
   workflow_dispatch:
 
@@ -70,10 +78,12 @@ jobs:
 
       - name: Run tests
         run: pnpm test
-
-  # ビルドとデプロイ（メインブランチ用）
+  # ビルドとデプロイ（メインブランチまたはリリース用）
   build-and-deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      github.event_name == 'release' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
