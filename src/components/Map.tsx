@@ -32,9 +32,10 @@ const SADO_CENTER = { lat: 38.0549, lng: 138.3691 };
 
 interface MapComponentProps {
   className?: string;
+  onMapLoaded?: () => void;
 }
 
-export function MapComponent({ className }: MapComponentProps) {
+export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
@@ -49,11 +50,13 @@ export function MapComponent({ className }: MapComponentProps) {
         console.error("POIデータの取得に失敗しました:", error);
       } finally {
         setLoading(false);
+        // POIの読み込みが完了したらコールバックを呼び出し
+        onMapLoaded?.();
       }
     };
 
     void loadPOIs();
-  }, []);
+  }, [onMapLoaded]);
   const handleMarkerClick = (poi: POI) => {
     console.log("マーカーがクリックされました:", poi);
     setSelectedPoi(poi);

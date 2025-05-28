@@ -1,4 +1,18 @@
 import type { POI } from "../types/google-maps";
+import { cacheService } from "./cache";
+
+// POI配列の型ガード
+function isPOIArray(value: unknown): value is POI[] {
+  return (
+    Array.isArray(value) &&
+    (value.length === 0 ||
+      (typeof value[0] === "object" &&
+        value[0] !== null &&
+        "id" in value[0] &&
+        "name" in value[0] &&
+        "position" in value[0]))
+  );
+}
 
 // Google Sheets APIからデータを取得する機能
 class SheetsService {
@@ -62,7 +76,7 @@ class SheetsService {
     }
     // 英語キーの場合はそのまま返す
     return sheetName;
-  }// スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
+  } // スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
   async fetchSheetData(sheetName: string, range: string): Promise<string[][]> {
     // 最初にCSV形式で取得を試行（公開スプレッドシートの場合はこれで動作する）
     try {
@@ -71,7 +85,7 @@ class SheetsService {
       console.log(`CSV形式での取得に失敗、API形式を試行: ${String(csvError)}`);
       return await this.fetchSheetDataViaAPI(sheetName, range);
     }
-  }  // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
+  } // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
   private async fetchSheetDataAsCSV(sheetName: string): Promise<string[][]> {
     if (!this.spreadsheetId) {
       throw new Error("スプレッドシートIDが設定されていません。");
@@ -86,24 +100,21 @@ class SheetsService {
     // 設定から対応するGIDを取得（英語キーで検索）
     const sheetConfig = this.sheetConfigs.find((config) => config.name === configKey);
     if (!sheetConfig) {
-      console.warn(`利用可能な設定:`, this.sheetConfigs.map(c => c.name));
+      console.warn(
+        `利用可能な設定:`,
+        this.sheetConfigs.map((c) => c.name),
+      );
       throw new Error(`シート "${configKey}" (${resolvedSheetName}) の設定が見つかりません。`);
     }
     const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
-
     try {
-      console.log(`CSV形式で取得 (B:U列): ${resolvedSheetName}`);
       const response = await fetch(csvUrl);
 
       if (!response.ok) {
         throw new Error(`CSV取得失敗: ${response.status.toString()} ${response.statusText}`);
       }
-
       const csvText = await response.text();
       const data: string[][] = this.parseCSV(csvText); // ヘッダー行をスキップ（A2:Z1000の範囲に合わせる）
-      console.log(
-        `CSV形式でデータを取得: ${resolvedSheetName} - ${(data.length - 1).toString()}行`,
-      );
       return data.slice(1); // ヘッダー行をスキップ
     } catch (error) {
       console.error(`CSV取得エラー:`, error);
@@ -123,12 +134,10 @@ class SheetsService {
       throw new Error(
         "スプレッドシートIDが設定されていません。環境変数 VITE_GOOGLE_SPREADSHEET_ID を設定してください。",
       );
-    }    // シート名を解決（英語名→日本語名）
+    } // シート名を解決（英語名→日本語名）
     const resolvedSheetName = this.resolveSheetName(sheetName);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(resolvedSheetName)}!${range}?key=${this.apiKey}`;
-
     try {
-      console.log(`Google Sheets API呼び出し: ${resolvedSheetName}`);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -152,9 +161,6 @@ class SheetsService {
         throw new Error(`HTTP error! status: ${response.status.toString()}`);
       }
       const data = (await response.json()) as { values?: string[][] };
-      console.log(
-        `シート "${resolvedSheetName}" からデータを取得: ${(data.values?.length || 0).toString()}行`,
-      );
       return data.values || [];
     } catch (error) {
       console.error("Sheets API呼び出しエラー:", error);
@@ -198,17 +204,14 @@ class SheetsService {
       } // AF列の座標データを解析（経度,緯度 形式）
       const coordParts = coordinates.split(",");
       if (coordParts.length !== 2 || !coordParts[0] || !coordParts[1]) {
-        console.warn(`無効な座標形式: ${coordinates}`);
         return null;
       }
-
       const longitudeStr = coordParts[0].trim();
       const latitudeStr = coordParts[1].trim();
       const longitude = parseFloat(longitudeStr); // 東経
       const latitude = parseFloat(latitudeStr); // 北緯
 
       if (isNaN(latitude) || isNaN(longitude)) {
-        console.warn(`無効な座標: lng=${longitudeStr}, lat=${latitudeStr}`);
         return null;
       }
 
@@ -391,14 +394,23 @@ export const samplePOIs: POI[] = [
   },
 ];
 
-// POI データを取得する関数（実際のAPIとフォールバックを組み合わせ）
+// POI データを取得する関数（キャッシュとフォールバックを組み合わせ）
 export const fetchPOIs = async (): Promise<POI[]> => {
+  const CACHE_KEY = "all_pois"; // まずキャッシュから取得を試行
+  const cachedPOIs = cacheService.getTyped(CACHE_KEY, isPOIArray);
+  if (cachedPOIs) {
+    console.log(`キャッシュから${String(cachedPOIs.length)}件のPOIを取得しました`);
+    return cachedPOIs;
+  }
+
   try {
     // 実際のGoogle Sheets APIからデータを取得を試行
     const pois = await sheetsService.fetchAllPOIs();
 
     if (pois.length > 0) {
       console.log(`Sheets APIから${String(pois.length)}件のPOIを取得しました`);
+      // 成功時はキャッシュに保存（5分間）
+      cacheService.set(CACHE_KEY, pois, 5 * 60 * 1000);
       return pois;
     } else {
       console.warn("Sheets APIからデータを取得できませんでした。サンプルデータを使用します。");

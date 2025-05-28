@@ -44,23 +44,87 @@
 }
 
 .loading {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e4a8c 100%);
 }
 
-.loading h1 {
-  color: #2c5aa0;
-  margin-bottom: 1rem;
-  font-size: 2.5rem;
+.loading-content {
+  text-align: center;
+  color: white;
 }
 
-.loading p {
-  color: #6c757d;
+.loading-title-image {
+  max-width: 300px;
+  width: 80%;
+  height: auto;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* マップローディングオーバーレイ */
+.map-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(44, 90, 160, 0.95);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.map-loading-content {
+  text-align: center;
+  color: white;
+}
+
+.map-loading-title-image {
+  max-width: 250px;
+  width: 70%;
+  height: auto;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ローディングスピナー */
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  margin: 1rem auto;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading p,
+.map-loading-content p {
+  margin: 1rem 0 0 0;
   font-size: 1.1rem;
+  opacity: 0.9;
 }
 
 /* レスポンシブデザイン */
@@ -76,5 +140,37 @@
   .map-container {
     margin: 0.5rem;
     min-height: 500px;
+  }
+
+  .loading-title-image {
+    max-width: 250px;
+    width: 90%;
+  }
+
+  .map-loading-title-image {
+    max-width: 200px;
+    width: 80%;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .loading-title-image {
+    max-width: 200px;
+    width: 95%;
+  }
+
+  .map-loading-title-image {
+    max-width: 150px;
+    width: 85%;
+  }
+
+  .loading p,
+  .map-loading-content p {
+    font-size: 1rem;
   }
 }
