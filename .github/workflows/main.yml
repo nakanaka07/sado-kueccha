@@ -91,26 +91,42 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-          run_install: false
-
-      # Node.jsのセットアップ（改良されたキャッシュ戦略）
+          run_install: false # Node.jsのセットアップ（改良されたキャッシュ戦略）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
-          cache-dependency-path: "pnpm-lock.yaml" # pnpmストアのキャッシュ（追加の最適化）
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      # pnpmストアのキャッシュ（安全な設定）
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+        continue-on-error: true
+
+      # ビルドキャッシュ（ディレクトリ作成後）
+      - name: Create cache directories
+        run: |
+          mkdir -p node_modules/.cache
+          mkdir -p .vite
+
+      - name: Setup build cache
+        uses: actions/cache@v4
+        with:
+          path: |
             node_modules/.cache
             .vite
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-build-cache-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-
-            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-build-cache-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-cache-
+        continue-on-error: true
 
       - name: Configure pnpm store
         run: pnpm config set store-dir ~/.pnpm-store
