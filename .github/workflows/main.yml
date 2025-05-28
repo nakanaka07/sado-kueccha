@@ -127,18 +127,21 @@ jobs:
           echo "Checking environment variables..."
           echo "NODE_ENV: $NODE_ENV"
           echo "CI: $CI"
+          echo "VITE_BASE_PATH: $VITE_BASE_PATH"
           [ -n "$VITE_GOOGLE_MAPS_API_KEY" ] && echo "✅ VITE_GOOGLE_MAPS_API_KEY is set" || echo "❌ VITE_GOOGLE_MAPS_API_KEY is missing"
           [ -n "$VITE_EMAILJS_SERVICE_ID" ] && echo "✅ VITE_EMAILJS_SERVICE_ID is set" || echo "❌ VITE_EMAILJS_SERVICE_ID is missing"
+          [ -n "$VITE_BASE_PATH" ] && echo "✅ VITE_BASE_PATH is set" || echo "❌ VITE_BASE_PATH is missing"
         env:
           CI: true
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
-          NODE_ENV: production
-
-      # アプリケーションのビルド（改良された設定）
+          NODE_ENV: production# アプリケーションのビルド（改良された設定）
       - name: Build application
         run: |
           echo "Starting build process..."
+          echo "Repository name: ${{ github.event.repository.name }}"
+          echo "Base path: /${{ github.event.repository.name }}/"
           pnpm build
           echo "Build process completed"
           echo "Checking build output..."
@@ -155,6 +158,7 @@ jobs:
           fi
         env:
           CI: true
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
           VITE_GOOGLE_SHEETS_API_KEY: ${{ secrets.VITE_GOOGLE_SHEETS_API_KEY }}

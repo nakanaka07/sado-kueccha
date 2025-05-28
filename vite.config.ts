@@ -20,6 +20,23 @@ export default defineConfig(({ mode }: ConfigEnv) => {
 
   const isProduction = mode === "production" || process.env.CI === "true";
 
+  // GitHub Pages用のベースパス設定
+  const getBasePath = () => {
+    // 環境変数が設定されている場合はそれを使用
+    if (env.VITE_BASE_PATH) {
+      return env.VITE_BASE_PATH;
+    }
+
+    // GitHub Actionsの場合、リポジトリ名をベースパスとして使用
+    if (process.env.CI === "true" && process.env.GITHUB_REPOSITORY) {
+      const repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
+      return `/${repoName}/`;
+    }
+
+    // デフォルト
+    return "/";
+  };
+
   return {
     plugins: [
       reactSWC(),
@@ -35,7 +52,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           ]
         : []),
     ],
-    base: env.VITE_BASE_PATH || "/",
+    base: getBasePath(),
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
