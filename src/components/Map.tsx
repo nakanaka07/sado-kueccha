@@ -1,5 +1,5 @@
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchPOIs } from "../services/sheets";
 import type { POI } from "../types/google-maps";
 import { InfoWindow } from "./InfoWindow";
@@ -57,14 +57,18 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
 
     void loadPOIs();
   }, [onMapLoaded]);
-  const handleMarkerClick = (poi: POI) => {
+  const handleMarkerClick = useCallback((poi: POI) => {
     console.log("マーカーがクリックされました:", poi);
     setSelectedPoi(poi);
-  };
+  }, []);
 
-  const handleInfoWindowClose = () => {
+  const handleInfoWindowClose = useCallback(() => {
     setSelectedPoi(null);
-  };
+  }, []);
+  // パフォーマンス監視用のコールバック
+  const handleMapLoad = useCallback(() => {
+    console.log("Maps API loaded successfully");
+  }, []);
 
   if (loading) {
     return (
@@ -76,7 +80,14 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
 
   return (
     <div className={className}>
-      <APIProvider apiKey={apiKey}>
+      {" "}
+      <APIProvider
+        apiKey={apiKey}
+        libraries={["marker"]}
+        language="ja"
+        region="JP"
+        onLoad={handleMapLoad}
+      >
         <Map
           // ★重要★ defaultZoom/defaultCenter を使用（Uncontrolledモード）
           // zoom/center を使うとControlledモードになりユーザー操作が無効になる
@@ -88,6 +99,8 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
           disableDefaultUI={false} // ズーム・パンコントロールを表示
           clickableIcons={true} // 地図上のアイコンをクリック可能
           style={{ width: "100%", height: "100%" }}
+          // パフォーマンス最適化
+          reuseMaps={true}
         >
           <MarkerCluster pois={pois} onMarkerClick={handleMarkerClick} />
           {selectedPoi && <InfoWindow poi={selectedPoi} onClose={handleInfoWindowClose} />}

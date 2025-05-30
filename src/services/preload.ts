@@ -38,8 +38,7 @@ export class PreloadService {
 
     await Promise.allSettled(promises);
   }
-
-  // Google Maps APIスクリプトをプリロードする
+  // Google Maps APIスクリプトをプリロードする（最適化版）
   preloadGoogleMapsAPI(apiKey: string): void {
     const scriptId = "google-maps-api";
     if (document.getElementById(scriptId)) {
@@ -48,10 +47,18 @@ export class PreloadService {
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
+    // パフォーマンス最適化: loading=async パラメータを追加
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&language=ja&region=JP`;
     script.async = true;
     script.defer = true;
+
+    // エラーハンドリングを追加
+    script.onerror = () => {
+      console.warn("Google Maps API preload failed");
+    };
+
     document.head.appendChild(script);
+    this.preloadedResources.add("google-maps-api");
   }
 
   isPreloaded(resource: string): boolean {
