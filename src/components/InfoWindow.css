@@ -1,141 +1,151 @@
 /* InfoWindow スタイル */
 .info-window {
-  padding: 16px;
+  padding: var(--spacing-md);
   max-width: 280px;
-  font-family:
-    'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', 'Meiryo', 'メイリオ',
-    sans-serif;
-  color: #333;
+  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+  color: var(--color-text-primary);
   line-height: 1.5;
+  background-color: var(--color-background-primary);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-medium);
 }
 
 .info-window-header {
-  margin-bottom: 12px;
-  border-bottom: 2px solid #e6f3ff;
-  padding-bottom: 8px;
+  margin-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--color-primary-blue);
+  padding-bottom: var(--spacing-sm);
 }
 
 .info-window-title {
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--spacing-xs) 0;
   font-size: 18px;
   font-weight: bold;
-  color: #1976d2;
+  color: var(--color-primary-red);
 }
 
 .info-window-genre {
   display: inline-block;
-  background-color: #2196f3;
+  background: var(--gradient-warm);
   color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-rounded);
   font-size: 12px;
   font-weight: 500;
+  box-shadow: var(--shadow-light);
 }
 
 .info-window-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .info-window-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xs);
 }
 
 .field-label {
   font-size: 12px;
   font-weight: bold;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .field-value {
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .business-hours {
-  margin-top: 4px;
+  margin-top: var(--spacing-xs);
 }
 
 .hours-row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  margin-bottom: 2px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .day {
   font-weight: 500;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .hours {
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .info-window-features {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 8px 0;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
 }
 
 .feature-badge {
   display: flex;
   align-items: center;
   font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 16px;
-  background-color: #f5f5f5;
-  color: #333;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-rounded);
+  background-color: var(--color-background-light);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
 }
 
 .feature-badge.parking {
-  background-color: #e8f5e8;
-  color: #2e7d32;
+  background-color: rgba(0, 123, 67, 0.1);
+  color: var(--color-primary-green);
+  border: 1px solid var(--color-primary-green);
 }
 
 .feature-badge.cashless {
-  background-color: #fff3e0;
-  color: #f57c00;
+  background-color: rgba(217, 166, 46, 0.1);
+  color: var(--color-primary-gold);
+  border: 1px solid var(--color-primary-gold);
 }
 
 .contact-link {
-  color: #1976d2;
+  color: var(--color-primary-blue);
   text-decoration: none;
   font-weight: 500;
+  transition: color var(--transition-normal);
 }
 
 .contact-link:hover {
+  color: var(--color-primary-purple);
   text-decoration: underline;
 }
 
 .info-window-actions {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-text-light);
 }
 
 .maps-link {
   display: inline-flex;
   align-items: center;
-  color: #1976d2;
+  color: var(--color-primary-blue);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  padding: 6px 12px;
-  border: 1px solid #1976d2;
-  border-radius: 20px;
-  background-color: white;
-  transition: all 0.2s ease;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-primary-blue);
+  border-radius: var(--radius-rounded);
+  background-color: var(--color-background-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-light);
 }
 
 .maps-link:hover {
-  background-color: #1976d2;
+  background: var(--gradient-primary);
   color: white;
   text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
 }
 
 /* レスポンシブ対応 */

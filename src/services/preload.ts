@@ -9,34 +9,57 @@ export class PreloadService {
     }
     return PreloadService.instance;
   }
-
   // 画像をプリロードする
   async preloadImage(src: string): Promise<void> {
     if (this.preloadedResources.has(src)) {
+      console.log(`⚡ Image already preloaded: ${src}`);
       return Promise.resolve();
     }
 
+    const startTime = performance.now();
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
+        const endTime = performance.now();
+        console.log(
+          `🖼️ Image preloaded in ${Math.round(endTime - startTime).toString()}ms: ${src}`,
+        );
         this.preloadedResources.add(src);
         resolve();
       };
       img.onerror = () => {
+        const endTime = performance.now();
+        console.warn(
+          `❌ Image preload failed after ${Math.round(endTime - startTime).toString()}ms: ${src}`,
+        );
         reject(new Error(`Failed to preload image: ${src}`));
       };
       img.src = src;
     });
-  }
-  // 複数の画像を並行してプリロードする
+  } // 複数の画像を並行してプリロードする（最適化版）
   async preloadImages(sources: string[]): Promise<void> {
-    const promises = sources.map((src) =>
+    // 既にプリロード済みの画像は除外
+    const unloadedSources = sources.filter((src) => !this.preloadedResources.has(src));
+
+    if (unloadedSources.length === 0) {
+      console.log("⚡ All images already preloaded");
+      return;
+    }
+
+    console.log(`📸 Preloading ${unloadedSources.length.toString()} images...`);
+
+    const promises = unloadedSources.map((src) =>
       this.preloadImage(src).catch((error: unknown) => {
         console.warn(`Image preload failed for ${src}:`, error);
+        return null; // 失敗したものはnullを返す
       }),
     );
 
-    await Promise.allSettled(promises);
+    const results = await Promise.allSettled(promises);
+    const successCount = results.filter((result) => result.status === "fulfilled").length;
+    console.log(
+      `✅ Successfully preloaded ${successCount.toString()}/${unloadedSources.length.toString()} images`,
+    );
   }
   // Google Maps APIスクリプトをプリロードする（最適化版）
   preloadGoogleMapsAPI(apiKey: string): void {

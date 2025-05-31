@@ -132,19 +132,26 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           manualChunks: {
             vendor: ["react", "react-dom"],
             maps: ["@vis.gl/react-google-maps"],
-            sheets: ["src/services/sheets.ts"],
+            sheets: ["google-spreadsheet", "googleapis"],
+            utils: ["src/services/cache.ts", "src/services/preload.ts"],
           },
           // ファイル名にハッシュを追加してキャッシュ最適化
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
           assetFileNames: "assets/[name]-[hash].[ext]",
         },
+        // パフォーマンス最適化: 不要なモジュールを外部化
+        external: isProduction ? [] : [],
       },
     },
     optimizeDeps: {
-      // 依存関係の事前バンドル設定
-      include: ["react", "react-dom"],
+      // 依存関係の事前バンドル設定を最適化
+      include: ["react", "react-dom", "@vis.gl/react-google-maps", "google-spreadsheet"],
       exclude: [],
+      // 最適化対象外のファイルサイズ制限を調整
+      esbuildOptions: {
+        target: "es2022",
+      },
     },
     test: {
       // Vitestの設定

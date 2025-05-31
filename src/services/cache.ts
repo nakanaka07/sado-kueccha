@@ -7,7 +7,7 @@ interface CacheEntry {
 
 class CacheService {
   private cache = new Map<string, CacheEntry>();
-  private readonly DEFAULT_EXPIRY = 5 * 60 * 1000; // 5分間
+  private readonly DEFAULT_EXPIRY = 15 * 60 * 1000; // 15分間に延長（パフォーマンス向上）
 
   set(key: string, data: unknown, expiryMs: number = this.DEFAULT_EXPIRY): void {
     const entry: CacheEntry = {

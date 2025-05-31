@@ -26,7 +26,7 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
 
           {poi.description && (
             <div className="info-window-field">
-              <span className="field-label">説明:</span>
+              <span className="field-label">関連情報（SNS等）:</span>
               <span className="field-value">{poi.description}</span>
             </div>
           )}

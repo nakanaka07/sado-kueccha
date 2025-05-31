@@ -1,5 +1,5 @@
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchPOIs } from "../services/sheets";
 import type { POI } from "../types/google-maps";
 import { InfoWindow } from "./InfoWindow";
@@ -27,7 +27,7 @@ import { MarkerCluster } from "./MarkerCluster";
  *    - 大量マーカーはクラスタリング使用
  */
 
-// 佐渡島の中心座標
+// 佐渡島の中心座標（定数として外部に出して再計算を防止）
 const SADO_CENTER = { lat: 38.0549, lng: 138.3691 };
 
 interface MapComponentProps {
@@ -39,24 +39,43 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
-  const apiKey = import.meta.env["VITE_GOOGLE_MAPS_API_KEY"];
+  const [mapReady, setMapReady] = useState(false);
+
+  // APIキーをメモ化して無駄な再計算を防止
+  const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
 
   useEffect(() => {
     const loadPOIs = async () => {
       try {
+        console.log("📊 Starting POI data fetch...");
+        const startTime = performance.now();
+
         const data = await fetchPOIs();
         setPois(data);
+
+        const endTime = performance.now();
+        console.log(
+          `✅ POI data loaded in ${Math.round(endTime - startTime).toString()}ms (${data.length.toString()} items)`,
+        );
       } catch (error) {
         console.error("POIデータの取得に失敗しました:", error);
       } finally {
         setLoading(false);
-        // POIの読み込みが完了したらコールバックを呼び出し
-        onMapLoaded?.();
       }
     };
 
     void loadPOIs();
-  }, [onMapLoaded]);
+  }, []);
+
+  // POIデータとマップの両方が準備完了したときに即座にコールバックを呼び出し
+  useEffect(() => {
+    if (!loading && mapReady && onMapLoaded) {
+      console.log("🎯 Both POI data and map are ready, triggering callback immediately");
+      // 無駄な待機時間を削除し、即座にコールバックを呼び出し
+      onMapLoaded();
+    }
+  }, [loading, mapReady, onMapLoaded]);
+
   const handleMarkerClick = useCallback((poi: POI) => {
     console.log("マーカーがクリックされました:", poi);
     setSelectedPoi(poi);
@@ -65,10 +84,20 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const handleInfoWindowClose = useCallback(() => {
     setSelectedPoi(null);
   }, []);
-  // パフォーマンス監視用のコールバック
+
+  // Google Maps API と Map コンポーネントの読み込み完了を検出
   const handleMapLoad = useCallback(() => {
     console.log("Maps API loaded successfully");
+    setMapReady(true);
   }, []);
+
+  // Map インスタンスの準備完了を検出
+  const handleMapIdle = useCallback(() => {
+    console.log("Map is ready and idle");
+    setMapReady(true);
+  }, []);
+  // ライブラリ配列をメモ化してAPIProviderの不要な再レンダリングを防止
+  const libraries = useMemo(() => ["marker"], []);
 
   if (loading) {
     return (
@@ -77,13 +106,11 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
       </div>
     );
   }
-
   return (
     <div className={className}>
-      {" "}
       <APIProvider
         apiKey={apiKey}
-        libraries={["marker"]}
+        libraries={libraries}
         language="ja"
         region="JP"
         onLoad={handleMapLoad}
@@ -101,6 +128,8 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
           style={{ width: "100%", height: "100%" }}
           // パフォーマンス最適化
           reuseMaps={true}
+          // マップの準備完了を検出
+          onIdle={handleMapIdle}
         >
           <MarkerCluster pois={pois} onMarkerClick={handleMarkerClick} />
           {selectedPoi && <InfoWindow poi={selectedPoi} onClose={handleInfoWindowClose} />}
