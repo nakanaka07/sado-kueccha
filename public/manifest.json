@@ -2,12 +2,12 @@
   "name": "佐渡で食えっちゃ - 佐渡島グルメマップ",
   "short_name": "佐渡で食えっちゃ",
   "description": "佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ",
-  "start_url": "/",
+  "start_url": "/sado-kueccha/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#d7003a",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/sado-kueccha/",
   "lang": "ja",
   "icons": [
     {
@@ -29,7 +29,7 @@
       "name": "マップを開く",
       "short_name": "マップ",
       "description": "佐渡島グルメマップを直接開く",
-      "url": "/",
+      "url": "/sado-kueccha/",
       "icons": [
         {
           "src": "./assets/title_row2.png",

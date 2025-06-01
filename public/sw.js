@@ -2,10 +2,11 @@
 // キャッシュ戦略: ネットワーク優先、フォールバックでキャッシュ
 
 const CACHE_NAME = "sado-kueccha-v1";
+const BASE_PATH = self.location.pathname.includes("/sado-kueccha/") ? "/sado-kueccha" : "";
 const STATIC_ASSETS = [
-  "/",
-  "/index.html",
-  "/assets/title_row2.png",
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/assets/title_row2.png`,
   // Note: Viteバンドル後のファイルは動的に生成されるため、
   // 実際のハッシュ付きファイル名はruntime時に決定されます
 ];
@@ -15,12 +16,21 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => {
+      .then(async (cache) => {
         console.log("Caching static assets");
-        return cache.addAll(STATIC_ASSETS);
+        // 各アセットを個別にキャッシュして、エラーを避ける
+        const cachePromises = STATIC_ASSETS.map(async (asset) => {
+          try {
+            await cache.add(asset);
+            console.log(`Successfully cached: ${asset}`);
+          } catch (error) {
+            console.warn(`Failed to cache asset: ${asset}`, error);
+          }
+        });
+        await Promise.all(cachePromises);
       })
       .catch((error) => {
-        console.error("Failed to cache static assets:", error);
+        console.error("Failed to open cache:", error);
       }),
   );
   self.skipWaiting();
