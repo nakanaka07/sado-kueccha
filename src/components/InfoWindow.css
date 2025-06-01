@@ -61,6 +61,73 @@
   margin-top: var(--spacing-xs);
 }
 
+/* 現在の営業状態表示 */
+.current-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-small);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.current-status.open {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #059669;
+}
+
+.current-status.closed {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.status-icon {
+  font-size: 12px;
+}
+
+.status-text {
+  font-weight: bold;
+}
+
+.today-hours {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* 営業時間詳細表示 */
+.hours-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.hours-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-small);
+  border-left: 3px solid var(--color-primary-blue);
+}
+
+.days {
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  min-width: 60px;
+}
+
+.hours {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
 .hours-row {
   display: flex;
   justify-content: space-between;
@@ -71,10 +138,6 @@
 .day {
   font-weight: 500;
   color: var(--color-text-secondary);
-}
-
-.hours {
-  color: var(--color-text-primary);
 }
 
 .info-window-features {
@@ -107,11 +170,23 @@
   border: 1px solid var(--color-primary-gold);
 }
 
+/* 共通リンクスタイル */
+.link-base {
+  color: var(--color-primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.link-base:hover {
+  text-decoration: underline;
+}
+
 .contact-link {
   color: var(--color-primary-blue);
   text-decoration: none;
   font-weight: 500;
-  transition: color var(--transition-normal);
+  transition: all var(--transition-normal);
 }
 
 .contact-link:hover {
@@ -123,6 +198,29 @@
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-text-light);
+}
+
+/* アクションリンク共通スタイル */
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-primary-blue);
+  border-radius: var(--radius-rounded);
+  background-color: var(--color-background-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-light);
+}
+
+.action-link:hover {
+  background: var(--gradient-primary);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
 }
 
 .maps-link {

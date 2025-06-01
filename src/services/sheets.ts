@@ -19,7 +19,30 @@ class SheetsService {
   private apiKey: string;
   private spreadsheetId: string;
   private sheetConfigs: Array<{ name: string; gid: string }>;
-  private sheetNameMap: Map<string, string>;
+
+  // 列のマッピング定数（AB〜AX範囲で0-indexed）
+  private readonly COLUMNS = {
+    DISTRICT: 0, // AB列: 地区（入力）
+    COORDINATES: 4, // AF列: 座標（経度,緯度）
+    NAME: 5, // AG列: 名称
+    GENRE: 6, // AH列: ジャンル
+    CATEGORY: 7, // AI列: カテゴリー
+    PARKING: 8, // AJ列: 駐車場情報
+    CASHLESS: 9, // AK列: キャッシュレス
+    MONDAY: 10, // AL列: 月曜
+    TUESDAY: 11, // AM列: 火曜
+    WEDNESDAY: 12, // AN列: 水曜
+    THURSDAY: 13, // AO列: 木曜
+    FRIDAY: 14, // AP列: 金曜
+    SATURDAY: 15, // AQ列: 土曜
+    SUNDAY: 16, // AR列: 日曜
+    HOLIDAY: 17, // AS列: 祝祭
+    CLOSED_DAYS: 18, // AT列: 定休日について
+    RELATED_INFO: 19, // AU列: 関連情報
+    GOOGLE_MAPS: 20, // AV列: Google マップで見る
+    CONTACT: 21, // AW列: 問い合わせ
+    ADDRESS: 22, // AX列: 所在地
+  } as const;
 
   constructor() {
     this.apiKey = String(
@@ -27,7 +50,9 @@ class SheetsService {
         import.meta.env["VITE_GOOGLE_MAPS_API_KEY"] ||
         "",
     );
-    this.spreadsheetId = String(import.meta.env["VITE_GOOGLE_SPREADSHEET_ID"] || ""); // .envからシート設定を読み込み
+    this.spreadsheetId = String(import.meta.env["VITE_GOOGLE_SPREADSHEET_ID"] || "");
+
+    // .envからシート設定を読み込み
     this.sheetConfigs = [
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RECOMMENDED"] || ""),
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RYOTSU_AIKAWA"] || ""),
@@ -37,48 +62,15 @@ class SheetsService {
       this.parseSheetConfig(import.meta.env["VITE_SHEET_TOILET"] || ""),
       this.parseSheetConfig(import.meta.env["VITE_SHEET_PARKING"] || ""),
     ].filter((config): config is { name: string; gid: string } => config !== null);
-
-    // シート名のマッピング（英語名から日本語名への変換）
-    this.sheetNameMap = new Map([
-      ["recommended", "おすすめ"],
-      ["ryotsu_aikawa", "両津・相川地区"],
-      ["kanai_sawada", "金井・佐和田・新穂・畑野・真野地区"],
-      ["akadomari_hamochi", "赤泊・羽茂・小木地区"],
-      ["snack", "スナック"],
-      ["toilet", "公共トイレ"],
-      ["parking", "駐車場"],
-    ]);
-  }
-  // シート設定文字列を解析（例: "おすすめ:1043711248"）
+  } // シート設定文字列を解析（例: "おすすめ:1043711248"）
   private parseSheetConfig(configStr: string): { name: string; gid: string } | null {
     if (!configStr) return null;
     const [name, gid] = configStr.split(":");
     return name && gid ? { name: name.trim(), gid: gid.trim() } : null;
   }
-  // シート名の解決（英語名または日本語名を受け取り、日本語名を返す）
-  private resolveSheetName(inputName: string): string {
-    // 英語名から日本語名への変換を試行
-    const mappedName = this.sheetNameMap.get(inputName);
-    if (mappedName) {
-      return mappedName;
-    }
-    // 日本語名の場合はそのまま返す
-    return inputName;
-  }
 
-  // 設定から英語キーを取得（設定検索用）
-  private getConfigKey(sheetName: string): string {
-    // 日本語名から英語キーを逆引きする
-    for (const [englishKey, japaneseName] of this.sheetNameMap.entries()) {
-      if (japaneseName === sheetName) {
-        return englishKey;
-      }
-    }
-    // 英語キーの場合はそのまま返す
-    return sheetName;
-  } // スプレッドシートからデータを取得（まずCSV形式を試し、失敗したらAPI形式を試す）
+  // スプレッドシートからデータを取得（CSV形式とAPI形式の統合）
   async fetchSheetData(sheetName: string, range: string): Promise<string[][]> {
-    // 最初にCSV形式で取得を試行（公開スプレッドシートの場合はこれで動作する）
     try {
       return await this.fetchSheetDataAsCSV(sheetName);
     } catch (csvError) {
@@ -91,39 +83,28 @@ class SheetsService {
       throw new Error("スプレッドシートIDが設定されていません。");
     }
 
-    // シート名を解決（英語名→日本語名）
-    const resolvedSheetName = this.resolveSheetName(sheetName);
-
-    // 設定検索用のキーを取得（英語キー）
-    const configKey = this.getConfigKey(resolvedSheetName);
-
-    // 設定から対応するGIDを取得（英語キーで検索）
-    const sheetConfig = this.sheetConfigs.find((config) => config.name === configKey);
+    // 設定から対応するGIDを取得
+    const sheetConfig = this.sheetConfigs.find((config) => config.name === sheetName);
     if (!sheetConfig) {
       console.warn(
         `利用可能な設定:`,
         this.sheetConfigs.map((c) => c.name),
       );
-      throw new Error(`シート "${configKey}" (${resolvedSheetName}) の設定が見つかりません。`);
+      throw new Error(`シート "${sheetName}" の設定が見つかりません。`);
     }
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
-    try {
-      const response = await fetch(csvUrl);
 
-      if (!response.ok) {
-        throw new Error(`CSV取得失敗: ${response.status.toString()} ${response.statusText}`);
-      }
-      const csvText = await response.text();
-      const data: string[][] = this.parseCSV(csvText); // ヘッダー行をスキップ（A2:Z1000の範囲に合わせる）
-      return data.slice(1); // ヘッダー行をスキップ
-    } catch (error) {
-      console.error(`CSV取得エラー:`, error);
-      throw error;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
+    const response = await fetch(csvUrl);
+
+    if (!response.ok) {
+      throw new Error(`CSV取得失敗: ${response.status.toString()} ${response.statusText}`);
     }
-  }
-  // API形式でスプレッドシートからデータを取得（従来の方法）
+
+    const csvText = await response.text();
+    const data: string[][] = this.parseCSV(csvText);
+    return data.slice(1); // ヘッダー行をスキップ
+  } // API形式でスプレッドシートからデータを取得（従来の方法）
   private async fetchSheetDataViaAPI(sheetName: string, range: string): Promise<string[][]> {
-    // APIキーとスプレッドシートIDのチェック
     if (!this.apiKey) {
       throw new Error(
         "Google Sheets APIキーが設定されていません。環境変数 VITE_GOOGLE_SHEETS_API_KEY または VITE_GOOGLE_MAPS_API_KEY を設定してください。",
@@ -134,82 +115,70 @@ class SheetsService {
       throw new Error(
         "スプレッドシートIDが設定されていません。環境変数 VITE_GOOGLE_SPREADSHEET_ID を設定してください。",
       );
-    } // シート名を解決（英語名→日本語名）
-    const resolvedSheetName = this.resolveSheetName(sheetName);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(resolvedSheetName)}!${range}?key=${this.apiKey}`;
-    try {
-      const response = await fetch(url);
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`API呼び出し失敗:`, {
-          status: response.status,
-          statusText: response.statusText,
-          url: url.replace(this.apiKey, "[HIDDEN]"),
-          errorResponse: errorText,
-        });
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${this.apiKey}`;
+    const response = await fetch(url);
 
-        if (response.status === 403) {
-          throw new Error(`Google Sheets APIへのアクセスが拒否されました（403）。
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API呼び出し失敗:`, {
+        status: response.status,
+        statusText: response.statusText,
+        url: url.replace(this.apiKey, "[HIDDEN]"),
+        errorResponse: errorText,
+      });
+
+      if (response.status === 403) {
+        throw new Error(`Google Sheets APIへのアクセスが拒否されました（403）。
 考えられる原因：
 1. APIキーにGoogle Sheets APIの権限がない
 2. スプレッドシートが非公開設定になっている
 3. Google Cloud ConsoleでSheets APIが有効になっていない
 スプレッドシートを「リンクを知っている全員が閲覧可能」に設定するか、適切なAPIキーを使用してください。`);
-        }
-
-        throw new Error(`HTTP error! status: ${response.status.toString()}`);
       }
-      const data = (await response.json()) as { values?: string[][] };
-      return data.values || [];
-    } catch (error) {
-      console.error("Sheets API呼び出しエラー:", error);
-      throw error;
+
+      throw new Error(`HTTP error! status: ${response.status.toString()}`);
     }
-  }
-  // 生データをPOI形式に変換
+
+    const data = (await response.json()) as { values?: string[][] };
+    return data.values || [];
+  } // 生データをPOI形式に変換
   private convertToPOI(row: string[], id: string): POI | null {
     try {
-      // 実際の列構成（AB〜AXの範囲で0-indexedの配列）:
-      // AB列(0): 地区（入力）, AF列(4): 座標（経度,緯度）, AG列(5): 名称, AH列(6): ジャンル, AI列(7): カテゴリー
-      // AJ列(8): 駐車場情報, AK列(9): キャッシュレス, AL列(10): 月曜, AM列(11): 火曜, AN列(12): 水曜, AO列(13): 木曜, AP列(14): 金曜
-      // AQ列(15): 土曜, AR列(16): 日曜, AS列(17): 祝祭, AT列(18): 定休日について, AU列(19): 関連情報, AV列(20): Google マップで見る
-      // AW列(21): 問い合わせ, AX列(22): 所在地
-
-      // AB〜AX範囲での列番号（0-indexed）
-      const district = row[0] || ""; // AB列: 地区（入力）
-      const coordinates = row[4] || ""; // AF列: 座標（経度,緯度）
-      const name = row[5] || ""; // AG列: 名称
-      const genre = row[6] || ""; // AH列: ジャンル
-      const category = row[7] || ""; // AI列: カテゴリー
-      const parking = row[8] || ""; // AJ列: 駐車場情報
-      const cashless = row[9] || ""; // AK列: キャッシュレス
-      const monday = row[10] || ""; // AL列: 月曜
-      const tuesday = row[11] || ""; // AM列: 火曜
-      const wednesday = row[12] || ""; // AN列: 水曜
-      const thursday = row[13] || ""; // AO列: 木曜
-      const friday = row[14] || ""; // AP列: 金曜
-      const saturday = row[15] || ""; // AQ列: 土曜
-      const sunday = row[16] || ""; // AR列: 日曜
-      const holiday = row[17] || ""; // AS列: 祝祭
-      const closedDays = row[18] || ""; // AT列: 定休日について
-      const relatedInfo = row[19] || ""; // AU列: 関連情報
-      const googleMapsUrl = row[20] || ""; // AV列: Google マップで見る
-      const contact = row[21] || ""; // AW列: 問い合わせ
-      const address = row[22] || ""; // AX列: 所在地
-
-      // 必須フィールドのチェック
+      // 列定数を使用してデータを取得
+      const district = row[this.COLUMNS.DISTRICT] || "";
+      const coordinates = row[this.COLUMNS.COORDINATES] || "";
+      const name = row[this.COLUMNS.NAME] || "";
+      const genre = row[this.COLUMNS.GENRE] || "";
+      const category = row[this.COLUMNS.CATEGORY] || "";
+      const parking = row[this.COLUMNS.PARKING] || "";
+      const cashless = row[this.COLUMNS.CASHLESS] || "";
+      const monday = row[this.COLUMNS.MONDAY] || "";
+      const tuesday = row[this.COLUMNS.TUESDAY] || "";
+      const wednesday = row[this.COLUMNS.WEDNESDAY] || "";
+      const thursday = row[this.COLUMNS.THURSDAY] || "";
+      const friday = row[this.COLUMNS.FRIDAY] || "";
+      const saturday = row[this.COLUMNS.SATURDAY] || "";
+      const sunday = row[this.COLUMNS.SUNDAY] || "";
+      const holiday = row[this.COLUMNS.HOLIDAY] || "";
+      const closedDays = row[this.COLUMNS.CLOSED_DAYS] || "";
+      const relatedInfo = row[this.COLUMNS.RELATED_INFO] || "";
+      const googleMapsUrl = row[this.COLUMNS.GOOGLE_MAPS] || "";
+      const contact = row[this.COLUMNS.CONTACT] || "";
+      const address = row[this.COLUMNS.ADDRESS] || ""; // 必須フィールドのチェック
       if (!name.trim() || !coordinates.trim()) {
         return null;
-      } // AF列の座標データを解析（経度,緯度 形式）
-      const coordParts = coordinates.split(",");
-      if (coordParts.length !== 2 || !coordParts[0] || !coordParts[1]) {
+      }
+
+      // 座標データを解析（経度,緯度 形式）
+      const [longitudeStr, latitudeStr] = coordinates.split(",");
+      if (!longitudeStr || !latitudeStr) {
         return null;
       }
-      const longitudeStr = coordParts[0].trim();
-      const latitudeStr = coordParts[1].trim();
-      const longitude = parseFloat(longitudeStr); // 東経
-      const latitude = parseFloat(latitudeStr); // 北緯
+
+      const longitude = parseFloat(longitudeStr.trim()); // 東経
+      const latitude = parseFloat(latitudeStr.trim()); // 北緯
 
       if (isNaN(latitude) || isNaN(longitude)) {
         return null;
@@ -253,24 +222,22 @@ class SheetsService {
           cashlessValue === "yes" ||
           cashlessValue === "可" ||
           cashlessValue === "あり";
-      }
+      } // 営業時間の処理（曜日別情報を個別に保存）
+      const businessHours: Record<string, string> = {};
 
-      // 営業時間の処理（曜日別情報を統合）
-      const businessHoursData: string[] = [];
-      if (monday.trim()) businessHoursData.push(`月: ${monday.trim()}`);
-      if (tuesday.trim()) businessHoursData.push(`火: ${tuesday.trim()}`);
-      if (wednesday.trim()) businessHoursData.push(`水: ${wednesday.trim()}`);
-      if (thursday.trim()) businessHoursData.push(`木: ${thursday.trim()}`);
-      if (friday.trim()) businessHoursData.push(`金: ${friday.trim()}`);
-      if (saturday.trim()) businessHoursData.push(`土: ${saturday.trim()}`);
-      if (sunday.trim()) businessHoursData.push(`日: ${sunday.trim()}`);
-      if (holiday.trim()) businessHoursData.push(`祝: ${holiday.trim()}`);
-      if (closedDays.trim()) businessHoursData.push(`定休日: ${closedDays.trim()}`);
+      if (monday.trim()) businessHours["月"] = monday.trim();
+      if (tuesday.trim()) businessHours["火"] = tuesday.trim();
+      if (wednesday.trim()) businessHours["水"] = wednesday.trim();
+      if (thursday.trim()) businessHours["木"] = thursday.trim();
+      if (friday.trim()) businessHours["金"] = friday.trim();
+      if (saturday.trim()) businessHours["土"] = saturday.trim();
+      if (sunday.trim()) businessHours["日"] = sunday.trim();
+      if (holiday.trim()) businessHours["祝"] = holiday.trim();
+      if (closedDays.trim()) businessHours["定休日"] = closedDays.trim();
 
-      if (businessHoursData.length > 0) {
-        poi.businessHours = {
-          general: businessHoursData.join(", "),
-        };
+      // 営業時間データが存在する場合のみ設定
+      if (Object.keys(businessHours).length > 0) {
+        poi.businessHours = businessHours;
       }
 
       // Google Maps URLの処理（スプレッドシートから提供される場合とデフォルト生成）
@@ -290,17 +257,14 @@ class SheetsService {
       console.error("POI変換エラー:", row, error);
       return null;
     }
-  }
-  // 複数シートからPOIデータを取得
+  } // 複数シートからPOIデータを取得
   async fetchAllPOIs(): Promise<POI[]> {
     const allPOIs: POI[] = [];
 
     for (const config of this.sheetConfigs) {
       try {
         const range = "AB2:AX1000"; // 必要な列（AB〜AX）のみを取得
-        // 設定の英語キーから日本語名に変換してAPIを呼び出す
-        const japaneseName = this.sheetNameMap.get(config.name) || config.name;
-        const rows = await this.fetchSheetData(japaneseName, range);
+        const rows = await this.fetchSheetData(config.name, range);
 
         rows.forEach((row, index) => {
           const poi = this.convertToPOI(row, `${config.name}-${String(index + 1)}`);
