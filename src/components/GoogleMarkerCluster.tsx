@@ -1,8 +1,9 @@
 import { AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SADO_ISLAND } from "../constants";
 import { cacheService } from "../services/cache";
 import type { ClusterablePOI, ClusterPOI, POI } from "../types/google-maps";
-import { GeoUtils, SADO_CONSTANTS } from "../utils/geo";
+import { GeoUtils } from "../utils/geo";
 import { logger } from "../utils/logger";
 import "./Map.css";
 
@@ -136,13 +137,12 @@ const clusterPOIs = (pois: POI[], zoomLevel: number = 10): ClusterablePOI[] => {
       metadata: { markers: cached.length, zoomLevel },
     });
     return cached;
-  }
-  // Disable clustering at high zoom levels
-  if (zoomLevel >= SADO_CONSTANTS.ZOOM.DISABLE_CLUSTERING) {
+  } // Disable clustering at high zoom levels
+  if (zoomLevel >= SADO_ISLAND.ZOOM.DISABLE_CLUSTERING) {
     const maxMarkers =
-      zoomLevel >= SADO_CONSTANTS.ZOOM.HIGH_THRESHOLD
-        ? SADO_CONSTANTS.MARKER_LIMITS.HIGH_ZOOM
-        : SADO_CONSTANTS.MARKER_LIMITS.NORMAL_ZOOM;
+      zoomLevel >= SADO_ISLAND.ZOOM.HIGH_THRESHOLD
+        ? SADO_ISLAND.MARKER_LIMITS.HIGH_ZOOM
+        : SADO_ISLAND.MARKER_LIMITS.NORMAL_ZOOM;
     const limitedPois = pois.length > maxMarkers ? pois.slice(0, maxMarkers) : pois;
     logger.performance(
       pois.length > maxMarkers
@@ -230,11 +230,14 @@ const getPinConfig = (isCluster: boolean, clusterSize?: number) => {
     { min: 6, background: "#FF8C00", borderColor: "#E67300", scale: 1.3 },
     { min: 2, background: "#FF6B35", borderColor: "#CC5429", scale: 1.2 },
   ];
-
   const config = configs.find((c) => clusterSize >= c.min) || configs[configs.length - 1];
+  if (!config) return null;
+  // minプロパティを除外してPinコンポーネント用の設定のみを返す
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { min, ...pinProps } = config;
 
   return {
-    ...config,
+    ...pinProps,
     glyphColor: "white",
     glyph: clusterSize.toString(),
   };

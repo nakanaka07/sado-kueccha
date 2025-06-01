@@ -1,4 +1,5 @@
 import { InfoWindow as GoogleInfoWindow } from "@vis.gl/react-google-maps";
+import type { ParsedHours } from "../types/common";
 import type { POI } from "../types/google-maps";
 import "./InfoWindow.css";
 
@@ -6,14 +7,6 @@ interface InfoWindowProps {
   poi: POI;
   onClose: () => void;
 }
-
-// 営業時間の型定義
-type ParsedHours =
-  | { type: "closed" }
-  | { type: "24h" }
-  | { type: "unknown" }
-  | { type: "multiple"; periods: Array<{ start: number; end: number }> }
-  | { type: "normal"; start: number; end: number };
 
 // 営業時間関連のユーティリティ関数
 const BusinessHoursUtils = {

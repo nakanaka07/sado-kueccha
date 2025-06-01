@@ -1,55 +1,43 @@
 {
-  /**
-   * Node.js環境用TypeScript設定
-   * Vite設定ファイル、ビルドスクリプト、開発ツール用の設定
-   */
   "compilerOptions": {
-    /* === ビルド基本設定 === */
-    "target": "ES2022", // Node.js 16+ 対応
-    "module": "ESNext", // 最新ESモジュール構文
+    "target": "ES2022",
+    "module": "ESNext",
     "lib": [
       "ES2022"
-    ], // ES2022標準ライブラリ
-    /* === モジュール解決設定 === */
-    "moduleResolution": "bundler", // Vite/Rollup用のモジュール解決
-    "moduleDetection": "force", // 全ファイルをモジュールとして扱う
-    "allowImportingTsExtensions": true, // .ts拡張子でのインポート許可
-    "verbatimModuleSyntax": true, // import/export構文の厳密チェック
-    /* === 型チェック設定 === */
-    "strict": true, // 厳格な型チェック有効
-    "isolatedModules": true, // 単一ファイル変換対応
-    "skipLibCheck": true, // ライブラリの型チェックスキップ
-    "forceConsistentCasingInFileNames": true, // ファイル名の大文字小文字統一
-    "noEmit": true, // JavaScriptファイル出力無効
-    /* === コード品質設定 === */
-    "noUnusedLocals": true, // 未使用ローカル変数の検出
-    "noUnusedParameters": true, // 未使用パラメータの検出
-    "noFallthroughCasesInSwitch": true, // switch文のフォールスルー検出
-    "noUncheckedSideEffectImports": true, // 副作用インポートの型チェック
-    "noImplicitOverride": true, // override修飾子の明示要求
-    "allowUnusedLabels": false, // 未使用ラベルを禁止
-    "allowUnreachableCode": false, // 到達不可能コードを禁止
-    /* === パフォーマンス最適化 === */
-    "incremental": true, // インクリメンタルコンパイル
+    ],
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "noImplicitOverride": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "incremental": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "assumeChangesOnlyAffectDirectDependencies": true, // 依存関係の変更影響範囲を限定
-    /* === 型定義 === */
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "types": [
       "node"
-    ] // Node.js型定義のみ含める
+    ]
   },
-  /* === 対象ファイル === */
   "include": [
-    "vite.config.ts", // Vite設定ファイル
-    "vitest.config.ts", // Vitest設定ファイル（存在する場合）
-    "eslint.config.js", // ESLint設定ファイル
-    "postcss.config.js", // PostCSS設定ファイル（存在する場合）
-    "scripts/**/*" // ビルドスクリプト（存在する場合）
+    "vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js",
+    "postcss.config.js",
+    "scripts/**/*"
   ],
-  /* === 除外ファイル === */
   "exclude": [
-    "node_modules", // 依存関係
-    "dist", // ビルド出力
-    "src/**/*" // アプリケーションコード（別のtsconfigで管理）
+    "node_modules",
+    "dist",
+    "src/**/*"
   ]
 }

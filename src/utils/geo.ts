@@ -60,35 +60,3 @@ export const GeoUtils = {
     return bounds.contains({ lat, lng });
   },
 } as const;
-
-/**
- * 佐渡島関連の地理定数
- */
-export const SADO_CONSTANTS = {
-  /** 地図中心座標 */
-  CENTER: { lat: 38.0549, lng: 138.3691 } as const,
-
-  /** ズームレベル設定 */
-  ZOOM: {
-    DEFAULT: 10,
-    MIN: 8,
-    MAX: 20,
-    MIN_CLUSTER: 15,
-    DISABLE_CLUSTERING: 16,
-    HIGH_THRESHOLD: 18,
-  } as const,
-
-  /** マーカー表示制限 */
-  MARKER_LIMITS: {
-    HIGH_ZOOM: 200,
-    NORMAL_ZOOM: 400,
-  } as const,
-
-  /** 佐渡島の境界 */
-  BOUNDS: {
-    north: 38.3,
-    south: 37.8,
-    east: 138.7,
-    west: 138.0,
-  } as const,
-} as const;

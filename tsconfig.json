@@ -1,56 +1,30 @@
 {
-  /**
-   * TypeScript設定 - プロジェクトルート
-   * 
-   * このファイルはプロジェクト全体のTypeScript設定の統括を行います。
-   * 実際の詳細設定は参照先の個別設定ファイルで管理されています。
-   * 
-   * 構成:
-   * - tsconfig.app.json: アプリケーションコード用設定
-   * - tsconfig.node.json: Node.js環境（Vite、ビルドツール等）用設定
-   */
   "compilerOptions": {
-    /* === 基本品質設定 === */
-    "strict": true, // 厳格な型チェックを有効化
-    "forceConsistentCasingInFileNames": true, // ファイル名の大文字小文字を統一強制
-    /* === エディタ連携設定 === */
-    "composite": true, // プロジェクト参照での高速ビルド有効化
-    "skipLibCheck": true, // ライブラリ型定義の検証をスキップ（パフォーマンス向上）
-    /* === 互換性設定 === */
-    "resolveJsonModule": true, // JSONファイルのインポートを許可
-    "allowSyntheticDefaultImports": true, // デフォルトエクスポートがないモジュールでも import を許可
-    "esModuleInterop": true, // CommonJSとESModuleの相互運用性を向上
-    /* === 型定義の解決設定 === */
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "typeRoots": [
-      "./node_modules/@types", // 標準的な型定義の場所
-      "./src/types" // プロジェクト固有の型定義
+      "./node_modules/@types",
+      "./src/types"
     ]
   },
-  /**
-   * ルート設定では直接ファイルを含めず、参照先設定で管理
-   * これにより、各環境に特化した最適な設定が可能
-   */
   "files": [],
-  /**
-   * プロジェクト参照設定
-   * TypeScript 3.0以降の機能で、大規模プロジェクトのビルド性能を向上
-   */
   "references": [
     {
-      "path": "./tsconfig.app.json" // React アプリケーション用設定
+      "path": "./tsconfig.app.json"
     },
     {
-      "path": "./tsconfig.node.json" // Node.js ツール・設定ファイル用
+      "path": "./tsconfig.node.json"
     },
     {
-      "path": "./tsconfig.test.json" // テスト用設定
+      "path": "./tsconfig.test.json"
     }
   ],
-  /**
-   * TypeScript Language Service設定
-   * エディタでの開発体験を向上させる設定
-   */
   "ts-node": {
-    "esm": true // ES Modules対応（Node.js実行時）
+    "esm": true
   }
 }

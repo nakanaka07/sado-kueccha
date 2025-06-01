@@ -19,7 +19,7 @@ const validateEnvironment = (): void => {
     console.warn(
       "アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。",
     );
-  } else {
+  } else if (import.meta.env.DEV) {
     console.log("✅ All required environment variables are present");
   }
 };
@@ -91,6 +91,7 @@ const registerServiceWorker = async (): Promise<void> => {
       const swPath = `${baseUrl}sw.js`.replace(/\/+/g, "/"); // 重複スラッシュを除去
 
       const registration = await navigator.serviceWorker.register(swPath);
+
       console.log("✅ Service Worker registered successfully:", registration);
     } catch (error) {
       console.warn("SW registration failed:", error);
@@ -120,13 +121,20 @@ const initializeApp = (): void => {
 
     // StrictMode で React の潜在的な問題を検出
     // 開発環境でのみ有効（本番では自動的に無効化される）
-    root.render(
+    // 開発環境での重複実行を防ぐため、条件付きで適用
+    const AppComponent = import.meta.env.DEV ? (
+      <App />
+    ) : (
       <StrictMode>
         <App />
-      </StrictMode>,
+      </StrictMode>
     );
 
-    console.log("🚀 佐渡で食えっちゃ アプリケーション起動完了");
+    root.render(AppComponent);
+
+    if (import.meta.env.DEV) {
+      console.log("🚀 佐渡で食えっちゃ アプリケーション起動完了");
+    }
 
     // パフォーマンス測定（開発環境のみ）
     if (import.meta.env.DEV) {

@@ -1,21 +1,15 @@
 import type { MapCameraChangedEvent } from "@vis.gl/react-google-maps";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { SADO_ISLAND } from "../constants";
 import { fetchPOIs } from "../services/sheets";
-import type { ClusterablePOI, ClusterPOI, POI } from "../types/google-maps";
-import { SADO_CONSTANTS } from "../utils/geo";
+import { isClusterPOI } from "../types/common";
+import type { ClusterablePOI, POI } from "../types/google-maps";
 import { logger } from "../utils/logger";
 import { GoogleMarkerCluster } from "./GoogleMarkerCluster";
 import { InfoWindow } from "./InfoWindow";
 import "./Map.css";
-
-// 型ガード関数
-function isClusterPOI(poi: ClusterablePOI): poi is ClusterPOI {
-  return "clusterSize" in poi && "originalPois" in poi;
-}
-
-// 佐渡島の中心座標
-const SADO_CENTER = { lat: 38.0549, lng: 138.3691 };
 
 // マップインスタンス取得用ヘルパー
 function MapInstanceCapture({ onMapInstance }: { onMapInstance: (map: google.maps.Map) => void }) {
@@ -40,28 +34,44 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const [loading, setLoading] = useState(true);
   const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [currentZoom, setCurrentZoom] = useState(11);
+  const [currentZoom, setCurrentZoom] = useState<number>(SADO_ISLAND.ZOOM.DEFAULT);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
+  // APIキーをメモ化してパフォーマンス向上
   const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
+  // ライブラリ設定をメモ化 - パフォーマンス最適化のためバージョンを指定
+  const libraries = useMemo(() => ["marker"], []);
+  const version = useMemo(() => "weekly", []); // 最新の安定版を使用
 
   // POIデータ読み込み
   useEffect(() => {
+    let isMounted = true;
+
     const loadPOIs = async () => {
       try {
         const data = await fetchPOIs();
-        setPois(data);
-        logger.info("POI data loaded", { count: data.length });
+        if (isMounted) {
+          setPois(data);
+          logger.info("POI data loaded", { count: data.length });
+        }
       } catch (error) {
-        logger.error("POI loading failed", {
-          error: error instanceof Error ? error.message : String(error),
-        });
+        if (isMounted) {
+          logger.error("POI loading failed", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     void loadPOIs();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // マップとPOIの準備完了を通知
@@ -69,11 +79,13 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
     if (!loading && mapReady && onMapLoaded) {
       onMapLoaded();
     }
-  }, [loading, mapReady, onMapLoaded]);
-  // クラスターズーム処理
+  }, [loading, mapReady, onMapLoaded]); // クラスターズーム処理
   const zoomToCluster = useCallback(
     (poi: ClusterablePOI) => {
-      if (!mapInstance || !isClusterPOI(poi) || poi.originalPois.length <= 1) return;
+      if (!mapInstance || !isClusterPOI(poi)) return;
+
+      // 型ガードによりClusterPOI型が確定
+      if (poi.originalPois.length <= 1) return;
 
       const bounds = new google.maps.LatLngBounds();
       poi.originalPois.forEach((originalPoi: POI) => {
@@ -86,10 +98,10 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
       // ズームレベル制限
       google.maps.event.addListenerOnce(mapInstance, "idle", () => {
         const currentZoom = mapInstance.getZoom();
-        if (currentZoom && currentZoom > SADO_CONSTANTS.MAX_ZOOM_LEVEL) {
-          mapInstance.setZoom(SADO_CONSTANTS.MAX_ZOOM_LEVEL as number);
-        } else if (currentZoom && currentZoom < SADO_CONSTANTS.MIN_CLUSTER_ZOOM) {
-          mapInstance.setZoom(SADO_CONSTANTS.MIN_CLUSTER_ZOOM as number);
+        if (currentZoom && currentZoom > SADO_ISLAND.ZOOM.MAX_ZOOM_LEVEL) {
+          mapInstance.setZoom(SADO_ISLAND.ZOOM.MAX_ZOOM_LEVEL);
+        } else if (currentZoom && currentZoom < SADO_ISLAND.ZOOM.MIN_CLUSTER_ZOOM) {
+          mapInstance.setZoom(SADO_ISLAND.ZOOM.MIN_CLUSTER_ZOOM);
         }
       });
     },
@@ -119,7 +131,6 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const handleMapInstanceLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
   }, []);
-
   // ズーム変更ハンドラー
   const handleCameraChanged = useCallback(
     (event: MapCameraChangedEvent) => {
@@ -130,8 +141,6 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
     },
     [currentZoom],
   );
-  // ライブラリ設定
-  const libraries = useMemo(() => ["marker"], []);
 
   if (loading) {
     return (
@@ -145,14 +154,16 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
     <div className={className}>
       <APIProvider
         apiKey={apiKey}
+        version={version}
         libraries={libraries}
         language="ja"
         region="JP"
         onLoad={handleMapReady}
       >
+        {" "}
         <Map
           defaultZoom={11}
-          defaultCenter={SADO_CENTER}
+          defaultCenter={SADO_ISLAND.CENTER}
           mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"}
           mapTypeId={google.maps.MapTypeId.TERRAIN}
           gestureHandling="greedy"

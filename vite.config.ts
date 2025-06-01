@@ -22,6 +22,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
   return {
     plugins: createPlugins(isProduction),
     base: getBasePath(env),
+    publicDir: "public",
     resolve: createResolveConfig(),
     server: createServerConfig(isProduction),
     build: createBuildConfig(isProduction),

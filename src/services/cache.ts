@@ -1,21 +1,31 @@
 // 統合データキャッシュサービス
-interface CacheEntry {
-  data: unknown;
-  timestamp: number;
-  expiry: number;
-}
+import { CACHE_CONFIG } from "../constants";
+import type { CacheEntry } from "../types/common";
 
 class CacheService {
   private cache = new Map<string, CacheEntry>();
-  private readonly DEFAULT_EXPIRY = 15 * 60 * 1000; // 15分間
-
+  private readonly DEFAULT_EXPIRY = CACHE_CONFIG.DEFAULT_EXPIRY;
+  private readonly MAX_SIZE = CACHE_CONFIG.MAX_ENTRIES;
   set(key: string, data: unknown, expiryMs: number = this.DEFAULT_EXPIRY): void {
+    // サイズ制限チェック
+    this.enforceSize();
+
     const entry: CacheEntry = {
       data,
       timestamp: Date.now(),
       expiry: expiryMs,
     };
     this.cache.set(key, entry);
+  }
+
+  private enforceSize(): void {
+    if (this.cache.size >= this.MAX_SIZE) {
+      // 最古のエントリを削除（LRU方式）
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
+    }
   }
 
   get(key: string): unknown {
@@ -25,7 +35,8 @@ class CacheService {
     }
 
     const now = Date.now();
-    if (now - entry.timestamp > entry.expiry) {
+    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
+    if (now - entry.timestamp > expiry) {
       this.cache.delete(key);
       return null;
     }
@@ -77,9 +88,9 @@ class CacheService {
     if (!entry) {
       return false;
     }
-
     const now = Date.now();
-    if (now - entry.timestamp > entry.expiry) {
+    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
+    if (now - entry.timestamp > expiry) {
       this.cache.delete(key);
       return false;
     }

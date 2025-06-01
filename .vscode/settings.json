@@ -29,7 +29,8 @@
         "**/.DS_Store": true,
         "**/node_modules": true,
         "**/dist": true,
-        "**/.local": true
+        "**/.local": true,
+        "**/tsconfig.tsbuildinfo": true
     },
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"

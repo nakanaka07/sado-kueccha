@@ -1,92 +1,63 @@
-// プリローディングサービス
-export class PreloadService {
-  private static instance: PreloadService | undefined;
-  private preloadedResources = new Set<string>();
+/**
+ * アセットプリロードサービス
+ * 画像の事前読み込みとGoogle Maps APIの初期化を行います
+ */
 
-  static getInstance(): PreloadService {
-    if (!PreloadService.instance) {
-      PreloadService.instance = new PreloadService();
-    }
-    return PreloadService.instance;
-  }
-  // 画像をプリロードする
-  async preloadImage(src: string): Promise<void> {
-    if (this.preloadedResources.has(src)) {
-      console.log(`⚡ Image already preloaded: ${src}`);
-      return Promise.resolve();
-    }
+interface PreloadService {
+  preloadImagesWithValidation: (imagePaths: string[]) => Promise<void>;
+  preloadGoogleMapsAPI: (apiKey: string) => void;
+}
 
-    const startTime = performance.now();
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const endTime = performance.now();
-        console.log(
-          `🖼️ Image preloaded in ${Math.round(endTime - startTime).toString()}ms: ${src}`,
-        );
-        this.preloadedResources.add(src);
-        resolve();
-      };
-      img.onerror = () => {
-        const endTime = performance.now();
-        console.warn(
-          `❌ Image preload failed after ${Math.round(endTime - startTime).toString()}ms: ${src}`,
-        );
-        reject(new Error(`Failed to preload image: ${src}`));
-      };
-      img.src = src;
-    });
-  } // 複数の画像を並行してプリロードする（最適化版）
-  async preloadImages(sources: string[]): Promise<void> {
-    // 既にプリロード済みの画像は除外
-    const unloadedSources = sources.filter((src) => !this.preloadedResources.has(src));
-
-    if (unloadedSources.length === 0) {
-      console.log("⚡ All images already preloaded");
-      return;
-    }
-
-    console.log(`📸 Preloading ${unloadedSources.length.toString()} images...`);
-
-    const promises = unloadedSources.map((src) =>
-      this.preloadImage(src).catch((error: unknown) => {
-        console.warn(`Image preload failed for ${src}:`, error);
-        return null; // 失敗したものはnullを返す
-      }),
+/**
+ * 画像を事前読み込みし、読み込み状況を検証します
+ */
+async function preloadImagesWithValidation(imagePaths: string[]): Promise<void> {
+  try {
+    const promises = imagePaths.map(
+      (path) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            resolve();
+          };
+          img.onerror = () => {
+            console.warn(`Failed to preload image: ${path}`);
+            resolve(); // エラーでも処理を続行
+          };
+          img.src = path;
+        }),
     );
 
-    const results = await Promise.allSettled(promises);
-    const successCount = results.filter((result) => result.status === "fulfilled").length;
-    console.log(
-      `✅ Successfully preloaded ${successCount.toString()}/${unloadedSources.length.toString()} images`,
-    );
+    await Promise.all(promises);
+    console.log("✅ All images preloaded successfully");
+  } catch (error) {
+    console.warn("Error during image preloading:", error);
   }
-  // Google Maps APIスクリプトをプリロードする（最適化版）
-  preloadGoogleMapsAPI(apiKey: string): void {
-    const scriptId = "google-maps-api";
-    if (document.getElementById(scriptId)) {
+}
+
+/**
+ * Google Maps APIを事前読み込みします
+ */
+function preloadGoogleMapsAPI(apiKey: string): void {
+  try {
+    // Google Maps APIスクリプトが既に読み込まれているかチェック
+    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
       return;
     }
 
     const script = document.createElement("script");
-    script.id = scriptId;
-    // パフォーマンス最適化: loading=async パラメータを追加
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&language=ja&region=JP`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&loading=async`;
     script.async = true;
     script.defer = true;
-
-    // エラーハンドリングを追加
-    script.onerror = () => {
-      console.warn("Google Maps API preload failed");
-    };
-
     document.head.appendChild(script);
-    this.preloadedResources.add("google-maps-api");
-  }
 
-  isPreloaded(resource: string): boolean {
-    return this.preloadedResources.has(resource);
+    console.log("✅ Google Maps API script added to head");
+  } catch (error) {
+    console.warn("Error preloading Google Maps API:", error);
   }
 }
 
-export const preloadService = PreloadService.getInstance();
+export const preloadService: PreloadService = {
+  preloadImagesWithValidation,
+  preloadGoogleMapsAPI,
+};
