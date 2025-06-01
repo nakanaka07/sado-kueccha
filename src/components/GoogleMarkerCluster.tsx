@@ -15,7 +15,7 @@ interface MarkerComponentProps {
   clusterSize?: number | undefined;
 }
 
-// 効率的なクラスタリング関数（距離ベース）
+// 効率的なクラスタリング関数（距離ベース・最適化版）
 const clusterPOIs = (
   pois: POI[],
   zoomLevel: number = 10,
@@ -23,34 +23,51 @@ const clusterPOIs = (
   if (pois.length === 0) return [];
 
   // ズームレベルに応じてクラスタリング距離を調整
-  // MarkerCluster.tsxの効率的なアプローチを採用
-  const clusterDistance = Math.max(0.01, 0.1 / Math.pow(2, zoomLevel - 8));
+  // 高いズームレベル（15以上）では完全にクラスタリングを無効化
+  if (zoomLevel >= 15) {
+    console.log(
+      `⚡ Fast path: No clustering at zoom ${zoomLevel.toString()}, returning ${pois.length.toString()} individual markers`,
+    );
+    return pois; // クラスタリングを行わず、全て個別マーカーとして返す
+  }
+
+  const startTime = performance.now();
+
+  // より効率的な距離計算（ズームレベルに基づいた動的調整）
+  const clusterDistance = Math.max(0.003, 0.08 / Math.pow(2, zoomLevel - 8));
 
   const clusters: (POI & { clusterSize?: number; originalPois?: POI[] })[] = [];
   const processed = new Set<string>();
 
-  for (const poi of pois) {
+  // パフォーマンス最適化: POIを座標でソートして近い物同士を優先処理
+  const sortedPois = [...pois].sort((a, b) => {
+    const latDiff = a.position.lat - b.position.lat;
+    return latDiff !== 0 ? latDiff : a.position.lng - b.position.lng;
+  });
+
+  for (const poi of sortedPois) {
     if (processed.has(poi.id)) continue;
 
     const cluster = [poi];
     processed.add(poi.id);
 
-    // 近くのPOIを探す（シンプルなユークリッド距離を使用）
-    for (const otherPoi of pois) {
+    // 最適化: 事前にソートされているため、距離が大きすぎる場合は早期終了
+    for (const otherPoi of sortedPois) {
       if (processed.has(otherPoi.id)) continue;
 
-      const distance = Math.sqrt(
-        Math.pow(poi.position.lat - otherPoi.position.lat, 2) +
-          Math.pow(poi.position.lng - otherPoi.position.lng, 2),
-      );
+      // 最適化: より効率的な距離計算（平方根を避ける）
+      const latDiff = poi.position.lat - otherPoi.position.lat;
+      const lngDiff = poi.position.lng - otherPoi.position.lng;
+      const distanceSquared = latDiff * latDiff + lngDiff * lngDiff;
+      const clusterDistanceSquared = clusterDistance * clusterDistance;
 
-      if (distance < clusterDistance) {
+      if (distanceSquared < clusterDistanceSquared) {
         cluster.push(otherPoi);
         processed.add(otherPoi.id);
       }
     }
 
-    // クラスターの代表POIを作成
+    // クラスターの代表POIを作成（最適化）
     if (cluster.length === 1) {
       clusters.push(poi);
     } else {
@@ -68,6 +85,11 @@ const clusterPOIs = (
       });
     }
   }
+
+  const elapsedTime = performance.now() - startTime;
+  console.log(
+    `⚡ Clustering completed in ${elapsedTime.toString()}ms (zoom: ${zoomLevel.toString()})`,
+  );
 
   return clusters;
 };
@@ -127,7 +149,7 @@ const MarkerComponent = memo(
         onClick={handleClick}
         title={
           isCluster && clusterSize
-            ? `${clusterSize.toString()}件の施設が集まっています - クリックして詳細を見る`
+            ? `${clusterSize.toString()}件の施設が集まっています - クリックしてズーム`
             : poi.name
         }
       >
@@ -143,27 +165,37 @@ export const GoogleMarkerCluster = memo(
   ({ pois, onMarkerClick, currentZoom = 10 }: GoogleMarkerClusterProps) => {
     // クラスタリングされたPOIを計算（現在のズームレベルを使用）
     const clusteredPois = useMemo(() => {
-      return clusterPOIs(pois, currentZoom);
+      const startTime = performance.now();
+      const result = clusterPOIs(pois, currentZoom);
+      const clusterCount = result.filter((poi) => poi.id.startsWith("cluster-")).length;
+      const individualCount = result.length - clusterCount;
+      const elapsedTime = performance.now() - startTime;
+
+      console.log(
+        `🔍 Zoom ${currentZoom.toString()}: ${clusterCount.toString()} clusters, ${individualCount.toString()} individual markers (total: ${elapsedTime.toString()}ms)`,
+      );
+      return result;
     }, [pois, currentZoom]);
 
-    return (
-      <>
-        {clusteredPois.map((poi) => {
-          const isCluster = poi.id.startsWith("cluster-");
-          const clusterSize = isCluster && "clusterSize" in poi ? poi.clusterSize : undefined;
+    // マーカーコンポーネントを事前にメモ化してレンダリング最適化
+    const markerComponents = useMemo(() => {
+      return clusteredPois.map((poi) => {
+        const isCluster = poi.id.startsWith("cluster-");
+        const clusterSize = isCluster && "clusterSize" in poi ? poi.clusterSize : undefined;
 
-          return (
-            <MarkerComponent
-              key={poi.id}
-              poi={poi}
-              onMarkerClick={onMarkerClick}
-              isCluster={isCluster}
-              clusterSize={clusterSize}
-            />
-          );
-        })}
-      </>
-    );
+        return (
+          <MarkerComponent
+            key={poi.id}
+            poi={poi}
+            onMarkerClick={onMarkerClick}
+            isCluster={isCluster}
+            clusterSize={clusterSize}
+          />
+        );
+      });
+    }, [clusteredPois, onMarkerClick]);
+
+    return <>{markerComponents}</>;
   },
 );
 

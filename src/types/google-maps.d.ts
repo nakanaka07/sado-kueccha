@@ -27,6 +27,10 @@ export interface POI {
   googleMapsUrl?: string;
   address?: string;
   district?: string; // 地区情報
+
+  // クラスター関連のプロパティ
+  clusterSize?: number;
+  originalPois?: POI[];
 }
 
 export {};
