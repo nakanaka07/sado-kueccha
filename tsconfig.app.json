@@ -1,64 +1,92 @@
 {
+  /**
+   * TypeScript設定 - Reactアプリケーション用
+   * 
+   * このファイルはReactアプリケーションのソースコード専用の設定です。
+   * ブラウザ環境での実行に最適化され、Google Maps API統合も考慮されています。
+   * 
+   * 対象: src/ 配下のすべてのReactコンポーネント、サービス、型定義
+   */
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "forceConsistentCasingInFileNames": true,
+    /* === ビルド基本設定 === */
+    "target": "ES2022", // モダンブラウザ対応（Chrome 94+, Firefox 93+, Safari 15+）
+    "module": "ESNext", // 最新ESモジュール構文
     "lib": [
       "ES2022",
       "DOM",
       "DOM.Iterable"
-    ],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-    /* パフォーマンス最適化 */
-    "incremental": true,
-    "assumeChangesOnlyAffectDirectDependencies": true,
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    /* 新しい2024/2025ベストプラクティス */
-    "verbatimModuleSyntax": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "noImplicitOverride": true,
-    /* 追加の安全性オプション */
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
+    ], // ブラウザAPI + 最新JavaScript機能
+    "useDefineForClassFields": true, // 標準準拠のクラスフィールド初期化
+    /* === React/JSX設定 === */
+    "jsx": "react-jsx", // React 17+ の新しいJSX Transform
+    /* === モジュール解決設定 === */
+    "moduleResolution": "bundler", // Vite/Rollup最適化モード
+    "moduleDetection": "force", // 全ファイルをモジュールとして扱う
+    "allowImportingTsExtensions": true, // .ts/.tsx拡張子でのインポート許可
+    "verbatimModuleSyntax": true, // import/export構文の厳密チェック
+    "isolatedModules": true, // 単一ファイル変換対応（SWC, Babel対応）
+    "noEmit": true, // TypeScriptによるJS出力無効（Viteが担当）
+    /* === パス解決設定 === */
+    "baseUrl": ".", // パス解決のベースディレクトリ
     "paths": {
       "@/*": [
         "src/*"
-      ],
+      ], // ルートエイリアス
       "@components/*": [
         "src/components/*"
-      ],
+      ], // コンポーネントエイリアス
       "@services/*": [
         "src/services/*"
-      ],
+      ], // サービスエイリアス
       "@types/*": [
         "src/types/*"
-      ]
+      ], // 型定義エイリアス
+      "@assets/*": [
+        "src/assets/*"
+      ] // アセットエイリアス
     },
+    /* === 型チェック設定 === */
+    "strict": true, // 厳格な型チェック有効
+    "forceConsistentCasingInFileNames": true, // ファイル名の大文字小文字統一
+    "skipLibCheck": true, // ライブラリ型チェックスキップ（パフォーマンス向上）
+    /* === 高度な型安全性設定 === */
+    "exactOptionalPropertyTypes": true, // オプショナルプロパティの厳密型チェック
+    "noImplicitReturns": true, // 暗黙的なreturn禁止
+    "noPropertyAccessFromIndexSignature": true, // インデックスシグネチャからのプロパティアクセス制限
+    "noUncheckedIndexedAccess": true, // 配列・オブジェクトアクセス時のundefinedチェック強制
+    "noImplicitOverride": true, // override修飾子の明示要求
+    /* === コード品質設定 === */
+    "noUnusedLocals": true, // 未使用ローカル変数の検出
+    "noUnusedParameters": true, // 未使用パラメータの検出
+    "noFallthroughCasesInSwitch": true, // switch文のフォールスルー検出
+    "noUncheckedSideEffectImports": true, // 副作用インポートの型チェック
+    "allowUnusedLabels": false, // 未使用ラベルを禁止
+    "allowUnreachableCode": false, // 到達不可能コードを禁止
+    /* === パフォーマンス最適化 === */
+    "incremental": true, // インクリメンタルコンパイル有効
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "assumeChangesOnlyAffectDirectDependencies": true, // 依存関係の変更影響範囲を限定
+    /* === 型定義設定 === */
     "types": [
-      "node",
-      "google.maps",
-      "vitest/globals"
+      "node", // Node.js型定義（開発ツール用）
+      "google.maps", // Google Maps API型定義
+      "vitest/globals" // Vitestグローバル型定義（テスト用）
     ]
   },
+  /* === 対象ファイル === */
   "include": [
-    "src"
+    "src/**/*", // アプリケーションソースコード
+    "src/**/*.ts", // TypeScriptファイル
+    "src/**/*.tsx", // Reactコンポーネントファイル
+    "src/**/*.d.ts" // 型定義ファイル
+  ],
+  /* === 除外ファイル === */
+  "exclude": [
+    "src/**/*.test.ts", // テストファイル（別途テスト用設定で管理）
+    "src/**/*.test.tsx", // Reactテストファイル
+    "src/**/*.spec.ts", // スペックファイル
+    "src/**/*.spec.tsx", // Reactスペックファイル
+    "node_modules", // 依存関係
+    "dist" // ビルド出力
   ]
 }

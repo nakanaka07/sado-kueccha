@@ -1,0 +1,66 @@
+/* マーカークラスター専用のスタイル */
+.marker-cluster {
+  transition: all 0.2s ease-in-out;
+}
+
+.marker-cluster:hover {
+  transform: scale(1.1);
+}
+
+/* クラスターサイズに応じたアニメーション */
+.marker-cluster-small {
+  animation: pulse-small 2s infinite;
+}
+
+.marker-cluster-medium {
+  animation: pulse-medium 2s infinite;
+}
+
+.marker-cluster-large {
+  animation: pulse-large 2s infinite;
+}
+
+@keyframes pulse-small {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+  }
+}
+
+@keyframes pulse-medium {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(255, 140, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+  }
+}
+
+@keyframes pulse-large {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(229, 62, 62, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+  }
+}
+
+/* 単独マーカー用のスタイル */
+.single-marker {
+  transition: all 0.2s ease-in-out;
+}
+
+.single-marker:hover {
+  transform: scale(1.05);
+}

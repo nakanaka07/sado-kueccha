@@ -50,5 +50,3 @@ dist/stats.html
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-.env.local
-.env.*.local

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import anoIcon01 from "./assets/ano_icon01.png";
+import areaIconMap01 from "./assets/area_icon_map01.png";
+import areaIconMap02 from "./assets/area_icon_map02.png";
+import areaIconMap03 from "./assets/area_icon_map03.png";
 import currentLocationIcon from "./assets/current_location.png";
+import facingNorthIcon from "./assets/facing_north.png";
 import parkingIcon from "./assets/parking.png";
-import shiIcon01 from "./assets/shi_icon01.png";
+import recommendIcon from "./assets/recommend.png";
 import titleImage from "./assets/title_row1.png";
 import toiletteIcon from "./assets/toilette.png";
 import { MapComponent } from "./components/Map";
@@ -21,13 +24,16 @@ function App() {
         console.log("🚀 Starting asset preload...");
         const startTime = performance.now();
 
-        // 重要な画像をプリロード（マップアイコンも追加）
+        // 重要な画像をプリロード（全てのアセットを追加）
         await preloadService.preloadImages([
-          titleImage,
-          anoIcon01,
-          shiIcon01,
+          areaIconMap01,
+          areaIconMap02,
+          areaIconMap03,
           currentLocationIcon,
+          facingNorthIcon,
           parkingIcon,
+          recommendIcon,
+          titleImage,
           toiletteIcon,
         ]);
 

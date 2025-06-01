@@ -1,0 +1,22 @@
+# Robots.txt for 佐渡で食えっちゃ (Sado Kueccha)
+# 佐渡島グルメマップアプリ
+
+User-agent: *
+Allow: /
+
+# 優先的にクロールしてほしいページ
+Allow: /index.html
+Allow: /manifest.json
+
+# クロールを避けるファイル
+Disallow: /src/
+Disallow: /*.tsx
+Disallow: /*.ts
+Disallow: /*.css.map
+Disallow: /*.js.map
+
+# サイトマップの場所（将来的に作成する場合）
+# Sitemap: https://sado-kueccha.com/sitemap.xml
+
+# クロール頻度の調整
+Crawl-delay: 1

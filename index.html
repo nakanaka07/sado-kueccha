@@ -2,18 +2,139 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/title_row2.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>佐渡で食えっちゃ | 佐渡島グルメマップ</title>
+
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/title_row2.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/title_row2.png" />
+
+    <!-- Viewport and Mobile Optimization -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- SEO Meta Tags -->
+    <title>佐渡で食えっちゃ | 佐渡島グルメマップ - 地元おすすめ飲食店ガイド</title>
     <meta
       name="description"
-      content="佐渡島のおすすめ飲食店、公共トイレ、駐車場などをまとめた便利なマップアプリ"
+      content="佐渡島の地元おすすめ飲食店、観光スポット、公共トイレ、駐車場を網羅した便利なマップアプリ。リアルタイム情報で佐渡観光をサポートします。"
     />
-    <meta name="keywords" content="佐渡島,グルメ,飲食店,マップ,観光,ガイド,駐車場,トイレ" />
+    <meta
+      name="keywords"
+      content="佐渡島,グルメ,飲食店,観光マップ,佐渡観光,レストラン,カフェ,駐車場,トイレ,両津,相川,畑野"
+    />
     <meta name="author" content="佐渡で食えっちゃ" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://sado-kueccha.com/" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="佐渡で食えっちゃ | 佐渡島グルメマップ" />
+    <meta
+      property="og:description"
+      content="佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ"
+    />
+    <meta property="og:image" content="/title_row2.png" />
+    <meta property="og:url" content="https://sado-kueccha.com/" />
+    <meta property="og:site_name" content="佐渡で食えっちゃ" />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="佐渡で食えっちゃ | 佐渡島グルメマップ" />
+    <meta
+      name="twitter:description"
+      content="佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ"
+    />
+    <meta name="twitter:image" content="/title_row2.png" />
+
+    <!-- Performance Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://maps.googleapis.com" />
+    <link rel="dns-prefetch" href="https://docs.google.com" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+
+    <!-- Structured Data for Local Business -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "佐渡で食えっちゃ",
+        "description": "佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ",
+        "url": "https://sado-kueccha.com/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web Browser",
+        "about": {
+          "@type": "Place",
+          "name": "佐渡島",
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 38.0549,
+            "longitude": 138.3691
+          }
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Loading fallback for users with JavaScript disabled -->
+    <noscript>
+      <div style="text-align: center; padding: 50px; font-family: sans-serif">
+        <h1>佐渡で食えっちゃ</h1>
+        <p>
+          このアプリケーションはJavaScriptが必要です。<br />ブラウザでJavaScriptを有効にしてください。
+        </p>
+      </div>
+    </noscript>
+
+    <div id="root" role="main" aria-label="佐渡島グルメマップアプリケーション"></div>
+
+    <!-- Main Application Script -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker Registration (if available) -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => console.log("SW registered"))
+            .catch((registrationError) => console.log("SW registration failed"));
+        });
+      }
+    </script>
+
+    <!-- Theme Color Support Detection -->
+    <script>
+      // Add theme-color meta tag only for supported browsers
+      (function () {
+        const isSupported = function () {
+          const userAgent = navigator.userAgent.toLowerCase();
+
+          // Check for supported browsers
+          if (userAgent.includes("chrome") || userAgent.includes("chromium")) return true;
+          if (userAgent.includes("edge")) return true;
+          if (userAgent.includes("safari") && userAgent.includes("version")) {
+            // Check Safari version (iOS 15+)
+            const match = userAgent.match(/version\/(\d+)/);
+            if (match && parseInt(match[1]) >= 15) return true;
+          }
+
+          return false;
+        };
+
+        if (isSupported()) {
+          const themeColorMeta = document.createElement("meta");
+          themeColorMeta.name = "theme-color";
+          themeColorMeta.content = "#d7003a";
+          document.head.appendChild(themeColorMeta);
+        }
+      })();
+    </script>
   </body>
 </html>

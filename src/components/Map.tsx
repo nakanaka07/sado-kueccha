@@ -1,10 +1,11 @@
+import type { MapCameraChangedEvent } from "@vis.gl/react-google-maps";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchPOIs } from "../services/sheets";
 import type { POI } from "../types/google-maps";
+import { GoogleMarkerCluster } from "./GoogleMarkerCluster";
 import { InfoWindow } from "./InfoWindow";
 import "./Map.css";
-import { MarkerCluster } from "./MarkerCluster";
 
 /**
  * Google Maps React 開発における重要な注意点
@@ -40,6 +41,7 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const [loading, setLoading] = useState(true);
   const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(11); // ズームレベルを追跡
 
   // APIキーをメモ化して無駄な再計算を防止
   const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
@@ -89,13 +91,22 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const handleMapLoad = useCallback(() => {
     console.log("Maps API loaded successfully");
     setMapReady(true);
-  }, []);
-
-  // Map インスタンスの準備完了を検出
+  }, []); // Map インスタンスの準備完了を検出
   const handleMapIdle = useCallback(() => {
     console.log("Map is ready and idle");
     setMapReady(true);
-  }, []);
+  }, []); // カメラ変更（ズーム、位置など）を監視するハンドラー
+  const handleCameraChanged = useCallback(
+    (event: MapCameraChangedEvent) => {
+      const { zoom } = event.detail;
+      if (zoom && zoom !== currentZoom) {
+        console.log(`🔍 Zoom level changed to: ${zoom.toString()}`);
+        setCurrentZoom(zoom);
+      }
+    },
+    [currentZoom, setCurrentZoom],
+  );
+
   // ライブラリ配列をメモ化してAPIProviderの不要な再レンダリングを防止
   const libraries = useMemo(() => ["marker"], []);
 
@@ -115,23 +126,35 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
         region="JP"
         onLoad={handleMapLoad}
       >
+        {" "}
         <Map
           // ★重要★ defaultZoom/defaultCenter を使用（Uncontrolledモード）
           // zoom/center を使うとControlledモードになりユーザー操作が無効になる
           defaultZoom={11}
           defaultCenter={SADO_CENTER}
           mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"}
+          mapTypeId={google.maps.MapTypeId.TERRAIN} // 初期マップタイプをterrainに設定
           // ユーザーインタラクションを有効にする重要な設定
           gestureHandling="greedy" // すべてのジェスチャーを許可
           disableDefaultUI={false} // ズーム・パンコントロールを表示
+          mapTypeControl={true} // マップタイプ選択ボタンを表示
+          mapTypeControlOptions={{
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+            position: google.maps.ControlPosition.TOP_LEFT,
+          }}
           clickableIcons={true} // 地図上のアイコンをクリック可能
           style={{ width: "100%", height: "100%" }}
           // パフォーマンス最適化
-          reuseMaps={true}
-          // マップの準備完了を検出
+          reuseMaps={true} // マップの準備完了を検出
           onIdle={handleMapIdle}
+          // カメラ変更（ズーム含む）を監視
+          onCameraChanged={handleCameraChanged}
         >
-          <MarkerCluster pois={pois} onMarkerClick={handleMarkerClick} />
+          <GoogleMarkerCluster
+            pois={pois}
+            onMarkerClick={handleMarkerClick}
+            currentZoom={currentZoom}
+          />
           {selectedPoi && <InfoWindow poi={selectedPoi} onClose={handleInfoWindowClose} />}
         </Map>
       </APIProvider>
