@@ -14,7 +14,11 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
-    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run",
     "analyze": "pnpm build && pnpm dlx serve dist"
   },
   "dependencies": {
