@@ -23,7 +23,7 @@ export default tseslint.config(
       globals: globals.browser,
       parserOptions: {
         // TypeScriptプロジェクト設定を追加
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
+        project: ["./tsconfig.node.json", "./tsconfig.app.json", "./tsconfig.test.json"],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -46,5 +46,5 @@ export default tseslint.config(
       // TypeScriptプロジェクトでは不要なPropTypesを無効化
       "react/prop-types": "off",
     },
-  }
+  },
 );

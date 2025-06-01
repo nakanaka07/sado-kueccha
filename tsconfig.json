@@ -41,6 +41,9 @@
     },
     {
       "path": "./tsconfig.node.json" // Node.js ツール・設定ファイル用
+    },
+    {
+      "path": "./tsconfig.test.json" // テスト用設定
     }
   ],
   /**

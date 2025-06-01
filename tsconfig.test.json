@@ -1,0 +1,40 @@
+{
+    /**
+   * TypeScript設定 - テスト用
+   * 
+   * このファイルはVitest/Jest等のテストファイル専用の設定です。
+   * テスト環境で必要な型定義とグローバル設定を提供します。
+   * 
+   * 対象: src/ 配下のすべてのテストファイル（*.test.ts, *.test.tsx, *.spec.ts, *.spec.tsx）
+   */
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        /* === テスト環境特有設定 === */
+        "types": [
+            "node", // Node.js型定義（テストランナー用）
+            "google.maps", // Google Maps API型定義
+            "vitest/globals", // Vitestグローバル型定義
+            "@testing-library/jest-dom" // Testing Library Jest DOM拡張
+        ],
+        /* === テスト用の緩和設定 === */
+        "noUnusedLocals": false, // テストファイルでは未使用変数を許可
+        "noUnusedParameters": false, // テストファイルでは未使用パラメータを許可
+        "strictNullChecks": true, // null/undefinedチェックは維持
+        /* === パフォーマンス設定 === */
+        "incremental": true,
+        "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo"
+    },
+    /* === 対象ファイル === */
+    "include": [
+        "src/**/*.test.ts", // TypeScriptテストファイル
+        "src/**/*.test.tsx", // Reactテストファイル
+        "src/**/*.spec.ts", // TypeScriptスペックファイル
+        "src/**/*.spec.tsx", // Reactスペックファイル
+        "src/setupTests.ts" // テストセットアップファイル
+    ],
+    /* === 除外ファイル === */
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
