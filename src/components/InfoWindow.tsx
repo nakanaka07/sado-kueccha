@@ -7,6 +7,33 @@ interface InfoWindowProps {
   onClose: () => void;
 }
 
+// URLを検出してリンク化する関数
+const linkifyText = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      // SNSの種類を判定してアイコンを表示
+      const getSNSIcon = (url: string) => {
+        if (url.includes("twitter.com") || url.includes("x.com")) return "🐦";
+        if (url.includes("instagram.com")) return "📷";
+        if (url.includes("facebook.com")) return "📘";
+        if (url.includes("youtube.com")) return "🎥";
+        if (url.includes("tiktok.com")) return "🎵";
+        return "🔗";
+      };
+
+      return (
+        <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="sns-link">
+          {getSNSIcon(part)} リンクを開く
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
   return (
     <GoogleInfoWindow position={poi.position} onCloseClick={onClose} maxWidth={300}>
@@ -22,22 +49,19 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
               <span className="field-label">カテゴリー:</span>
               <span className="field-value">{poi.category}</span>
             </div>
-          )}
-
+          )}{" "}
           {poi.description && (
             <div className="info-window-field">
               <span className="field-label">関連情報（SNS等）:</span>
-              <span className="field-value">{poi.description}</span>
+              <div className="field-value sns-content">{linkifyText(poi.description)}</div>
             </div>
           )}
-
           {poi.address && (
             <div className="info-window-field">
               <span className="field-label">住所:</span>
               <span className="field-value">{poi.address}</span>
             </div>
           )}
-
           {poi.businessHours && (
             <div className="info-window-field">
               <span className="field-label">営業時間:</span>
@@ -51,13 +75,11 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
               </div>
             </div>
           )}
-
           <div className="info-window-features">
             {poi.parking && <div className="feature-badge parking">🅿️ 駐車場: {poi.parking}</div>}
 
             {poi.cashless && <div className="feature-badge cashless">💳 キャッシュレス対応</div>}
           </div>
-
           {poi.contact && (
             <div className="info-window-field">
               <span className="field-label">連絡先:</span>
@@ -68,7 +90,6 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
               </span>
             </div>
           )}
-
           {poi.googleMapsUrl && (
             <div className="info-window-actions">
               <a
