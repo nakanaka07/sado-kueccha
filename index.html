@@ -97,17 +97,7 @@
     <!-- Main Application Script -->
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Service Worker Registration (if available) -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/sw.js")
-            .then((registration) => console.log("SW registered"))
-            .catch((registrationError) => console.log("SW registration failed"));
-        });
-      }
-    </script>
+    <!-- Service Worker Registration は main.tsx で管理されています -->
 
     <!-- Theme Color Support Detection -->
     <script>

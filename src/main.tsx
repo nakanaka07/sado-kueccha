@@ -76,6 +76,26 @@ if (import.meta.env.DEV) {
   window.performance.mark("app-start");
 }
 
+// Service Worker登録処理
+const registerServiceWorker = async (): Promise<void> => {
+  // 開発環境ではService Workerを無効化（Viteの制限のため）
+  if (import.meta.env.DEV) {
+    console.log("🔧 Service Worker is disabled in development mode");
+    return;
+  }
+
+  if ("serviceWorker" in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      console.log("✅ Service Worker registered successfully:", registration);
+    } catch (error) {
+      console.warn("SW registration failed:", error);
+    }
+  } else {
+    console.log("Service Worker is not supported in this browser");
+  }
+};
+
 // アプリケーション初期化
 const initializeApp = (): void => {
   try {
@@ -116,6 +136,9 @@ const initializeApp = (): void => {
         console.log(`⚡ App initialization took ${Math.round(duration).toString()}ms`);
       }
     }
+
+    // Service Workerを登録
+    void registerServiceWorker();
   } catch (error) {
     console.error("❌ Failed to initialize application:", error);
 
