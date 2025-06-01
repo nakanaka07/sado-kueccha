@@ -5,7 +5,7 @@ const CACHE_NAME = "sado-kueccha-v1";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
-  "/title_row2.png",
+  "/assets/title_row2.png",
   // Note: Viteバンドル後のファイルは動的に生成されるため、
   // 実際のハッシュ付きファイル名はruntime時に決定されます
 ];
