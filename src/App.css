@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   background-color: var(--color-background-light);
-  /* パフォーマンス最適化: will-change でアニメーション対象を明示 */
   will-change: transform;
 }
 
@@ -13,7 +12,6 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  /* パフォーマンス最適化: GPU レイヤー分離 */
   transform: translateZ(0);
 }
 
@@ -25,9 +23,7 @@
   border-radius: 0;
   overflow: hidden;
   box-shadow: none;
-  /* マップ読み込み中の背景を美しいグラデーションに */
   background: var(--gradient-primary);
-  /* パフォーマンス最適化: 3Dレンダリング有効化 */
   transform: translateZ(0);
 }
 
@@ -43,7 +39,6 @@
   justify-content: center;
   align-items: center;
   background: var(--gradient-primary);
-  /* パフォーマンス最適化: ハードウェアアクセラレーション */
   transform: translateZ(0);
 }
 
@@ -66,23 +61,19 @@
   }
 }
 
-/* ローディングコンテンツのアニメーション */
-/* ローディングコンテンツの基本スタイル */
+/* ローディングコンテンツの共通ベーススタイル */
 .loading-content,
 .map-loading-content {
   text-align: center;
   color: white;
-  /* 両方のコンテンツの位置を統一 */
   transform: translateY(0);
-  /* ボックスモデルを統一 */
   box-sizing: border-box;
-  /* コンテンツの幅と高さを統一 */
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-/* マップローディングコンテンツのみにアニメーション効果を追加 */
+/* マップローディングコンテンツ（アニメーション効果付き） */
 .map-loading-content {
   transition:
     transform 0.3s ease-out,
@@ -95,6 +86,7 @@
   opacity: 0.8;
 }
 
+/* ローディング画像の共通スタイル */
 .loading-title-image,
 .map-loading-title-image {
   width: 100%;
@@ -102,16 +94,14 @@
   margin-bottom: var(--spacing-lg);
   border-radius: var(--radius-medium);
   box-shadow: var(--shadow-heavy);
-  /* ボックスモデルを統一 */
   box-sizing: border-box;
-  /* 画像の表示サイズを完全に統一 */
   max-width: 100%;
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* マップローディング画像のアニメーション効果（位置は変更しない） */
+/* マップローディング画像のアニメーション効果 */
 .map-loading-title-image {
   transition:
     transform 0.3s ease-out,
@@ -164,7 +154,6 @@
   border-top: 4px solid var(--color-primary-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  /* スピナーの位置を統一 */
   box-sizing: border-box;
   display: block;
 }
@@ -178,20 +167,20 @@
   }
 }
 
+/* ローディングテキストの共通スタイル */
 .loading p,
 .map-loading-content p {
   margin: var(--spacing-md) 0 0 0;
   font-size: 1.1rem;
   opacity: 0.9;
-  /* テキストの位置を統一 */
   text-align: center;
   box-sizing: border-box;
 }
 
+/* プログレステキストスタイル */
 .loading-progress {
   margin-top: var(--spacing-sm);
   opacity: 0.8;
-  /* loading-progressの位置を統一 */
   text-align: center;
   box-sizing: border-box;
 }

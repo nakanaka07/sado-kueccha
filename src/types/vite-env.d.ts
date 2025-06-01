@@ -18,12 +18,8 @@ interface ImportMetaEnv {
   readonly VITE_EMAILJS_SERVICE_ID: string;
   readonly VITE_EMAILJS_TEMPLATE_ID: string;
   readonly VITE_EMAILJS_PUBLIC_KEY: string;
-
   // スプレッドシート設定
   readonly [key: `VITE_SHEET_${string}`]: string;
-
-  // ビジュアライゼーション設定
-  readonly VISGL_URL: string;
 
   // その他環境変数
   readonly MODE: string;

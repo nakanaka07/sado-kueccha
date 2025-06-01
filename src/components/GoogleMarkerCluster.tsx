@@ -1,7 +1,6 @@
 import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { memo, useCallback, useMemo } from "react";
 import type { POI } from "../types/google-maps";
-import "./GoogleMarkerCluster.css";
 
 interface GoogleMarkerClusterProps {
   pois: POI[];
