@@ -33,7 +33,7 @@
 
 ```bash
 # ❌ 悪い例：本番APIキーをコードに含める
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyCKkGYP8Bve3CS1vcpEoXQzmoeyOsMvDOE
+VITE_GOOGLE_MAPS_API_KEY=
 
 # ✅ 良い例：GitHub Secretsやクラウド環境変数で管理
 VITE_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}

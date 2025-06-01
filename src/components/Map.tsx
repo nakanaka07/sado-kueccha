@@ -162,12 +162,13 @@ export function MapComponent({ className, onMapLoaded }: MapComponentProps) {
   const handleMapInstanceLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
     console.log("Map instance captured");
-  }, []); // カメラ変更（ズーム、位置など）を監視するハンドラー
+  }, []); // カメラ変更（ズーム、位置など）を監視するハンドラー（デバウンス処理付き）
   const handleCameraChanged = useCallback(
     (event: MapCameraChangedEvent) => {
       const { zoom } = event.detail;
       if (zoom && zoom !== currentZoom) {
         console.log(`🔍 Zoom level changed to: ${zoom.toString()}`);
+        // 即座にズームレベルを更新（UIの応答性を保持）
         setCurrentZoom(zoom);
       }
     },

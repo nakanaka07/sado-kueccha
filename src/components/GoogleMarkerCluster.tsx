@@ -1,6 +1,33 @@
 import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { POI } from "../types/google-maps";
+
+// クラスタリング結果のキャッシュ
+const clusterCache = new Map<string, (POI & { clusterSize?: number; originalPois?: POI[] })[]>();
+
+// デバウンス機能付きのカスタムフック
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface GoogleMarkerClusterProps {
   pois: POI[];
@@ -21,20 +48,32 @@ const clusterPOIs = (
   zoomLevel: number = 10,
 ): (POI & { clusterSize?: number; originalPois?: POI[] })[] => {
   if (pois.length === 0) return [];
+  // キャッシュキーを生成
+  const cacheKey = `${pois.length.toString()}-${Math.round(zoomLevel * 10).toString()}`;
+
+  // キャッシュから結果を取得
+  const cached = clusterCache.get(cacheKey);
+  if (cached) {
+    console.log(
+      `⚡ Cache hit for zoom ${zoomLevel.toString()}, returning ${cached.length.toString()} markers`,
+    );
+    return cached;
+  }
 
   // ズームレベルに応じてクラスタリング距離を調整
-  // 高いズームレベル（15以上）では完全にクラスタリングを無効化
-  if (zoomLevel >= 15) {
+  // 高いズームレベル（14以上）では完全にクラスタリングを無効化（最適化）
+  if (zoomLevel >= 14) {
     console.log(
       `⚡ Fast path: No clustering at zoom ${zoomLevel.toString()}, returning ${pois.length.toString()} individual markers`,
     );
+    clusterCache.set(cacheKey, pois);
     return pois; // クラスタリングを行わず、全て個別マーカーとして返す
   }
 
   const startTime = performance.now();
 
   // より効率的な距離計算（ズームレベルに基づいた動的調整）
-  const clusterDistance = Math.max(0.003, 0.08 / Math.pow(2, zoomLevel - 8));
+  const clusterDistance = Math.max(0.002, 0.06 / Math.pow(2, zoomLevel - 8));
 
   const clusters: (POI & { clusterSize?: number; originalPois?: POI[] })[] = [];
   const processed = new Set<string>();
@@ -85,11 +124,18 @@ const clusterPOIs = (
       });
     }
   }
-
   const elapsedTime = performance.now() - startTime;
   console.log(
     `⚡ Clustering completed in ${elapsedTime.toString()}ms (zoom: ${zoomLevel.toString()})`,
   );
+  // 結果をキャッシュに保存（最大10エントリまで）
+  if (clusterCache.size >= 10) {
+    const firstKey = clusterCache.keys().next().value;
+    if (firstKey) {
+      clusterCache.delete(firstKey);
+    }
+  }
+  clusterCache.set(cacheKey, clusters);
 
   return clusters;
 };
@@ -163,19 +209,22 @@ MarkerComponent.displayName = "MarkerComponent";
 
 export const GoogleMarkerCluster = memo(
   ({ pois, onMarkerClick, currentZoom = 10 }: GoogleMarkerClusterProps) => {
-    // クラスタリングされたPOIを計算（現在のズームレベルを使用）
+    // ズーム変更をデバウンス（150msの遅延）して過度な再計算を防ぐ
+    const debouncedZoom = useDebounce(currentZoom, 150);
+
+    // クラスタリングされたPOIを計算（デバウンスされたズームレベルを使用）
     const clusteredPois = useMemo(() => {
       const startTime = performance.now();
-      const result = clusterPOIs(pois, currentZoom);
+      const result = clusterPOIs(pois, debouncedZoom);
       const clusterCount = result.filter((poi) => poi.id.startsWith("cluster-")).length;
       const individualCount = result.length - clusterCount;
       const elapsedTime = performance.now() - startTime;
 
       console.log(
-        `🔍 Zoom ${currentZoom.toString()}: ${clusterCount.toString()} clusters, ${individualCount.toString()} individual markers (total: ${elapsedTime.toString()}ms)`,
+        `🔍 Zoom ${debouncedZoom.toString()}: ${clusterCount.toString()} clusters, ${individualCount.toString()} individual markers (total: ${elapsedTime.toString()}ms)`,
       );
       return result;
-    }, [pois, currentZoom]);
+    }, [pois, debouncedZoom]);
 
     // マーカーコンポーネントを事前にメモ化してレンダリング最適化
     const markerComponents = useMemo(() => {
