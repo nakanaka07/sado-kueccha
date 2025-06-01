@@ -56,8 +56,9 @@
 
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none';" />
+    <!-- Note: X-Frame-Options should be set via HTTP headers, not meta tags -->
 
     <!-- Structured Data for Local Business -->
     <script type="application/ld+json">

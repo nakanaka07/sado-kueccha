@@ -6,10 +6,8 @@ const STATIC_ASSETS = [
   "/",
   "/index.html",
   "/title_row2.png",
-  "/src/main.tsx",
-  "/src/index.css",
-  "/src/App.tsx",
-  "/src/App.css",
+  // Note: Viteバンドル後のファイルは動的に生成されるため、
+  // 実際のハッシュ付きファイル名はruntime時に決定されます
 ];
 
 // インストール時: 静的アセットをキャッシュ

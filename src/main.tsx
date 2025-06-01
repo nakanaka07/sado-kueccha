@@ -86,7 +86,11 @@ const registerServiceWorker = async (): Promise<void> => {
 
   if ("serviceWorker" in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
+      // Base URLを考慮したService Workerパス
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const swPath = `${baseUrl}sw.js`.replace(/\/+/g, "/"); // 重複スラッシュを除去
+
+      const registration = await navigator.serviceWorker.register(swPath);
       console.log("✅ Service Worker registered successfully:", registration);
     } catch (error) {
       console.warn("SW registration failed:", error);
