@@ -1,4 +1,4 @@
-// データキャッシュサービス
+// 統合データキャッシュサービス
 interface CacheEntry {
   data: unknown;
   timestamp: number;
@@ -7,7 +7,7 @@ interface CacheEntry {
 
 class CacheService {
   private cache = new Map<string, CacheEntry>();
-  private readonly DEFAULT_EXPIRY = 15 * 60 * 1000; // 15分間に延長（パフォーマンス向上）
+  private readonly DEFAULT_EXPIRY = 15 * 60 * 1000; // 15分間
 
   set(key: string, data: unknown, expiryMs: number = this.DEFAULT_EXPIRY): void {
     const entry: CacheEntry = {
@@ -17,6 +17,7 @@ class CacheService {
     };
     this.cache.set(key, entry);
   }
+
   get(key: string): unknown {
     const entry = this.cache.get(key);
     if (!entry) {
@@ -48,10 +49,29 @@ class CacheService {
     return null;
   }
 
+  // キャッシュクリア
   clear(): void {
     this.cache.clear();
   }
 
+  // キャッシュサイズ制限付きセット
+  setWithLimit(key: string, data: unknown, expiryMs?: number, maxSize: number = 10): void {
+    if (this.cache.size >= maxSize) {
+      // 最古のエントリを削除
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.set(key, data, expiryMs);
+  }
+
+  // キャッシュサイズ取得
+  size(): number {
+    return this.cache.size;
+  }
+
+  // キャッシュエントリ存在確認
   has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) {
