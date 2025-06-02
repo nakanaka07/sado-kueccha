@@ -199,9 +199,14 @@ const BusinessHoursDisplay: React.FC<{ businessHours: Record<string, string> }> 
 };
 
 export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
+  // 情報ウィンドウ内のクリックイベントの伝播を防ぐ
+  const handleInfoWindowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <GoogleInfoWindow position={poi.position} onCloseClick={onClose} maxWidth={300}>
-      <div className="info-window">
+      <div className="info-window" onClick={handleInfoWindowClick}>
         <div className="info-window-header">
           <h3 className="info-window-title">{poi.name}</h3>
           <span className="info-window-genre">{poi.genre}</span>

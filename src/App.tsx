@@ -16,14 +16,6 @@ function App() {
       try {
         const startTime = performance.now();
 
-        // デバッグ: 現在の画像パス設定
-        if (import.meta.env.DEV) {
-          console.log("🔍 Asset paths:", {
-            TITLE_ROW1: ASSETS.TITLE.ROW1,
-            MODE: import.meta.env.MODE,
-          });
-        }
-
         // 開発モードでは Vite の静的ファイルサーバーの準備を待つ
         if (import.meta.env.DEV) {
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -135,7 +127,11 @@ function App() {
         </div>
       )}
       <main className="app-main">
-        <MapComponent className="map-container" onMapLoaded={handleMapLoaded} />
+        <MapComponent
+          className="map-container"
+          onMapLoaded={handleMapLoaded}
+          enableClickableIcons={true} // アイコンをクリック可能にする
+        />
       </main>
     </div>
   );

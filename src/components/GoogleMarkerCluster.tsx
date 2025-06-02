@@ -4,8 +4,11 @@ import { SADO_ISLAND } from "../constants";
 import { cacheService } from "../services/cache";
 import type { ClusterablePOI, ClusterPOI, POI } from "../types/google-maps";
 import { GeoUtils } from "../utils/geo";
-import { logger } from "../utils/logger";
 import "./Map.css";
+
+// 静的アセットのインポート
+import parkingIcon from "/assets/parking.png";
+import toiletIcon from "/assets/toilette.png";
 
 let clusterSequence = 0;
 
@@ -64,6 +67,7 @@ interface MarkerComponentProps {
   onMarkerClick?: (poi: ClusterablePOI) => void;
   isCluster?: boolean;
   clusterSize?: number;
+  currentZoom?: number;
 }
 
 // Helper functions for clustering
@@ -118,7 +122,11 @@ const createClusterPOI = (cluster: POI[], poi: POI): ClusterPOI => {
 };
 
 // Main clustering function
-const clusterPOIs = (pois: POI[], zoomLevel: number = 10): ClusterablePOI[] => {
+const clusterPOIs = (
+  pois: POI[],
+  zoomLevel: number = 10,
+  mapBounds: google.maps.LatLngBounds | null = null,
+): ClusterablePOI[] => {
   if (pois.length === 0) return [];
 
   const cacheKey = generateCacheKey(pois, zoomLevel);
@@ -131,11 +139,6 @@ const clusterPOIs = (pois: POI[], zoomLevel: number = 10): ClusterablePOI[] => {
   );
 
   if (cached) {
-    logger.performance(`Cache hit for zoom ${String(zoomLevel)}`, {
-      component: "GoogleMarkerCluster",
-      action: "clusterPOIs",
-      metadata: { markers: cached.length, zoomLevel },
-    });
     return cached;
   } // Disable clustering at high zoom levels
   if (zoomLevel >= SADO_ISLAND.ZOOM.DISABLE_CLUSTERING) {
@@ -143,27 +146,39 @@ const clusterPOIs = (pois: POI[], zoomLevel: number = 10): ClusterablePOI[] => {
       zoomLevel >= SADO_ISLAND.ZOOM.HIGH_THRESHOLD
         ? SADO_ISLAND.MARKER_LIMITS.HIGH_ZOOM
         : SADO_ISLAND.MARKER_LIMITS.NORMAL_ZOOM;
-    const limitedPois = pois.length > maxMarkers ? pois.slice(0, maxMarkers) : pois;
-    logger.performance(
-      pois.length > maxMarkers
-        ? `Limited markers to ${maxMarkers.toString()}`
-        : `No clustering at zoom ${String(zoomLevel)}`,
-      {
-        component: "GoogleMarkerCluster",
-        action: "clusterPOIs",
-        metadata: {
-          original: pois.length,
-          limited: pois.length > maxMarkers ? maxMarkers : pois.length,
-          zoomLevel,
-        },
-      },
-    );
 
-    cacheService.setWithLimit(cacheKey, limitedPois);
-    return limitedPois;
+    let limitedPois: POI[];
+
+    if (pois.length > maxMarkers) {
+      // ビューポート内のマーカーを優先的に選択
+      const inViewportPois = mapBounds ? pois.filter((poi) => isInViewport(poi, mapBounds)) : [];
+      const outOfViewportPois = mapBounds
+        ? pois.filter((poi) => !isInViewport(poi, mapBounds))
+        : pois;
+
+      if (mapBounds && inViewportPois.length > 0) {
+        // ビューポート内のマーカーを最大限含める
+        const viewportCount = Math.min(inViewportPois.length, maxMarkers);
+        const remainingSlots = Math.max(0, maxMarkers - viewportCount);
+        const selectedViewportPois = inViewportPois.slice(0, viewportCount);
+        const selectedOutOfViewportPois = outOfViewportPois.slice(0, remainingSlots);
+
+        limitedPois = [...selectedViewportPois, ...selectedOutOfViewportPois];
+      } else {
+        // マップ境界が利用できない場合は従来通り
+        limitedPois = pois.slice(0, maxMarkers);
+      }
+    } else {
+      limitedPois = pois;
+    }
+
+    // 非常に近い位置のマーカーにオフセットを適用
+    const poisWithOffsets = GeoUtils.applyOffsetsForCloseMarkers(limitedPois);
+
+    cacheService.setWithLimit(cacheKey, poisWithOffsets);
+    return poisWithOffsets;
   }
 
-  const startTime = performance.now();
   const clusterDistance = GeoUtils.getClusteringDistance(zoomLevel);
   const clusters: ClusterablePOI[] = [];
   const processed = new Set<string>();
@@ -197,30 +212,118 @@ const clusterPOIs = (pois: POI[], zoomLevel: number = 10): ClusterablePOI[] => {
       }
     }
 
-    clusters.push(cluster.length === 1 ? poi : createClusterPOI(cluster, poi));
+    const clusterPoi = cluster.length === 1 ? poi : createClusterPOI(cluster, poi);
+
+    clusters.push(clusterPoi);
   }
 
-  const elapsedTime = performance.now() - startTime;
-  logger.performance(`Clustering completed`, {
-    component: "GoogleMarkerCluster",
-    action: "clusterPOIs",
-    duration: elapsedTime,
-    metadata: { zoomLevel, clusters: clusters.length },
-  });
+  // 非常に近い位置の個別マーカーにオフセットを適用
+  const clustersWithOffsets = GeoUtils.applyOffsetsForCloseMarkers(clusters);
 
-  cacheService.setWithLimit(cacheKey, clusters);
-  return clusters;
+  cacheService.setWithLimit(cacheKey, clustersWithOffsets);
+  return clustersWithOffsets;
 };
 
-// Pin configuration
-const getPinConfig = (isCluster: boolean, clusterSize?: number) => {
-  if (!isCluster) {
-    return {
-      background: "#4285F4",
-      borderColor: "#1A73E8",
-      glyphColor: "white",
-      scale: 1.0,
-    };
+// マーカータイプの判定
+const getMarkerType = (poi: POI): "toilet" | "parking" | "normal" => {
+  if (poi.name) {
+    const name = poi.name.toLowerCase();
+    if (
+      name.includes("トイレ") ||
+      name.includes("toilet") ||
+      name.includes("お手洗い") ||
+      name.includes("化粧室")
+    ) {
+      return "toilet";
+    }
+
+    if (name.includes("駐車") || name.includes("parking") || name.includes("パーキング")) {
+      return "parking";
+    }
+  }
+  return "normal";
+};
+
+// カスタムマーカーアイコンの設定（高ズーム時用）
+const getCustomMarkerIcon = (markerType: "toilet" | "parking" | "normal"): string | null => {
+  switch (markerType) {
+    case "toilet":
+      return toiletIcon;
+    case "parking":
+      return parkingIcon;
+    default:
+      return null;
+  }
+};
+
+// Pin configuration with 3段階ズーム対応
+const getPinConfig = (
+  isCluster: boolean,
+  clusterSize?: number,
+  poi?: POI,
+  currentZoom?: number,
+) => {
+  if (!isCluster && poi) {
+    const markerType = getMarkerType(poi);
+    const fullIconZoom = 16; // この値以上でフルサイズアイコン
+    const miniIconZoom = 13; // この値以上で小さなアイコン
+
+    // 超高ズーム：フルサイズカスタムアイコン
+    if (currentZoom && currentZoom >= fullIconZoom) {
+      const customIcon = getCustomMarkerIcon(markerType);
+      if (customIcon) {
+        return {
+          background: "transparent",
+          borderColor: "transparent",
+          scale: 1.0,
+          useCustomIcon: true,
+          customIconUrl: customIcon,
+          iconSize: "full-size",
+        };
+      }
+    }
+
+    // 中ズーム：小さなカスタムアイコン
+    if (currentZoom && currentZoom >= miniIconZoom) {
+      const customIcon = getCustomMarkerIcon(markerType);
+      if (customIcon) {
+        return {
+          background: "transparent",
+          borderColor: "transparent",
+          scale: 1.0,
+          useCustomIcon: true,
+          customIconUrl: customIcon,
+          iconSize: "compact",
+        };
+      }
+    }
+
+    // 低ズーム：カラー＋絵文字のPinマーカー
+    switch (markerType) {
+      case "toilet":
+        return {
+          background: "#8B4513", // ブラウン系
+          borderColor: "#654321",
+          glyphColor: "white",
+          glyph: "🚻",
+          scale: 1.0,
+        };
+      case "parking":
+        return {
+          background: "#2E8B57", // シーグリーン
+          borderColor: "#1F5F3F",
+          glyphColor: "white",
+          glyph: "🅿️",
+          scale: 1.0,
+        };
+      default:
+        return {
+          background: "#4285F4",
+          borderColor: "#1A73E8",
+          glyphColor: "white",
+          scale: 1.0,
+        };
+    }
   }
 
   if (!clusterSize) return null;
@@ -245,21 +348,36 @@ const getPinConfig = (isCluster: boolean, clusterSize?: number) => {
 
 // Marker Component
 const MarkerComponent = memo(
-  ({ poi, onMarkerClick, isCluster, clusterSize }: MarkerComponentProps) => {
+  ({ poi, onMarkerClick, isCluster, clusterSize, currentZoom }: MarkerComponentProps) => {
     const handleClick = useCallback(() => {
       if (onMarkerClick) {
         onMarkerClick(poi);
       }
     }, [poi, onMarkerClick]);
 
-    const pinConfig = getPinConfig(isCluster || false, clusterSize);
+    const pinConfig = getPinConfig(isCluster || false, clusterSize, poi, currentZoom);
     if (!pinConfig) return null;
 
     const title =
       isCluster && clusterSize
-        ? `${clusterSize.toString()}件の施設が集まっています - クリックしてズーム`
+        ? `${clusterSize.toString()}件の施設が集まっています - クリックしてズーム\n含まれる施設: ${poi.description || "データなし"}`
         : poi.name;
 
+    // カスタムアイコンを使用する場合
+    if ("useCustomIcon" in pinConfig && pinConfig.useCustomIcon && "customIconUrl" in pinConfig) {
+      const iconSizeClass = "iconSize" in pinConfig ? pinConfig.iconSize : "full-size";
+      return (
+        <AdvancedMarker position={poi.position} onClick={handleClick} title={title}>
+          <img
+            src={pinConfig.customIconUrl}
+            alt={title}
+            className={`custom-marker-icon ${iconSizeClass}`}
+          />
+        </AdvancedMarker>
+      );
+    }
+
+    // 通常のPinマーカー
     return (
       <AdvancedMarker position={poi.position} onClick={handleClick} title={title}>
         <Pin {...pinConfig} />
@@ -280,26 +398,12 @@ export const GoogleMarkerCluster = memo(
     const debouncedZoom = useDebounce(currentZoom, 100);
 
     const clusteredPois = useMemo(() => {
-      const startTime = performance.now();
-      const result = clusterPOIs(pois, debouncedZoom);
-      const clusterCount = result.filter((poi) => poi.id.startsWith("cluster-")).length;
-      const individualCount = result.length - clusterCount;
-      const elapsedTime = performance.now() - startTime;
+      // マップの境界を取得してclusterPOIs関数に渡す
+      const bounds = map?.getBounds() || null;
 
-      logger.debug(`Zoom processing completed`, {
-        component: "GoogleMarkerCluster",
-        action: "useMemo:clusteredPois",
-        duration: elapsedTime,
-        metadata: {
-          zoom: debouncedZoom,
-          clusters: clusterCount,
-          individual: individualCount,
-          total: result.length,
-        },
-      });
-
+      const result = clusterPOIs(pois, debouncedZoom, bounds);
       return result;
-    }, [pois, debouncedZoom]);
+    }, [pois, debouncedZoom, map]);
 
     // Viewport-based progressive rendering
     useEffect(() => {
@@ -308,7 +412,6 @@ export const GoogleMarkerCluster = memo(
         return;
       }
 
-      const startTime = performance.now();
       const bounds = map.getBounds();
 
       if (!bounds) {
@@ -317,15 +420,6 @@ export const GoogleMarkerCluster = memo(
       }
 
       const { inViewport, outOfViewport } = partitionPOIsByViewport(clusteredPois, bounds);
-
-      logger.debug(`Viewport rendering`, {
-        component: "GoogleMarkerCluster",
-        action: "viewport-partition",
-        metadata: {
-          inView: inViewport.length,
-          outOfView: outOfViewport.length,
-        },
-      });
 
       setVisibleMarkers(inViewport);
 
@@ -338,33 +432,12 @@ export const GoogleMarkerCluster = memo(
         const loadChunk = () => {
           if (currentIndex >= outOfViewport.length) {
             setIsLoadingMore(false);
-            const totalTime = performance.now() - startTime;
-
-            logger.performance(`All markers loaded`, {
-              component: "GoogleMarkerCluster",
-              action: "loadChunk-complete",
-              duration: totalTime,
-              metadata: {
-                total: clusteredPois.length,
-                immediate: inViewport.length,
-                deferred: outOfViewport.length,
-              },
-            });
             return;
           }
 
           const chunk = outOfViewport.slice(currentIndex, currentIndex + chunkSize);
           setVisibleMarkers((prev) => [...prev, ...chunk]);
           currentIndex += chunkSize;
-
-          logger.debug(`Loaded chunk`, {
-            component: "GoogleMarkerCluster",
-            action: "loadChunk-progress",
-            metadata: {
-              loaded: currentIndex,
-              total: outOfViewport.length,
-            },
-          });
 
           setTimeout(loadChunk, 16);
         };
@@ -385,10 +458,11 @@ export const GoogleMarkerCluster = memo(
             {...(onMarkerClick && { onMarkerClick })}
             isCluster={isCluster}
             {...(clusterSize !== undefined && { clusterSize })}
+            currentZoom={debouncedZoom}
           />
         );
       });
-    }, [visibleMarkers, onMarkerClick]);
+    }, [visibleMarkers, onMarkerClick, debouncedZoom]);
 
     return (
       <>

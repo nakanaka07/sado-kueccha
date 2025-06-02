@@ -28,6 +28,7 @@ export interface POI {
   googleMapsUrl?: string;
   address?: string;
   district?: string; // 地区情報
+  sourceSheet?: string; // データソースのシート名
 }
 
 /**

@@ -12,7 +12,7 @@ export const SADO_ISLAND = {
     MIN: 9,
     MAX: 18,
     MIN_CLUSTER_ZOOM: 8,
-    DISABLE_CLUSTERING: 15,
+    DISABLE_CLUSTERING: 14,
     HIGH_THRESHOLD: 17,
     MAX_ZOOM_LEVEL: 20,
   },

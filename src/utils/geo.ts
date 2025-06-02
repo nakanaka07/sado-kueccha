@@ -59,4 +59,94 @@ export const GeoUtils = {
     if (!bounds) return true;
     return bounds.contains({ lat, lng });
   },
+
+  /**
+   * 2つの位置が非常に近いかどうかを判定
+   * @param lat1 緯度1
+   * @param lng1 経度1
+   * @param lat2 緯度2
+   * @param lng2 経度2
+   * @param threshold 閾値（度単位、デフォルト: 0.0001 ≈ 11m）
+   * @returns 非常に近い場合true
+   */
+  arePositionsVeryClose(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+    threshold: number = 0.0001,
+  ): boolean {
+    return this.getDistanceSquared(lat1, lng1, lat2, lng2) < threshold * threshold;
+  },
+
+  /**
+   * 同一または非常に近い位置にあるマーカーにオフセットを適用
+   * @param pois POI配列
+   * @param offsetDistance オフセット距離（度単位、デフォルト: 0.0002 ≈ 22m）
+   * @returns オフセット適用後のPOI配列
+   */
+  applyOffsetsForCloseMarkers<T extends { position: { lat: number; lng: number } }>(
+    pois: T[],
+    offsetDistance: number = 0.0002,
+  ): T[] {
+    const result = [...pois];
+    const processed = new Set<number>();
+
+    for (let i = 0; i < result.length; i++) {
+      if (processed.has(i)) continue;
+
+      const currentPoi = result[i];
+      if (!currentPoi) continue;
+
+      const closeMarkers: number[] = [i];
+
+      // 同じまたは非常に近い位置のマーカーを見つける
+      for (let j = i + 1; j < result.length; j++) {
+        if (processed.has(j)) continue;
+
+        const otherPoi = result[j];
+        if (!otherPoi) continue;
+
+        if (
+          this.arePositionsVeryClose(
+            currentPoi.position.lat,
+            currentPoi.position.lng,
+            otherPoi.position.lat,
+            otherPoi.position.lng,
+          )
+        ) {
+          closeMarkers.push(j);
+        }
+      }
+
+      // 近いマーカーが複数ある場合、オフセットを適用
+      if (closeMarkers.length > 1) {
+        closeMarkers.forEach((index, arrayIndex) => {
+          processed.add(index);
+
+          if (arrayIndex > 0) {
+            // 最初のマーカーは元の位置のまま
+            const targetPoi = result[index];
+            if (!targetPoi) return;
+
+            const angle = (2 * Math.PI * arrayIndex) / closeMarkers.length;
+            const offsetLat = offsetDistance * Math.cos(angle);
+            const offsetLng = offsetDistance * Math.sin(angle);
+
+            result[index] = {
+              ...targetPoi,
+              position: {
+                lat: targetPoi.position.lat + offsetLat,
+                lng: targetPoi.position.lng + offsetLng,
+              },
+            } as T;
+          }
+        });
+      } else {
+        processed.add(i);
+      }
+    }
+
+    return result;
+  },
 } as const;

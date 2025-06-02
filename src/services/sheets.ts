@@ -144,7 +144,7 @@ class SheetsService {
     const data = (await response.json()) as { values?: string[][] };
     return data.values || [];
   } // 生データをPOI形式に変換
-  private convertToPOI(row: string[], id: string): POI | null {
+  private convertToPOI(row: string[], id: string, sheetName: string): POI | null {
     try {
       // 列定数を使用してデータを取得
       const district = row[this.COLUMNS.DISTRICT] || "";
@@ -190,6 +190,7 @@ class SheetsService {
         name: name.trim(),
         position: { lat: latitude, lng: longitude },
         genre: genre.trim() || "その他",
+        sourceSheet: sheetName, // ソースシート情報を追加
       };
 
       // オプションフィールドを条件付きで追加
@@ -267,7 +268,7 @@ class SheetsService {
         const rows = await this.fetchSheetData(config.name, range);
 
         rows.forEach((row, index) => {
-          const poi = this.convertToPOI(row, `${config.name}-${String(index + 1)}`);
+          const poi = this.convertToPOI(row, `${config.name}-${String(index + 1)}`, config.name);
           if (poi) {
             allPOIs.push(poi);
           }
