@@ -409,12 +409,25 @@ export function MapComponent({
           mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"}
           mapTypeId={google.maps.MapTypeId.TERRAIN}
           gestureHandling="greedy"
-          disableDefaultUI={false}
+          disableDefaultUI={true}
           mapTypeControl={true}
           mapTypeControlOptions={{
             style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
             position: google.maps.ControlPosition.TOP_LEFT,
           }}
+          streetViewControl={true}
+          streetViewControlOptions={{
+            position: google.maps.ControlPosition.RIGHT_TOP,
+          }}
+          zoomControl={true}
+          zoomControlOptions={{
+            position: google.maps.ControlPosition.RIGHT_TOP,
+          }}
+          fullscreenControl={true}
+          fullscreenControlOptions={{
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          }}
+          scaleControl={true}
           clickableIcons={enableClickableIcons} // プロップで制御可能に
           style={{ width: "100%", height: "100%" }}
           reuseMaps={true}
