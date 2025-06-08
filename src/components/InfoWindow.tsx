@@ -257,7 +257,7 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
           )}
 
           <div className="info-window-features">
-            {poi.parking && <div className="feature-badge parking">🅿️ 駐車場: {poi.parking}</div>}
+            {poi.parking && <div className="feature-badge parking">🅿️ 隣接駐車場: {poi.parking}</div>}
             {poi.cashless && <div className="feature-badge cashless">💳 キャッシュレス対応</div>}
           </div>
 

@@ -254,11 +254,15 @@ class SheetsService {
       console.error("POI変換エラー:", row, error);
       return null;
     }
-  } // 複数シートからPOIデータを取得
+  } // 複数シートからPOIデータを取得（推奨シート優先）
   async fetchAllPOIs(): Promise<POI[]> {
-    const allPOIs: POI[] = [];
+    const poiMap = new Map<string, POI>();
+    const recommendedSheetName = "recommended"; // VITE_SHEET_RECOMMENDEDの名前
 
+    // まず推奨シート以外のすべてのシートからデータを取得
     for (const config of this.sheetConfigs) {
+      if (config.name === recommendedSheetName) continue; // 推奨シートはスキップ
+
       try {
         const range = "AB2:AX1000"; // 必要な列（AB〜AX）のみを取得
         const rows = await this.fetchSheetData(config.name, range);
@@ -266,7 +270,8 @@ class SheetsService {
         rows.forEach((row, index) => {
           const poi = this.convertToPOI(row, `${config.name}-${String(index + 1)}`, config.name);
           if (poi) {
-            allPOIs.push(poi);
+            const uniqueKey = this.generatePOIKey(poi);
+            poiMap.set(uniqueKey, poi);
           }
         });
       } catch (error) {
@@ -275,7 +280,51 @@ class SheetsService {
       }
     }
 
-    return allPOIs;
+    // 次に推奨シートのデータを取得し、重複する場合は上書き
+    const recommendedConfig = this.sheetConfigs.find(
+      (config) => config.name === recommendedSheetName,
+    );
+    if (recommendedConfig) {
+      try {
+        const range = "AB2:AX1000";
+        const rows = await this.fetchSheetData(recommendedConfig.name, range);
+
+        rows.forEach((row, index) => {
+          const poi = this.convertToPOI(
+            row,
+            `${recommendedConfig.name}-${String(index + 1)}`,
+            recommendedConfig.name,
+          );
+          if (poi) {
+            const uniqueKey = this.generatePOIKey(poi);
+            const existingPOI = poiMap.get(uniqueKey);
+
+            if (existingPOI) {
+              console.log(
+                `推奨シートのPOI "${poi.name}" で既存データ（${existingPOI.sourceSheet || "不明"}）を上書きしました`,
+              );
+            }
+
+            // 推奨シートのデータで既存データを上書き（優先）
+            poiMap.set(uniqueKey, poi);
+          }
+        });
+      } catch (error) {
+        console.error(`推奨シート "${recommendedConfig.name}" の取得に失敗:`, error);
+      }
+    }
+
+    return Array.from(poiMap.values());
+  }
+
+  // POIの一意キーを生成（名前と座標の組み合わせ）
+  private generatePOIKey(poi: POI): string {
+    // 名前を正規化（空白、記号を除去して比較）
+    const normalizedName = poi.name.replace(/[\s\-_・]/g, "").toLowerCase();
+    // 座標を小数点以下4桁で丸めて比較（GPS精度の範囲内）
+    const lat = Math.round(poi.position.lat * 10000) / 10000;
+    const lng = Math.round(poi.position.lng * 10000) / 10000;
+    return `${normalizedName}_${lat.toString()}_${lng.toString()}`;
   }
 
   // CSVテキストを解析してstring[][]に変換
