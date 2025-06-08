@@ -62,6 +62,56 @@
 }
 
 /* 営業時間関連スタイル */
+.business-hours-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-rounded);
+  font-weight: 600;
+  font-size: 12px;
+  width: fit-content;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge.open {
+  background-color: #10b981;
+  color: white;
+}
+
+.status-badge.closed {
+  background-color: #ef4444;
+  color: white;
+}
+
+.status-badge.unknown {
+  background-color: #6b7280;
+  color: white;
+}
+
+.status-icon {
+  font-size: 11px;
+}
+
+.status-text {
+  font-weight: 600;
+}
+
+.hours-info {
+  margin-top: var(--spacing-xs);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* 従来のスタイルを維持（後方互換性） */
 .current-status {
   display: flex;
   align-items: center;
@@ -83,14 +133,6 @@
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #dc2626;
-}
-
-.status-icon {
-  font-size: 12px;
-}
-
-.status-text {
-  font-weight: bold;
 }
 
 .today-hours {

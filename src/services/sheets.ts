@@ -26,9 +26,9 @@ class SheetsService {
     COORDINATES: 4, // AF列: 座標（経度,緯度）
     NAME: 5, // AG列: 名称
     GENRE: 6, // AH列: ジャンル
-    CATEGORY: 7, // AI列: カテゴリー
-    PARKING: 8, // AJ列: 駐車場情報
-    CASHLESS: 9, // AK列: キャッシュレス
+    CATEGORY: 7, // AI列: シートカテゴリー
+    PARKING: 8, // AJ列: 隣接駐車場
+    CASHLESS: 9, // AK列: キャッシュレス対応
     MONDAY: 10, // AL列: 月曜
     TUESDAY: 11, // AM列: 火曜
     WEDNESDAY: 12, // AN列: 水曜
@@ -37,7 +37,7 @@ class SheetsService {
     SATURDAY: 15, // AQ列: 土曜
     SUNDAY: 16, // AR列: 日曜
     HOLIDAY: 17, // AS列: 祝祭
-    CLOSED_DAYS: 18, // AT列: 定休日について
+    CLOSED_DAYS: 18, // AT列: 定休日補足
     RELATED_INFO: 19, // AU列: 関連情報
     GOOGLE_MAPS: 20, // AV列: Google マップで見る
     CONTACT: 21, // AW列: 問い合わせ
@@ -151,7 +151,6 @@ class SheetsService {
       const coordinates = row[this.COLUMNS.COORDINATES] || "";
       const name = row[this.COLUMNS.NAME] || "";
       const genre = row[this.COLUMNS.GENRE] || "";
-      const category = row[this.COLUMNS.CATEGORY] || "";
       const parking = row[this.COLUMNS.PARKING] || "";
       const cashless = row[this.COLUMNS.CASHLESS] || "";
       const monday = row[this.COLUMNS.MONDAY] || "";
@@ -166,7 +165,7 @@ class SheetsService {
       const relatedInfo = row[this.COLUMNS.RELATED_INFO] || "";
       const googleMapsUrl = row[this.COLUMNS.GOOGLE_MAPS] || "";
       const contact = row[this.COLUMNS.CONTACT] || "";
-      const address = row[this.COLUMNS.ADDRESS] || ""; // 必須フィールドのチェック
+      const address = row[this.COLUMNS.ADDRESS] || "";
       if (!name.trim() || !coordinates.trim()) {
         return null;
       }
@@ -194,9 +193,6 @@ class SheetsService {
       };
 
       // オプションフィールドを条件付きで追加
-      if (category.trim()) {
-        poi.category = category.trim();
-      }
 
       if (relatedInfo.trim()) {
         poi.description = relatedInfo.trim();

@@ -33,7 +33,7 @@ const BusinessHoursUtils = {
 
     // 複数時間帯の営業（例：10:00-14:00, 17:00-21:00）
     const multiTimeMatch = hoursStr.match(
-      /(\d{1,2}):(\d{2})\s*[-~]\s*(\d{1,2}):(\d{2})(?:.*?)(\d{1,2}):(\d{2})\s*[-~]\s*(\d{1,2}):(\d{2})/,
+      /(\d{1,2}):(\d{2})\s*[-~〜]\s*(\d{1,2}):(\d{2})(?:.*?)(\d{1,2}):(\d{2})\s*[-~〜]\s*(\d{1,2}):(\d{2})/,
     );
     if (multiTimeMatch) {
       const [, start1H, start1M, end1H, end1M, start2H, start2M, end2H, end2M] = multiTimeMatch;
@@ -54,15 +54,28 @@ const BusinessHoursUtils = {
       }
     }
 
-    // 通常の営業時間
-    const timeMatch = hoursStr.match(/(\d{1,2}):(\d{2})\s*[-~]\s*(\d{1,2}):(\d{2})/);
+    // 通常の営業時間（様々な区切り文字と時間表記に対応）
+    const timeMatch = hoursStr.match(/(\d{1,2}):?(\d{2})?\s*[-~〜ー]\s*(\d{1,2}):?(\d{2})?/);
     if (timeMatch) {
-      const [, startH, startM, endH, endM] = timeMatch;
-      if (startH && startM && endH && endM) {
+      const [, startH, startM = "00", endH, endM = "00"] = timeMatch;
+      if (startH && endH) {
         return {
           type: "normal",
           start: BusinessHoursUtils.timeToNumber(parseInt(startH), parseInt(startM)),
           end: BusinessHoursUtils.timeToNumber(parseInt(endH), parseInt(endM)),
+        };
+      }
+    }
+
+    // 時間部分のみ（例：9-17、9時-17時）
+    const simpleTimeMatch = hoursStr.match(/(\d{1,2})時?\s*[-~〜ー]\s*(\d{1,2})時?/);
+    if (simpleTimeMatch) {
+      const [, startH, endH] = simpleTimeMatch;
+      if (startH && endH) {
+        return {
+          type: "normal",
+          start: BusinessHoursUtils.timeToNumber(parseInt(startH), 0),
+          end: BusinessHoursUtils.timeToNumber(parseInt(endH), 0),
         };
       }
     }
@@ -94,14 +107,15 @@ const BusinessHoursUtils = {
   },
 
   // 営業状態のテキストを取得
-  getStatusText: (parsedHours: ParsedHours, isOpen: boolean): string => {
+  getStatusText: (parsedHours: ParsedHours, isOpen: boolean, todayHours: string): string => {
     switch (parsedHours.type) {
       case "24h":
         return "24時間営業";
       case "closed":
         return "定休日";
       case "unknown":
-        return "営業時間不明";
+        // デバッグ情報を含める（本来の時間情報がある場合）
+        return todayHours !== "不明" ? `営業時間要確認 (${todayHours})` : "営業時間不明";
       default:
         return isOpen ? "営業中" : "営業時間外";
     }
@@ -138,18 +152,10 @@ const BusinessHoursUtils = {
         ? BusinessHoursUtils.isCurrentlyOpen(parsedToday, currentTime)
         : false;
 
-    // 営業時間をグループ化
-    const groupedHours: Record<string, string[]> = {};
-    Object.entries(hoursData).forEach(([day, hours]) => {
-      if (!groupedHours[hours]) groupedHours[hours] = [];
-      groupedHours[hours].push(day);
-    });
-
     return {
       isOpen,
-      currentStatus: BusinessHoursUtils.getStatusText(parsedToday, isOpen),
+      currentStatus: BusinessHoursUtils.getStatusText(parsedToday, isOpen, todayHours),
       todayHours,
-      groupedHours,
     };
   },
 };
@@ -177,22 +183,31 @@ const BusinessHoursDisplay: React.FC<{ businessHours: Record<string, string> }> 
 }) => {
   const hoursInfo = BusinessHoursUtils.formatBusinessHours(businessHours);
 
+  // ステータスの種類を判定
+  const getStatusType = () => {
+    if (hoursInfo.currentStatus === "24時間営業") return "open";
+    if (hoursInfo.currentStatus === "定休日") return "closed";
+    if (
+      hoursInfo.currentStatus.includes("営業時間不明") ||
+      hoursInfo.currentStatus.includes("営業時間要確認")
+    )
+      return "unknown";
+    return hoursInfo.isOpen ? "open" : "closed";
+  };
+
   return (
     <div className="business-hours">
-      <div className={`current-status ${hoursInfo.isOpen ? "open" : "closed"}`}>
-        <span className="status-icon">{hoursInfo.isOpen ? "🟢" : "🔴"}</span>
-        <span className="status-text">{hoursInfo.currentStatus}</span>
-        {hoursInfo.todayHours !== "不明" && (
-          <span className="today-hours">（本日: {hoursInfo.todayHours}）</span>
-        )}
-      </div>
-      <div className="hours-details">
-        {Object.entries(hoursInfo.groupedHours).map(([hours, days]) => (
-          <div key={hours} className="hours-group">
-            <span className="days">{days.join("・")}</span>
-            <span className="hours">{hours}</span>
-          </div>
-        ))}
+      <div className="business-hours-status">
+        <div className={`status-badge ${getStatusType()}`}>
+          <span className="status-icon">
+            {getStatusType() === "open" ? "🟢" : getStatusType() === "closed" ? "🔴" : "⚪"}
+          </span>
+          <span className="status-text">{hoursInfo.currentStatus}</span>
+        </div>
+        {hoursInfo.todayHours !== "不明" &&
+          !hoursInfo.currentStatus.includes(hoursInfo.todayHours) && (
+            <div className="hours-info">本日: {hoursInfo.todayHours}</div>
+          )}
       </div>
     </div>
   );
@@ -213,16 +228,16 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
         </div>
 
         <div className="info-window-content">
-          {poi.category && (
+          {poi.district && (
             <div className="info-window-field">
-              <span className="field-label">カテゴリー:</span>
-              <span className="field-value">{poi.category}</span>
+              <span className="field-label">地区:</span>
+              <span className="field-value">{poi.district}</span>
             </div>
           )}
 
           {poi.description && (
             <div className="info-window-field">
-              <span className="field-label">関連情報（SNS等）:</span>
+              <span className="field-label">SNS:</span>
               <div className="field-value sns-content">{linkifyText(poi.description)}</div>
             </div>
           )}

@@ -17,7 +17,6 @@ export interface POI {
   name: string;
   position: LatLngLiteral;
   genre: string;
-  category?: string;
   description?: string;
   parking?: string;
   cashless?: boolean;
