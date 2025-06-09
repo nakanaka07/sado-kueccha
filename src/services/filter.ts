@@ -38,6 +38,13 @@ export const FilterService = {
    */
   getFilterKeyFromSheet(sheetName: string): keyof FilterState | null {
     // 環境変数に基づいたマッピング
+    // recommended: おすすめの飲食店をピックアップしたデータ
+    // ryotsu_aikawa: 両津・相川地区
+    // kanai_sawada: 金井・佐和田・新穂・畑野・真野地区
+    // akadomari_hamochi: 赤泊・羽茂・小木地区
+    // snack: スナック営業している店舗
+    // toilet: 公共トイレの位置情報
+    // parking: 公共の駐車場
     const mapping: Record<string, keyof FilterState> = {
       toilet: "showToilets",
       parking: "showParking",
@@ -101,7 +108,8 @@ export const FilterService = {
           showSnacks: true,
         };
 
-      case "tourism":
+      case "gourmet":
+        // グルメ中心の表示：一般的な飲食店のみを表示し、施設系とスナックは除外
         return {
           showToilets: false,
           showParking: false,
@@ -109,7 +117,7 @@ export const FilterService = {
           showRyotsuAikawa: true,
           showKanaiSawada: true,
           showAkadomariHamochi: true,
-          showSnacks: true,
+          showSnacks: false, // スナックを除外
         };
 
       case "facilities":
@@ -121,6 +129,18 @@ export const FilterService = {
           showKanaiSawada: false,
           showAkadomariHamochi: false,
           showSnacks: false,
+        };
+
+      case "nightlife":
+        // ナイトライフ中心の表示：スナック営業店舗のみを表示
+        return {
+          showToilets: false,
+          showParking: false,
+          showRecommended: false,
+          showRyotsuAikawa: false,
+          showKanaiSawada: false,
+          showAkadomariHamochi: false,
+          showSnacks: true,
         };
 
       case "none":
@@ -135,6 +155,7 @@ export const FilterService = {
         };
 
       default:
+        // デフォルト状態：一般的な飲食店のみ表示、スナックと施設系は非表示
         return {
           showToilets: false,
           showParking: false,
@@ -142,7 +163,7 @@ export const FilterService = {
           showRyotsuAikawa: true,
           showKanaiSawada: true,
           showAkadomariHamochi: true,
-          showSnacks: true,
+          showSnacks: false, // デフォルトでスナックは非表示
         };
     }
   },
@@ -158,4 +179,4 @@ export interface FilterStats {
 }
 
 // プリセットフィルターの型定義
-export type FilterPreset = "all" | "tourism" | "facilities" | "none" | "default";
+export type FilterPreset = "all" | "gourmet" | "facilities" | "nightlife" | "none" | "default";

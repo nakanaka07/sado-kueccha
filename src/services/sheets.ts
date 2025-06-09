@@ -54,12 +54,19 @@ class SheetsService {
 
     // .envからシート設定を読み込み
     this.sheetConfigs = [
+      // おすすめの飲食店をピックアップしたデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RECOMMENDED"] || ""),
+      // 両津・相川地区のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_RYOTSU_AIKAWA"] || ""),
+      // 金井・佐和田・新穂・畑野・真野地区のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_KANAI_SAWADA"] || ""),
+      // 赤泊・羽茂・小木地区のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_AKADOMARI_HAMOCHI"] || ""),
+      // スナック営業している店舗のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_SNACK"] || ""),
+      // 公共トイレの位置情報のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_TOILET"] || ""),
+      // 公共の駐車場のデータ
       this.parseSheetConfig(import.meta.env["VITE_SHEET_PARKING"] || ""),
     ].filter((config): config is { name: string; gid: string } => config !== null);
   } // シート設定文字列を解析（例: "おすすめ:1043711248"）
@@ -300,9 +307,7 @@ class SheetsService {
             const existingPOI = poiMap.get(uniqueKey);
 
             if (existingPOI) {
-              console.log(
-                `推奨シートのPOI "${poi.name}" で既存データ（${existingPOI.sourceSheet || "不明"}）を上書きしました`,
-              );
+              // 推奨シートで既存データを上書き（ログ出力なし）
             }
 
             // 推奨シートのデータで既存データを上書き（優先）

@@ -18,7 +18,7 @@ export interface FilterOption {
   label: string;
   icon: string;
   description?: string;
-  category: "facilities" | "areas" | "dining";
+  category: "facilities" | "dining" | "nightlife";
 }
 
 export interface FilterCategory {
@@ -36,7 +36,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   showRyotsuAikawa: true,
   showKanaiSawada: true,
   showAkadomariHamochi: true,
-  showSnacks: true,
+  showSnacks: false,
 };
 
 // フィルターオプションの定義
@@ -60,35 +60,35 @@ export const FILTER_OPTIONS: FilterOption[] = [
     label: "おすすめ",
     icon: "⭐",
     description: "おすすめスポットを表示",
-    category: "areas",
+    category: "dining",
   },
   {
     key: "showRyotsuAikawa",
     label: "両津・相川",
     icon: "🏔️",
     description: "両津・相川エリアを表示",
-    category: "areas",
+    category: "dining",
   },
   {
     key: "showKanaiSawada",
     label: "金井・佐和田",
     icon: "🌾",
     description: "金井・佐和田エリアを表示",
-    category: "areas",
+    category: "dining",
   },
   {
     key: "showAkadomariHamochi",
     label: "赤泊・羽茂",
     icon: "🌊",
     description: "赤泊・羽茂エリアを表示",
-    category: "areas",
+    category: "dining",
   },
   {
     key: "showSnacks",
-    label: "グルメ",
-    icon: "🍽️",
-    description: "グルメ・飲食店を表示",
-    category: "dining",
+    label: "スナック",
+    icon: "🍻",
+    description: "スナック営業店舗を表示",
+    category: "nightlife",
   },
 ];
 
@@ -101,16 +101,16 @@ export const FILTER_CATEGORIES: FilterCategory[] = [
     options: FILTER_OPTIONS.filter((option) => option.category === "facilities"),
   },
   {
-    id: "areas",
-    label: "エリア",
-    icon: "🗺️",
-    options: FILTER_OPTIONS.filter((option) => option.category === "areas"),
-  },
-  {
     id: "dining",
     label: "グルメ",
     icon: "🍽️",
     options: FILTER_OPTIONS.filter((option) => option.category === "dining"),
+  },
+  {
+    id: "nightlife",
+    label: "ナイトライフ",
+    icon: "🍸",
+    options: FILTER_OPTIONS.filter((option) => option.category === "nightlife"),
   },
 ];
 

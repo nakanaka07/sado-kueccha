@@ -19,7 +19,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   className = "",
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
 
   // 統計情報を取得
   const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
@@ -31,22 +31,45 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       [key]: !filterState[key],
     };
     onFilterChange(newFilterState);
-  };
-
-  // プリセット適用ハンドラー
+  }; // プリセット適用ハンドラー
   const handlePresetApply = (preset: FilterPreset) => {
     const newFilterState = FilterService.applyPreset(preset);
     onFilterChange(newFilterState);
-  };
 
-  // すべてクリアボタン
+    // プリセットに応じて関連カテゴリを自動で開く
+    switch (preset) {
+      case "gourmet":
+        setActiveCategories(["dining"]);
+        break;
+      case "facilities":
+        setActiveCategories(["facilities"]);
+        break;
+      case "nightlife":
+        setActiveCategories(["nightlife"]);
+        break;
+      case "all":
+        // すべてのカテゴリを開く
+        setActiveCategories(FILTER_CATEGORIES.map((category) => category.id));
+        break;
+      case "none":
+        // 何も表示しないので、カテゴリを閉じる
+        setActiveCategories([]);
+        break;
+      default:
+        // デフォルトはグルメカテゴリを開く
+        setActiveCategories(["dining"]);
+        break;
+    }
+  }; // すべてクリアボタン
   const handleClearAll = () => {
     onFilterChange(FilterService.applyPreset("none"));
+    setActiveCategories([]); // カテゴリを閉じる
   };
 
   // すべて選択ボタン
   const handleSelectAll = () => {
     onFilterChange(FilterService.applyPreset("all"));
+    setActiveCategories(FILTER_CATEGORIES.map((category) => category.id)); // すべてのカテゴリを開く
   };
   return (
     <div className={`filter-panel ${className}`}>
@@ -72,17 +95,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* 展開時のコンテンツ */}
       {isExpanded && (
         <div className="filter-content">
+          {" "}
           {/* プリセットボタン */}{" "}
           <div className="filter-presets">
-            <button
-              className="preset-button tourism"
-              onClick={() => {
-                handlePresetApply("tourism");
-              }}
-              title="観光スポットのみ表示"
-            >
-              🗾 観光
-            </button>
+            {" "}
             <button
               className="preset-button facilities"
               onClick={() => {
@@ -92,11 +108,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             >
               🏢 施設
             </button>
+            <button
+              className="preset-button gourmet"
+              onClick={() => {
+                handlePresetApply("gourmet");
+              }}
+              title="一般的な飲食店のみ表示（スナック除く）"
+            >
+              🍽️ グルメ
+            </button>
+            <button
+              className="preset-button nightlife"
+              onClick={() => {
+                handlePresetApply("nightlife");
+              }}
+              title="ナイトライフ（スナック）のみ表示"
+            >
+              🍸 夜遊び
+            </button>
             <button className="preset-button clear" onClick={handleClearAll} title="すべて非表示">
               ❌ クリア
             </button>
             <button className="preset-button all" onClick={handleSelectAll} title="すべて表示">
-              ✅ すべて
+              ✅ 全表示
             </button>
           </div>
           {/* カテゴリ別フィルター */}
@@ -105,21 +139,27 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {FILTER_CATEGORIES.map((category: FilterCategory) => (
               <div key={category.id} className="filter-category">
                 <button
-                  className={`category-header ${activeCategory === category.id ? "active" : ""}`}
+                  className={`category-header ${activeCategories.includes(category.id) ? "active" : ""}`}
                   onClick={() => {
-                    setActiveCategory(activeCategory === category.id ? null : category.id);
+                    if (activeCategories.includes(category.id)) {
+                      // カテゴリが開いている場合は閉じる
+                      setActiveCategories(activeCategories.filter((id) => id !== category.id));
+                    } else {
+                      // カテゴリが閉じている場合は開く
+                      setActiveCategories([...activeCategories, category.id]);
+                    }
                   }}
                 >
                   <span className="category-icon">{category.icon}</span>
                   <span className="category-label">{category.label}</span>
                   <span
-                    className={`category-expand ${activeCategory === category.id ? "expanded" : ""}`}
+                    className={`category-expand ${activeCategories.includes(category.id) ? "expanded" : ""}`}
                   >
                     ▼
                   </span>
                 </button>
 
-                {(activeCategory === category.id || category.id === "facilities") && (
+                {activeCategories.includes(category.id) && (
                   <div className="filter-options">
                     {" "}
                     {category.options.map((option) => (
