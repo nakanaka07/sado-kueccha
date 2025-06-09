@@ -1,14 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 
 import "./App.css";
+import { FilterPanel } from "./components/FilterPanel";
 import { MapComponent } from "./components/Map";
 import { ASSETS } from "./constants";
+import { FilterService } from "./services/filter";
 import { preloadService } from "./services/preload";
+import { fetchPOIs } from "./services/sheets";
+import type { FilterState } from "./types/filter";
+import type { POI } from "./types/google-maps";
 
 function App() {
   const [loading, setLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
+  const [pois, setPois] = useState<POI[]>([]);
+  const [filterState, setFilterState] = useState<FilterState>(() =>
+    FilterService.getDefaultState(),
+  );
 
   // アセットプリロードのuseEffectを最適化
   useEffect(() => {
@@ -72,6 +81,31 @@ function App() {
     void preloadAssets();
   }, []);
 
+  // POIデータの読み込み
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPOIs = async () => {
+      try {
+        const data = await fetchPOIs();
+        if (isMounted) {
+          setPois(data);
+        }
+      } catch (error) {
+        console.warn("POI loading failed:", error);
+        if (isMounted) {
+          setPois([]);
+        }
+      }
+    };
+
+    void loadPOIs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // マップロード完了ハンドラーをuseCallbackでメモ化
   const handleMapLoaded = useCallback(() => {
     if (import.meta.env.DEV) {
@@ -93,6 +127,12 @@ function App() {
 
     void animateOut();
   }, []);
+
+  // フィルタ変更ハンドラー
+  const handleFilterChange = useCallback((newFilterState: FilterState) => {
+    setFilterState(newFilterState);
+  }, []);
+
   if (loading) {
     return (
       <div className="loading">
@@ -127,10 +167,13 @@ function App() {
         </div>
       )}
       <main className="app-main">
+        <FilterPanel pois={pois} filterState={filterState} onFilterChange={handleFilterChange} />
         <MapComponent
           className="map-container"
           onMapLoaded={handleMapLoaded}
           enableClickableIcons={true} // アイコンをクリック可能にする
+          filterState={filterState}
+          pois={pois}
         />
       </main>
     </div>

@@ -1,0 +1,233 @@
+/* フィルターパネルのスタイル */
+.filter-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: var(--color-background-glass);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-large);
+  padding: var(--padding-card);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: var(--panel-width-min);
+  max-width: var(--panel-width-max);
+  font-family: var(--font-family);
+}
+
+.filter-panel.collapsed {
+  width: auto;
+  min-width: auto;
+  padding: var(--spacing-sm) var(--padding-card);
+}
+
+.filter-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  border-bottom: 1px solid rgba(0, 0, 0, var(--opacity-light));
+  padding-bottom: var(--spacing-sm);
+}
+
+.filter-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.filter-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-small);
+  color: var(--color-text-light);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-primary);
+}
+
+.filter-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.filter-category {
+  margin: 0;
+}
+
+.filter-category-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-left: var(--spacing-xs);
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-small);
+  transition: background-color var(--transition-fast);
+}
+
+.filter-option:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.filter-option input[type='checkbox'] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.filter-option-label {
+  cursor: pointer;
+  flex: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.filter-option-count {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px var(--spacing-sm);
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.filter-presets {
+  border-top: 1px solid rgba(0, 0, 0, var(--opacity-light));
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.filter-presets-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #777;
+  margin: 0 0 var(--spacing-sm) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-preset-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.filter-preset-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #495057;
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.filter-preset-btn:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.filter-preset-btn.active {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+
+.filter-stats {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .filter-panel {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    min-width: auto;
+    max-width: none;
+  }
+
+  .filter-panel.collapsed {
+    right: auto;
+    width: auto;
+  }
+
+  .filter-content {
+    gap: 10px;
+  }
+
+  .filter-options {
+    gap: 4px;
+  }
+}
+
+/* アニメーション */
+.filter-content {
+  transition:
+    opacity var(--transition-fast),
+    max-height var(--transition-normal);
+  overflow: hidden;
+}
+
+.filter-panel.collapsed .filter-content {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* アクセシビリティ */
+.filter-option:focus-within {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}
+
+.filter-toggle-btn:focus {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}
+
+.filter-preset-btn:focus {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}

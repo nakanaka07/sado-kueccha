@@ -1,14 +1,10 @@
 import { AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SADO_ISLAND } from "../constants";
+import { ASSETS, SADO_ISLAND } from "../constants";
 import { cacheService } from "../services/cache";
 import type { ClusterablePOI, ClusterPOI, POI } from "../types/google-maps";
 import { GeoUtils } from "../utils/geo";
 import "./Map.css";
-
-// 静的アセットのインポート
-import parkingIcon from "/assets/parking.png";
-import toiletIcon from "/assets/toilette.png";
 
 let clusterSequence = 0;
 
@@ -248,9 +244,9 @@ const getMarkerType = (poi: POI): "toilet" | "parking" | "normal" => {
 const getCustomMarkerIcon = (markerType: "toilet" | "parking" | "normal"): string | null => {
   switch (markerType) {
     case "toilet":
-      return toiletIcon;
+      return ASSETS.ICONS.MARKERS.TOILETTE;
     case "parking":
-      return parkingIcon;
+      return ASSETS.ICONS.MARKERS.PARKING;
     default:
       return null;
   }

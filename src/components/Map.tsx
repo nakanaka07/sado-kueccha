@@ -3,8 +3,10 @@ import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SADO_ISLAND } from "../constants";
+import { FilterService } from "../services/filter";
 import { fetchPOIs } from "../services/sheets";
 import { isClusterPOI } from "../types/common";
+import type { FilterState } from "../types/filter";
 import type { ClusterablePOI, POI } from "../types/google-maps";
 import { GoogleMarkerCluster } from "./GoogleMarkerCluster";
 import { InfoWindow } from "./InfoWindow";
@@ -36,12 +38,43 @@ interface MapComponentProps {
   onMapLoaded?: () => void;
   /** 既存のGoogle Mapsマーカー（POI）をクリック可能にするかどうか（デフォルト: false） */
   enableClickableIcons?: boolean;
+  /** フィルター状態 */
+  filterState?: FilterState;
+  /** POIデータ（外部から提供される場合） */
+  pois?: POI[];
+  /** コントロールの順番設定（上から下への順序） */
+  controlOrder?: ("fullscreen" | "zoom" | "streetView" | "mapType")[];
 }
+
+/**
+ * Google Mapsコンポーネント
+ *
+ * コントロールの順番を指定するには、controlOrderプロパティを使用します：
+ * 例：
+ * <MapComponent
+ *   controlOrder={['zoom', 'fullscreen', 'mapType', 'streetView']}
+ * />
+ *
+ * デフォルト順序（右上から）：
+ * 1. マップタイプ
+ * 2. フルスクリーン
+ * 3. ズーム
+ * 4. ストリートビュー
+ *
+ * 利用可能なコントロール：
+ * - 'fullscreen': フルスクリーン
+ * - 'zoom': ズーム
+ * - 'streetView': ストリートビュー
+ * - 'mapType': マップタイプ
+ */
 
 export function MapComponent({
   className,
   onMapLoaded,
   enableClickableIcons = false,
+  filterState,
+  pois: externalPois,
+  controlOrder = ["mapType", "fullscreen", "zoom", "streetView"],
 }: MapComponentProps) {
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,14 +83,31 @@ export function MapComponent({
   const [currentZoom, setCurrentZoom] = useState<number>(SADO_ISLAND.ZOOM.DEFAULT);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
+  // 使用するPOIデータを決定（外部から提供されたものを優先）
+  const activePois = useMemo(() => {
+    return externalPois && externalPois.length > 0 ? externalPois : pois;
+  }, [externalPois, pois]);
+
+  // フィルタされたPOIを計算
+  const filteredPois = useMemo(() => {
+    if (!filterState) return activePois;
+    return FilterService.filterPOIs(activePois, filterState);
+  }, [activePois, filterState]);
+
   // APIキーをメモ化してパフォーマンス向上
   const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
   // ライブラリ設定をメモ化 - パフォーマンス最適化のためバージョンを指定
   const libraries = useMemo(() => ["marker"], []);
   const version = useMemo(() => "weekly", []); // 最新の安定版を使用
 
-  // POIデータ読み込み
+  // POIデータ読み込み（外部から提供されない場合のみ）
   useEffect(() => {
+    // 外部からPOIが提供されている場合はスキップ
+    if (externalPois && externalPois.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     const loadPOIs = async () => {
@@ -82,7 +132,7 @@ export function MapComponent({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [externalPois]);
 
   // マップとPOIの準備完了を通知
   useEffect(() => {
@@ -203,6 +253,76 @@ export function MapComponent({
   const handleMapInstanceLoad = useCallback(
     (map: google.maps.Map) => {
       setMapInstance(map);
+
+      // コントロールの順番を調整する
+      // 少し遅延させてコントロールが完全に初期化された後に実行
+      setTimeout(() => {
+        const mapDiv = map.getDiv();
+        // 右上のコントロールコンテナを取得
+        const rightTopControls = mapDiv.querySelectorAll('[style*="right"][style*="top"]');
+
+        // コントロールタイプを識別するヘルパー関数
+        const getControlType = (
+          element: HTMLElement,
+        ): "fullscreen" | "zoom" | "streetView" | "mapType" | "unknown" => {
+          // フルスクリーンコントロールの識別
+          if (
+            element.querySelector('[title*="全画面"]') ||
+            element.querySelector('[aria-label*="Toggle fullscreen"]') ||
+            element.querySelector('button[title*="fullscreen"]')
+          ) {
+            return "fullscreen";
+          }
+          // ズームコントロールの識別
+          if (
+            element.querySelector('[title*="ズーム"]') ||
+            element.querySelector('[aria-label*="Zoom"]') ||
+            (element.className.includes("gmnoprint") && element.querySelector("button"))
+          ) {
+            return "zoom";
+          }
+          // ストリートビューコントロールの識別
+          if (
+            element.querySelector('[title*="ストリート"]') ||
+            element.querySelector('[aria-label*="Street View"]') ||
+            element.querySelector('button[title*="Street View"]')
+          ) {
+            return "streetView";
+          }
+          // マップタイプコントロールの識別
+          if (
+            element.querySelector("select") ||
+            element.querySelector('[title*="マップ"]') ||
+            element.querySelector('[aria-label*="Map type"]')
+          ) {
+            return "mapType";
+          }
+          return "unknown";
+        };
+
+        // コントロールを希望の順番で配置
+        rightTopControls.forEach((container) => {
+          const containerElement = container as HTMLElement;
+          const controls = Array.from(containerElement.children) as HTMLElement[];
+
+          // コントロールの種類を識別して順番を調整
+          const sortedControls = controls.sort((a, b) => {
+            const getControlPriority = (element: HTMLElement): number => {
+              const controlType = getControlType(element);
+              if (controlType === "unknown") return 999;
+              const index = controlOrder.indexOf(controlType);
+              return index === -1 ? 999 : index; // 見つからない場合は最後
+            };
+
+            return getControlPriority(a) - getControlPriority(b);
+          });
+
+          // 並び替えたコントロールを再配置
+          sortedControls.forEach((control) => {
+            containerElement.appendChild(control);
+          });
+        });
+      }, 1000); // 1秒後に実行（コントロールの初期化を待つ）
 
       // 既存のGoogle Mapsマーカー（POI）がクリックされたときの処理
       if (!enableClickableIcons) {
@@ -371,7 +491,7 @@ export function MapComponent({
 
       return undefined; // 明示的にundefinedを返す
     },
-    [selectedPoi, enableClickableIcons],
+    [selectedPoi, enableClickableIcons, controlOrder],
   );
   // ズーム変更ハンドラー
   const handleCameraChanged = useCallback(
@@ -410,21 +530,22 @@ export function MapComponent({
           mapTypeId={google.maps.MapTypeId.TERRAIN}
           gestureHandling="greedy"
           disableDefaultUI={true}
-          mapTypeControl={true}
-          mapTypeControlOptions={{
-            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-            position: google.maps.ControlPosition.TOP_LEFT,
-          }}
-          streetViewControl={true}
-          streetViewControlOptions={{
-            position: google.maps.ControlPosition.RIGHT_TOP,
+          // コントロールの順番を制御するため、位置を細かく調整
+          fullscreenControl={true}
+          fullscreenControlOptions={{
+            position: google.maps.ControlPosition.TOP_RIGHT,
           }}
           zoomControl={true}
           zoomControlOptions={{
             position: google.maps.ControlPosition.RIGHT_TOP,
           }}
-          fullscreenControl={true}
-          fullscreenControlOptions={{
+          streetViewControl={true}
+          streetViewControlOptions={{
+            position: google.maps.ControlPosition.RIGHT_TOP,
+          }}
+          mapTypeControl={true}
+          mapTypeControlOptions={{
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
             position: google.maps.ControlPosition.TOP_RIGHT,
           }}
           scaleControl={true}
@@ -437,7 +558,7 @@ export function MapComponent({
         >
           <MapInstanceCapture onMapInstance={handleMapInstanceLoad} />
           <GoogleMarkerCluster
-            pois={pois}
+            pois={filteredPois}
             onMarkerClick={handleMarkerClick}
             currentZoom={currentZoom}
           />

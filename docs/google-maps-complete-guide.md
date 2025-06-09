@@ -1,5 +1,9 @@
 # Google Maps 総合開発ガイド
 
+> **📝 ドキュメント構成について**  
+> このガイドでは、コード例の重複を避けるため、実装例は実際のソースコードファイルへのリンクで参照しています。  
+> 最新の実装詳細は、各リンク先ファイルをご確認ください。
+
 ## 📋 目次
 
 1. [開発の基本方針](#development-basics)
@@ -18,24 +22,14 @@
 
 #### ✅ Uncontrolled モード（推奨）
 
-```tsx
-<Map
-  defaultZoom={SADO_ISLAND.ZOOM.DEFAULT}
-  defaultCenter={SADO_ISLAND.CENTER}
-  mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"}
-  mapTypeId={google.maps.MapTypeId.TERRAIN}
-  gestureHandling="greedy"
-  disableDefaultUI={false}
-  mapTypeControl={true}
-  mapTypeControlOptions={{
-    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-    position: google.maps.ControlPosition.TOP_LEFT,
-  }}
-  clickableIcons={enableClickableIcons}
-  style={{ width: "100%", height: "100%" }}
-  reuseMaps={true}
->
-```
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx) - Line 433-447
+
+基本的なマップ設定例：
+
+- `defaultZoom`: SADO_ISLAND定数による初期ズーム設定
+- `defaultCenter`: 佐渡島中心座標
+- `mapTypeId`: TERRAIN表示の設定
+- `gestureHandling`: ユーザー操作の制御
 
 **使用場面：**
 
@@ -45,20 +39,14 @@
 
 #### ⚠️ Controlled モード（慎重に使用）
 
-```tsx
-const [currentZoom, setCurrentZoom] = useState<number>(SADO_ISLAND.ZOOM.DEFAULT);
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx) - Line 58,
+81-87
 
-<Map
-  zoom={currentZoom}
-  center={SADO_ISLAND.CENTER}
-  onCameraChanged={(e: MapCameraChangedEvent) => {
-    const { zoom } = e.detail;
-    if (zoom && zoom !== currentZoom) {
-      setCurrentZoom(zoom);
-    }
-  }}
->
-```
+Controlled モードでのズーム状態管理：
+
+- `useState`でズーム状態を管理
+- `onCameraChanged`イベントでの状態同期
+- プログラム制御が可能
 
 **使用場面：**
 
@@ -70,24 +58,20 @@ const [currentZoom, setCurrentZoom] = useState<number>(SADO_ISLAND.ZOOM.DEFAULT)
 
 #### 基本設定
 
-```tsx
-<Map
-  defaultZoom={SADO_ISLAND.ZOOM.DEFAULT}                    // 初期ズーム（11）
-  defaultCenter={SADO_ISLAND.CENTER}                        // 初期中心点（佐渡島中心）
-  mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"} // Map ID（スタイリング用）
-  mapTypeId={google.maps.MapTypeId.TERRAIN}                 // 地形表示
-  gestureHandling="greedy"                                  // ジェスチャー制御
-  disableDefaultUI={false}                                  // UIコントロール有効
-  mapTypeControl={true}                                     // マップタイプ切り替え
-  mapTypeControlOptions={{
-    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-    position: google.maps.ControlPosition.TOP_LEFT,
-  }}
-  clickableIcons={enableClickableIcons}                     // 既存アイコンクリック制御
-  style={{ width: "100%", height: "100%" }}                // スタイル
-  reuseMaps={true}                                          // マップインスタンス再利用
->
-```
+**設定値の参照**: [`src/constants/index.ts`](../src/constants/index.ts) -
+SADO_ISLAND定数
+
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx) - Line 433-447
+
+主要な設定項目：
+
+- **defaultZoom**: `SADO_ISLAND.ZOOM.DEFAULT`
+  (11) - 佐渡島全体が見える最適なズーム
+- **defaultCenter**: `SADO_ISLAND.CENTER` - 佐渡島の地理的中心点
+- **mapId**: 環境変数によるMap ID設定（スタイリング用）
+- **mapTypeId**: `google.maps.MapTypeId.TERRAIN` - 地形表示
+- **gestureHandling**: `"greedy"` - スクロール操作の制御
+- **reuseMaps**: `true` - パフォーマンス向上のためのマップインスタンス再利用
 
 ---
 
@@ -123,42 +107,26 @@ const version = useMemo(() => "weekly", []); // 最新の安定版を使用
 
 ### 2. プリロードサービスの改善
 
-```typescript
-// 現在の実装では非同期読み込みを活用
-const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
-const version = useMemo(() => "weekly", []);
-const libraries = useMemo(() => ["marker"], []);
+**実装例**: [`src/services/preload.ts`](../src/services/preload.ts)
 
-// 事前読み込みが必要な場合のプリロード実装例
-export const preloadGoogleMaps = () => {
-  const script = document.createElement("script");
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&language=ja&region=JP&v=weekly`;
-  script.async = true;
-  document.head.appendChild(script);
-};
-```
+**アプリケーション側の実装**: [`src/App.tsx`](../src/App.tsx) - Line 51-55
 
-**改善内容：**
+改善内容：
 
-- `useMemo`によるメモ化でパフォーマンス向上
-- `version="weekly"` パラメータで最新安定版を使用
-- `loading=async` パラメータの追加
-- エラーハンドリングの追加
-- 日本語・リージョン設定
+- **useMemo活用**: メモ化によるパフォーマンス向上
+- **非同期読み込み**: `loading=async`による最適化
+- **バージョン指定**: `version="weekly"`で最新安定版使用
+- **地域設定**: 日本語・リージョン最適化
 
 ### 3. パフォーマンス設定
 
-```tsx
-<APIProvider
-  apiKey={apiKey}
-  version={version}
-  libraries={libraries}
-  language="ja"
-  region="JP"
-  onLoad={handleMapReady}
-  reuseMaps={true}  // マップインスタンスの再利用
->
-```
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx) - Line 49-52
+
+重要な設定項目：
+
+- **reuseMaps**: マップインスタンスの再利用
+- **language/region**: 地域最適化
+- **onLoad**: 読み込み完了の監視
 
 ---
 
@@ -177,103 +145,35 @@ export const preloadGoogleMaps = () => {
 
 #### 2. 🔍 ズームレベル対応クラスタリング
 
-```typescript
-// 現在の実装：GoogleMarkerCluster.tsx
-const generateCacheKey = (pois: POI[], zoomLevel: number): string => {
-  const poisIdHash = Math.abs(
-    pois
-      .map((p) => p.id)
-      .sort()
-      .join("-")
-      .split("")
-      .reduce((hash, char) => {
-        hash = ((hash << 5) - hash + char.charCodeAt(0)) & 0xffffffff;
-        return hash;
-      }, 0),
-  ).toString(36);
+**実装ファイル**:
+[`src/components/GoogleMarkerCluster.tsx`](../src/components/GoogleMarkerCluster.tsx)
 
-  return `cluster-${pois.length.toString()}-${Math.round(zoomLevel * 10).toString()}-${poisIdHash}`;
-};
+**キャッシュキー生成**: Line 240-252 **ビューポート最適化**: Line 140-160
+**地理計算ユーティリティ**: [`src/utils/geo.ts`](../src/utils/geo.ts)
 
-// ハバーシン公式による正確な距離計算は GeoUtils で実装
-import { GeoUtils } from "../utils/geo";
+主要な機能：
 
-// ビューポート内のPOIのみを処理
-const partitionPOIsByViewport = (
-  pois: ClusterablePOI[],
-  bounds: google.maps.LatLngBounds | null,
-) => {
-  if (!bounds) return { inViewport: pois, outOfViewport: [] };
-
-  return pois.reduce(
-    (acc, poi) => {
-      if (GeoUtils.isInBounds(poi.position.lat, poi.position.lng, bounds)) {
-        acc.inViewport.push(poi);
-      } else {
-        acc.outOfViewport.push(poi);
-      }
-      return acc;
-    },
-    {
-      inViewport: [] as ClusterablePOI[],
-      outOfViewport: [] as ClusterablePOI[],
-    },
-  );
-};
-```
-
-**特徴：**
-
-- **キャッシュベースの最適化**: ハッシュ化されたキャッシュキーで重複計算を回避
-- **ビューポート最適化**: 表示領域内のPOIのみをクラスタリング処理
-- **ユーティリティ分離**: GeoUtils クラスで地理計算をモジュール化
-- **リアルタイム更新**: ズーム変更時にクラスターが即座に再計算
-- **デバウンス処理**: useDebounce フックで頻繁な更新を制御
+- **キャッシュベース最適化**: ハッシュ化されたキャッシュキーで重複計算回避
+- **ビューポート最適化**: 表示領域内のPOIのみ処理
+- **ユーティリティ分離**: GeoUtilsクラスでの地理計算モジュール化
+- **リアルタイム更新**: ズーム変更時の即座な再計算
+- **デバウンス処理**: useDebounceフックによる頻繁更新制御
 
 #### 3. 🚀 パフォーマンス最適化
 
-```typescript
-// React.memo でコンポーネントをメモ化
-const MarkerComponent = memo<MarkerComponentProps>(({ poi, onMarkerClick, isCluster, clusterSize, currentZoom }) => {
-  return (
-    <AdvancedMarker
-      position={poi.position}
-      onClick={() => onMarkerClick?.(poi)}
-    >
-      {isCluster ? (
-        <Pin
-          background={getClusterColor(clusterSize || 0)}
-          borderColor="#ffffff"
-          glyphColor="#ffffff"
-          scale={getClusterScale(clusterSize || 0)}
-        >
-          {clusterSize}
-        </Pin>
-      ) : (
-        <img src={poi.icon} alt={poi.name} />
-      )}
-    </AdvancedMarker>
-  );
-});
+**実装ファイル**:
+[`src/components/GoogleMarkerCluster.tsx`](../src/components/GoogleMarkerCluster.tsx)
 
-// useMemo でクラスタリング結果をメモ化
-const clusteredPOIs = useMemo(() => {
-  // キャッシュチェック
-  const cacheKey = generateCacheKey(pois, currentZoom || 10);
-  const cached = cacheService.get(cacheKey);
-  if (cached) return cached as ClusterablePOI[];
+**メモ化実装**: Line 360-370 (React.memo), Line 390+ (useMemo), Line 410+
+(useCallback) **デバウンス実装**: Line 36-45 (useDebounce hook)
+**キャッシュサービス**: [`src/services/cache.ts`](../src/services/cache.ts)
 
-  // クラスタリング処理...
-}, [pois, currentZoom]);
+最適化手法：
 
-// useCallback でイベントハンドラーをメモ化
-const handleMarkerClick = useCallback((poi: ClusterablePOI) => {
-  onMarkerClick?.(poi);
-}, [onMarkerClick]);
-
-// デバウンス処理でズーム変更の頻繁な更新を制御
-const debouncedZoom = useDebounce(currentZoom || 10, 150);
-```
+- **React.memo**: MarkerComponentのメモ化によるコンポーネント最適化
+- **useMemo**: クラスタリング結果のメモ化とキャッシュ活用
+- **useCallback**: イベントハンドラーのメモ化
+- **デバウンス処理**: 150msデバウンスによるズーム変更の頻繁更新制御
 
 #### 4. 🎯 ユーザビリティ向上
 
@@ -296,91 +196,32 @@ const debouncedZoom = useDebounce(currentZoom || 10, 150);
 
 #### 2. データキャッシュ機能
 
-```typescript
-// services/cache.ts - 実装済み統合キャッシュサービス
-import { CACHE_CONFIG } from "../constants";
+**実装ファイル**: [`src/services/cache.ts`](../src/services/cache.ts)
 
-class CacheService {
-  private cache = new Map<string, CacheEntry>();
-  private readonly DEFAULT_EXPIRY = CACHE_CONFIG.DEFAULT_EXPIRY; // 15分
-  private readonly MAX_SIZE = CACHE_CONFIG.MAX_ENTRIES; // 100エントリ
+**設定定数**: [`src/constants/index.ts`](../src/constants/index.ts) -
+CACHE_CONFIG
 
-  set(
-    key: string,
-    data: unknown,
-    expiryMs: number = this.DEFAULT_EXPIRY,
-  ): void {
-    this.enforceSize(); // サイズ制限チェック
+主要な機能：
 
-    const entry: CacheEntry = {
-      data,
-      timestamp: Date.now(),
-      expiry: expiryMs,
-    };
-    this.cache.set(key, entry);
-  }
-
-  get(key: string): unknown {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-
-    const now = Date.now();
-    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
-    if (now - entry.timestamp > expiry) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  // 型安全な取得メソッド
-  getTyped<T>(
-    key: string,
-    typeGuard: (value: unknown) => value is T,
-  ): T | null {
-    const value = this.get(key);
-    return value !== null && typeGuard(value) ? value : null;
-  }
-}
-
-export const cacheService = new CacheService();
-```
+- **統合キャッシュサービス**: 単一のCacheServiceクラスで一元管理
+- **LRU方式**: 最大エントリ数制限による効率的なメモリ管理
+- **有効期限制御**: アイテム別の有効期限設定
+- **型安全な取得**: typeGuardによる型安全なデータ取得
+- **自動サイズ管理**: enforceSize()による古いエントリ自動削除
 
 #### 3. アニメーション最適化
 
-```typescript
-// アニメーション設定定数（Map.tsx）
-const ANIMATION_CONFIG = {
-  PAN_DELAY: 400, // パンアニメーション完了待ち時間（ms）
-  ZOOM_STEPS_PER_LEVEL: 4, // ズーム1レベルあたりのステップ数
-  ZOOM_STEP_INTERVAL: 25, // 各ズームステップの間隔（ms）
-  DEFAULT_ZOOM_INCREMENT: 2, // デフォルトのズーム増分
-} as const;
+**実装ファイル**: [`src/components/Map.tsx`](../src/components/Map.tsx)
 
-// クラスタークリック時のスムーズズーム処理
-const zoomToCluster = useCallback(
-  (poi: ClusterablePOI) => {
-    if (!mapInstance || !isClusterPOI(poi)) return;
+**アニメーション設定**: Line 40-45 (ANIMATION_CONFIG定数)
+**クラスタークリック処理**: Line 147-177 (zoomToCluster関数)
 
-    const bounds = new google.maps.LatLngBounds();
-    poi.originalPois.forEach((originalPoi: POI) => {
-      bounds.extend(originalPoi.position);
-    });
+設定値と実装：
 
-    // 段階的にパン→ズーム実行
-    const center = bounds.getCenter();
-    mapInstance.panTo(center);
-
-    setTimeout(() => {
-      // 適切なズームレベルを計算してスムーズに移行
-      const targetZoom = calculateOptimalZoom(poi.originalPois);
-      mapInstance.setZoom(targetZoom);
-    }, ANIMATION_CONFIG.PAN_DELAY);
-  },
-  [mapInstance],
-);
-```
+- **PAN_DELAY**: 400ms - パンアニメーション完了待ち時間
+- **ZOOM_STEPS**: ズーム1レベルあたり4ステップで滑らかな移行
+- **段階的実行**: パン→ズームの順次実行でUX向上
+- **最適ズーム計算**: クラスター内POI分布に基づく適切なズームレベル算出
 
 ### 期待される改善効果
 
@@ -507,39 +348,26 @@ src/
 
 ### 現在の設定値
 
-```typescript
-// constants/index.ts
-export const SADO_ISLAND = {
-  CENTER: { lat: 38.0549, lng: 138.3691 },
-  ZOOM: {
-    DEFAULT: 11,
-    MIN: 9,
-    MAX: 18,
-    MIN_CLUSTER_ZOOM: 8,
-    DISABLE_CLUSTERING: 14,
-    HIGH_THRESHOLD: 17,
-    MAX_ZOOM_LEVEL: 20,
-  },
-  MARKER_LIMITS: {
-    NORMAL_ZOOM: 200,
-    HIGH_ZOOM: 500,
-  },
-  BOUNDS: {
-    NORTH: 38.3,
-    SOUTH: 37.7,
-    EAST: 138.7,
-    WEST: 138.0,
-  },
-};
+**定数ファイル**: [`src/constants/index.ts`](../src/constants/index.ts)
 
-export const CACHE_CONFIG = {
-  DEFAULT_EXPIRY: 15 * 60 * 1000, // 15分
-  SHEETS_TTL: 60 * 60 * 1000, // 1時間
-  IMAGES_TTL: 24 * 60 * 60 * 1000, // 24時間
-  MAX_SIZE: 10,
-  MAX_ENTRIES: 100,
-};
-```
+#### SADO_ISLAND設定
+
+主要な設定値：
+
+- **CENTER**: `{ lat: 38.0549, lng: 138.3691 }` - 佐渡島の地理的中心
+- **DEFAULT_ZOOM**: `11` - 佐渡島全体表示に最適なズーム
+- **ZOOM範囲**: MIN(9) ～ MAX(18) - 操作可能な範囲
+- **CLUSTERING制御**: MIN_CLUSTER_ZOOM(8), DISABLE_CLUSTERING(14)
+- **MARKER制限**: NORMAL_ZOOM(200), HIGH_ZOOM(500) - 表示マーカー数制限
+
+#### CACHE_CONFIG設定
+
+キャッシュ管理の設定：
+
+- **DEFAULT_EXPIRY**: 15分 - 標準的なキャッシュ有効期限
+- **SHEETS_TTL**: 1時間 - Google Sheetsデータのキャッシュ
+- **IMAGES_TTL**: 24時間 - 画像リソースのキャッシュ
+- **MAX_ENTRIES**: 100 - 最大キャッシュエントリ数
 
 ### 実装済みの最適化
 
@@ -575,33 +403,17 @@ export const CACHE_CONFIG = {
 
 #### 2. Console ログ
 
-```typescript
-// ズームレベル変更の監視（Map.tsx）
-const handleCameraChanged = useCallback(
-  (event: MapCameraChangedEvent) => {
-    const { zoom } = event.detail;
-    if (zoom && zoom !== currentZoom) {
-      console.log(`Zoom changed: ${currentZoom} → ${zoom}`);
-      setCurrentZoom(zoom);
-    }
-  },
-  [currentZoom],
-);
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx) - Line 81-87
 
-// クラスタリングキャッシュの監視（GoogleMarkerCluster.tsx）
-const clusteredPOIs = useMemo(() => {
-  const cacheKey = generateCacheKey(pois, debouncedZoom);
-  const cached = cacheService.get(cacheKey);
+**クラスタリング監視**:
+[`src/components/GoogleMarkerCluster.tsx`](../src/components/GoogleMarkerCluster.tsx) -
+Line 390+
 
-  if (cached) {
-    console.log(`Cache hit for zoom ${debouncedZoom}`);
-    return cached as ClusterablePOI[];
-  }
+開発時のログ出力：
 
-  console.log(`Computing clusters for zoom ${debouncedZoom}`);
-  // クラスタリング処理...
-}, [pois, debouncedZoom]);
-```
+- **ズーム変更監視**: `handleCameraChanged`でのズームレベル変化追跡
+- **キャッシュ効率監視**: クラスタリングキャッシュのヒット/ミス状況
+- **パフォーマンス測定**: 計算時間の測定とログ出力
 
 #### 3. Performance タブ
 
@@ -636,13 +448,19 @@ const clusteredPOIs = useMemo(() => {
 
 ### パフォーマンス測定のコード例
 
+**実装推奨パターン**: パフォーマンス測定ユーティリティ
+
 ```typescript
-// パフォーマンス測定ユーティリティ
+// パフォーマンス測定ユーティリティ（開発時のみ使用推奨）
 const measurePerformance = (name: string, fn: () => void) => {
-  const start = performance.now();
-  fn();
-  const end = performance.now();
-  console.log(`${name}: ${end - start}ms`);
+  if (import.meta.env.DEV) {
+    const start = performance.now();
+    fn();
+    const end = performance.now();
+    console.log(`${name}: ${end - start}ms`);
+  } else {
+    fn();
+  }
 };
 
 // 使用例
@@ -664,10 +482,15 @@ measurePerformance("Clustering calculation", () => {
 
 ### 2. エラーハンドリング
 
+**実装例**: [`src/components/Map.tsx`](../src/components/Map.tsx)
+
+基本的なエラーハンドリングパターン：
+
 ```typescript
 const handleMapError = (error: any) => {
   console.error("Google Maps Error:", error);
   // ユーザーへの適切なエラー表示
+  // 例：トーストメッセージやエラーバナーの表示
 };
 ```
 
@@ -681,13 +504,19 @@ const handleMapError = (error: any) => {
 
 #### 環境変数の管理
 
+**設定ファイル**: `.env`ファイル（プロジェクトルート）
+
 ```typescript
-// Vite環境変数を使用
+// Vite環境変数の使用例
 const apiKey = import.meta.env["VITE_GOOGLE_MAPS_API_KEY"];
 const mapId = import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"];
 ```
 
+**実装例**: [`src/App.tsx`](../src/App.tsx) - Line 51
+
 #### イベントリスナーのクリーンアップ
+
+**実装パターン**: React useEffectでの適切なクリーンアップ
 
 ```typescript
 useEffect(() => {
@@ -696,7 +525,17 @@ useEffect(() => {
 }, []);
 ```
 
+**参考実装**: [`src/components/Map.tsx`](../src/components/Map.tsx) - useEffect
+hooks
+
 #### 型安全性の確保
+
+**型定義ファイル**: [`src/types/google-maps.ts`](../src/types/google-maps.ts)
+
+**実装例**:
+[`src/components/GoogleMarkerCluster.tsx`](../src/components/GoogleMarkerCluster.tsx)
+
+型ガードの使用例：
 
 ```typescript
 // 型ガードを使用した安全な型変換
