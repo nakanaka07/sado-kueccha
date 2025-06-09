@@ -171,12 +171,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                             handleFilterToggle(option.key);
                           }}
                           className="filter-checkbox"
-                        />
+                        />{" "}
                         <span className="option-icon">{option.icon}</span>
-                        <span className="option-label">{option.label}</span>
-                        {option.description && (
-                          <span className="option-description">{option.description}</span>
-                        )}
+                        <span className="option-label">{option.description}</span>
                       </label>
                     ))}
                   </div>

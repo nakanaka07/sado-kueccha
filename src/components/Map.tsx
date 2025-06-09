@@ -8,6 +8,7 @@ import { fetchPOIs } from "../services/sheets";
 import { isClusterPOI } from "../types/common";
 import type { FilterState } from "../types/filter";
 import type { ClusterablePOI, POI } from "../types/google-maps";
+import { getAppConfig } from "../utils/env";
 import { GoogleMarkerCluster } from "./GoogleMarkerCluster";
 import { InfoWindow } from "./InfoWindow";
 import "./Map.css";
@@ -95,7 +96,10 @@ export function MapComponent({
   }, [activePois, filterState]);
 
   // APIキーをメモ化してパフォーマンス向上
-  const apiKey = useMemo(() => import.meta.env["VITE_GOOGLE_MAPS_API_KEY"], []);
+  const apiKey = useMemo(() => {
+    const { googleMapsApiKey } = getAppConfig();
+    return googleMapsApiKey;
+  }, []);
   // ライブラリ設定をメモ化 - パフォーマンス最適化のためバージョンを指定
   const libraries = useMemo(() => ["marker"], []);
   const version = useMemo(() => "weekly", []); // 最新の安定版を使用
@@ -526,7 +530,7 @@ export function MapComponent({
         <Map
           defaultZoom={11}
           defaultCenter={SADO_ISLAND.CENTER}
-          mapId={import.meta.env["VITE_GOOGLE_MAPS_MAP_ID"] || "佐渡島マップ"}
+          mapId={getAppConfig().googleMapsMapId}
           mapTypeId={google.maps.MapTypeId.TERRAIN}
           gestureHandling="greedy"
           disableDefaultUI={true}

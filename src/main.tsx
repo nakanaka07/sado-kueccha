@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { getAppConfig, isDevelopment, isProduction, validateAppConfig } from "./utils/env";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -10,17 +11,16 @@ import "./index.css";
 
 // 環境変数の検証
 const validateEnvironment = (): void => {
-  const requiredEnvVars = ["VITE_GOOGLE_MAPS_API_KEY", "VITE_GOOGLE_SPREADSHEET_ID"];
-
-  const missingVars = requiredEnvVars.filter((varName) => !import.meta.env[varName]);
-
-  if (missingVars.length > 0) {
-    console.warn("⚠️ Missing environment variables:", missingVars.join(", "));
+  try {
+    validateAppConfig();
+    if (isDevelopment()) {
+      console.log("✅ All required environment variables are present");
+    }
+  } catch (error) {
+    console.warn("⚠️ Environment validation error:", error);
     console.warn(
       "アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。",
     );
-  } else if (import.meta.env.DEV) {
-    console.log("✅ All required environment variables are present");
   }
 };
 
@@ -29,7 +29,7 @@ const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
   console.error("🚨 Unhandled Promise Rejection:", event.reason);
 
   // 開発環境では詳細なエラー情報を表示
-  if (import.meta.env.DEV) {
+  if (isDevelopment()) {
     try {
       const errorWithStack = event.reason as Error;
       console.error("Stack trace:", errorWithStack.stack);
@@ -39,7 +39,7 @@ const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
   }
 
   // 本番環境ではエラーレポートサービスに送信（例: Sentry）
-  if (import.meta.env.PROD) {
+  if (isProduction()) {
     // TODO: エラーレポートサービスへの送信実装
     // reportError(event.reason);
   }
@@ -60,7 +60,7 @@ const handleError = (event: ErrorEvent): void => {
   console.error("🚨 JavaScript Error:", errorInfo);
 
   // 本番環境ではエラーレポートサービスに送信
-  if (import.meta.env.PROD) {
+  if (isProduction()) {
     // TODO: エラーレポートサービスへの送信実装
     // reportError(errorInfo.error);
   }
@@ -71,7 +71,7 @@ window.addEventListener("unhandledrejection", handleUnhandledRejection);
 window.addEventListener("error", handleError);
 
 // パフォーマンス監視（開発環境のみ）
-if (import.meta.env.DEV) {
+if (isDevelopment()) {
   // React DevTools のパフォーマンストラッキングを有効化
   window.performance.mark("app-start");
 }
@@ -79,7 +79,7 @@ if (import.meta.env.DEV) {
 // Service Worker登録処理
 const registerServiceWorker = async (): Promise<void> => {
   // 開発環境ではService Workerを無効化（Viteの制限のため）
-  if (import.meta.env.DEV) {
+  if (isDevelopment()) {
     console.log("🔧 Service Worker is disabled in development mode");
     return;
   }
@@ -87,7 +87,7 @@ const registerServiceWorker = async (): Promise<void> => {
   if ("serviceWorker" in navigator) {
     try {
       // Base URLを考慮したService Workerパス
-      const baseUrl = import.meta.env.BASE_URL || "/";
+      const { baseUrl } = getAppConfig();
       const swPath = `${baseUrl}sw.js`.replace(/\/+/g, "/"); // 重複スラッシュを除去
 
       const registration = await navigator.serviceWorker.register(swPath);
@@ -122,7 +122,7 @@ const initializeApp = (): void => {
     // StrictMode で React の潜在的な問題を検出
     // 開発環境でのみ有効（本番では自動的に無効化される）
     // 開発環境での重複実行を防ぐため、条件付きで適用
-    const AppComponent = import.meta.env.DEV ? (
+    const AppComponent = isDevelopment() ? (
       <App />
     ) : (
       <StrictMode>
@@ -132,12 +132,12 @@ const initializeApp = (): void => {
 
     root.render(AppComponent);
 
-    if (import.meta.env.DEV) {
+    if (isDevelopment()) {
       console.log("🚀 佐渡で食えっちゃ アプリケーション起動完了");
     }
 
     // パフォーマンス測定（開発環境のみ）
-    if (import.meta.env.DEV) {
+    if (isDevelopment()) {
       window.performance.mark("app-rendered");
       window.performance.measure("app-initialization", "app-start", "app-rendered");
 

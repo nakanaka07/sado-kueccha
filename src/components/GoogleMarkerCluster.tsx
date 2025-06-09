@@ -4,7 +4,7 @@ import { ASSETS, SADO_ISLAND } from "../constants";
 import { cacheService } from "../services/cache";
 import type { ClusterablePOI, ClusterPOI, POI } from "../types/google-maps";
 import { GeoUtils } from "../utils/geo";
-import "./Map.css";
+import "./GoogleMarkerCluster.css";
 
 let clusterSequence = 0;
 

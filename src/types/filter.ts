@@ -15,9 +15,8 @@ export interface FilterState {
 
 export interface FilterOption {
   key: keyof FilterState;
-  label: string;
   icon: string;
-  description?: string;
+  description: string;
   category: "facilities" | "dining" | "nightlife";
 }
 
@@ -43,49 +42,42 @@ export const DEFAULT_FILTER_STATE: FilterState = {
 export const FILTER_OPTIONS: FilterOption[] = [
   {
     key: "showToilets",
-    label: "トイレ",
     icon: "🚻",
     description: "トイレ施設を表示",
     category: "facilities",
   },
   {
     key: "showParking",
-    label: "駐車場",
     icon: "🅿️",
     description: "駐車場を表示",
     category: "facilities",
   },
   {
     key: "showRecommended",
-    label: "おすすめ",
     icon: "⭐",
     description: "おすすめスポットを表示",
     category: "dining",
   },
   {
     key: "showRyotsuAikawa",
-    label: "両津・相川",
     icon: "🏔️",
-    description: "両津・相川エリアを表示",
+    description: "両津・相川\nエリアを表示",
     category: "dining",
   },
   {
     key: "showKanaiSawada",
-    label: "金井・佐和田",
     icon: "🌾",
-    description: "金井・佐和田エリアを表示",
+    description: "金井・佐和田・新穂・畑野・真野\nエリアを表示",
     category: "dining",
   },
   {
     key: "showAkadomariHamochi",
-    label: "赤泊・羽茂",
     icon: "🌊",
-    description: "赤泊・羽茂エリアを表示",
+    description: "赤泊・羽茂・小木\nエリアを表示",
     category: "dining",
   },
   {
     key: "showSnacks",
-    label: "スナック",
     icon: "🍻",
     description: "スナック営業店舗を表示",
     category: "nightlife",

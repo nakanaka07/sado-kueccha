@@ -1,6 +1,7 @@
 // アプリケーション全体で使用する定数定義
 
 import type { LatLngLiteral } from "../types/google-maps";
+import { getAppConfig } from "../utils/env";
 
 /**
  * 佐渡島関連の定数
@@ -83,7 +84,7 @@ export interface BaseAssets {
  * Viteベースパスとpublicフォルダ両方に対応
  */
 export const resolveAssetPath = (path: string): string => {
-  const basePath = import.meta.env.VITE_BASE_PATH || "";
+  const basePath = getAppConfig().basePath;
 
   // 既に完全パスの場合はそのまま返す
   if (path.startsWith("http") || path.startsWith("//")) {

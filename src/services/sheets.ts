@@ -1,4 +1,5 @@
 import type { POI } from "../types/google-maps";
+import { getAppConfig } from "../utils/env";
 import { cacheService } from "./cache";
 
 // POI配列の型ガード
@@ -45,30 +46,27 @@ class SheetsService {
   } as const;
 
   constructor() {
-    this.apiKey = String(
-      import.meta.env["VITE_GOOGLE_SHEETS_API_KEY"] ||
-        import.meta.env["VITE_GOOGLE_MAPS_API_KEY"] ||
-        "",
-    );
-    this.spreadsheetId = String(import.meta.env["VITE_GOOGLE_SPREADSHEET_ID"] || "");
+    const config = getAppConfig();
+    this.apiKey = config.googleSheetsApiKey || config.googleMapsApiKey;
+    this.spreadsheetId = config.googleSpreadsheetId;
 
     // .envからシート設定を読み込み
     this.sheetConfigs = [
       // おすすめの飲食店をピックアップしたデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_RECOMMENDED"] || ""),
+      this.parseSheetConfig(config.sheets.recommended),
       // 両津・相川地区のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_RYOTSU_AIKAWA"] || ""),
+      this.parseSheetConfig(config.sheets.ryotsuAikawa),
       // 金井・佐和田・新穂・畑野・真野地区のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_KANAI_SAWADA"] || ""),
+      this.parseSheetConfig(config.sheets.kanaiSawada),
       // 赤泊・羽茂・小木地区のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_AKADOMARI_HAMOCHI"] || ""),
+      this.parseSheetConfig(config.sheets.akadomariHamochi),
       // スナック営業している店舗のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_SNACK"] || ""),
+      this.parseSheetConfig(config.sheets.snack),
       // 公共トイレの位置情報のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_TOILET"] || ""),
+      this.parseSheetConfig(config.sheets.toilet),
       // 公共の駐車場のデータ
-      this.parseSheetConfig(import.meta.env["VITE_SHEET_PARKING"] || ""),
-    ].filter((config): config is { name: string; gid: string } => config !== null);
+      this.parseSheetConfig(config.sheets.parking),
+    ].filter((configItem): configItem is { name: string; gid: string } => configItem !== null);
   } // シート設定文字列を解析（例: "おすすめ:1043711248"）
   private parseSheetConfig(configStr: string): { name: string; gid: string } | null {
     if (!configStr) return null;

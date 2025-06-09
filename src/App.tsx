@@ -8,6 +8,7 @@ import { FilterService } from "./services/filter";
 import { preloadService } from "./services/preload";
 import { fetchPOIs } from "./services/sheets";
 import type { FilterState } from "./types/filter";
+import { getAppConfig, isDevelopment } from "./utils/env";
 import type { POI } from "./types/google-maps";
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
         const startTime = performance.now();
 
         // 開発モードでは Vite の静的ファイルサーバーの準備を待つ
-        if (import.meta.env.DEV) {
+        if (isDevelopment()) {
           await new Promise((resolve) => setTimeout(resolve, 500));
           // 開発環境では画像プリロードをスキップして、ブラウザに読み込みを任せる
           console.log("🔧 Dev mode: Using browser default loading");
@@ -49,14 +50,14 @@ function App() {
         }
 
         // Google Maps APIをプリロード
-        const apiKey = import.meta.env["VITE_GOOGLE_MAPS_API_KEY"];
-        if (apiKey) {
-          preloadService.preloadGoogleMapsAPI(apiKey);
+        const { googleMapsApiKey } = getAppConfig();
+        if (googleMapsApiKey) {
+          preloadService.preloadGoogleMapsAPI(googleMapsApiKey);
         }
 
         const endTime = performance.now();
 
-        if (import.meta.env.DEV) {
+        if (isDevelopment()) {
           console.log(
             `✅ Asset preload completed in ${Math.round(endTime - startTime).toString()}ms`,
           );
@@ -108,7 +109,7 @@ function App() {
 
   // マップロード完了ハンドラーをuseCallbackでメモ化
   const handleMapLoaded = useCallback(() => {
-    if (import.meta.env.DEV) {
+    if (isDevelopment()) {
       console.log("🗺️ Map fully loaded and ready");
     }
 
@@ -120,7 +121,7 @@ function App() {
       await new Promise((resolve) => setTimeout(resolve, 600));
       setMapLoading(false);
 
-      if (import.meta.env.DEV) {
+      if (isDevelopment()) {
         console.log("✅ Map loading overlay removed");
       }
     };

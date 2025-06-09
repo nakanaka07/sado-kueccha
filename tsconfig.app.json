@@ -1,20 +1,16 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
+    // アプリケーション固有のライブラリ
     "lib": [
       "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
+    // React設定
     "useDefineForClassFields": true,
     "jsx": "react-jsx",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noEmit": true,
+    // パスマッピング（未使用のため削除可能だが、将来の拡張性のため保持）
     "baseUrl": ".",
     "paths": {
       "@/*": [
@@ -29,31 +25,24 @@
       "@types/*": [
         "src/types/*"
       ],
-      "@assets/*": [
-        "src/assets/*"
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@constants/*": [
+        "src/constants/*"
       ]
     },
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    // アプリケーション固有の厳密チェック
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "incremental": true,
+    // ビルド設定（アプリケーション固有）
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "assumeChangesOnlyAffectDirectDependencies": true,
+    // 型定義（アプリケーション固有）
     "types": [
       "node",
-      "google.maps",
-      "vitest/globals"
+      "google.maps"
     ]
   },
   "include": [
