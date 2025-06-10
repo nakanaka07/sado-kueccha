@@ -61,7 +61,7 @@
   margin-top: var(--spacing-xs);
 }
 
-/* 営業時間関連スタイル */
+/* 営業時間関連スタイル - 統一されたステータス表示 */
 .business-hours-status {
   display: flex;
   flex-direction: column;
@@ -79,6 +79,7 @@
   font-size: 12px;
   width: fit-content;
   box-shadow: var(--shadow-light);
+  transition: all var(--transition-fast);
 }
 
 .status-badge.open {
@@ -109,35 +110,6 @@
   font-size: 13px;
   color: var(--color-text-secondary);
   line-height: 1.4;
-}
-
-/* 従来のスタイルを維持（後方互換性） */
-.current-status {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-small);
-  margin-bottom: var(--spacing-sm);
-  font-weight: 500;
-  font-size: 13px;
-}
-
-.current-status.open {
-  background-color: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #059669;
-}
-
-.current-status.closed {
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #dc2626;
-}
-
-.today-hours {
-  font-size: 11px;
-  opacity: 0.8;
 }
 
 .hours-details {
@@ -200,10 +172,38 @@
   border: 1px solid var(--color-primary-gold);
 }
 
-/* 統一されたリンクスタイル（共通クラス使用） */
-.info-window .link {
+/* 統一されたリンクスタイル */
+.info-window-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-small);
+  transition: all var(--transition-fast);
   margin: var(--spacing-xs) 0;
   width: fit-content;
+}
+
+.info-window-link:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.info-window-link.primary {
+  border: 2px solid var(--color-primary-blue);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 14px;
+  box-shadow: var(--shadow-light);
+}
+
+.info-window-link.primary:hover {
+  background: var(--gradient-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
 }
 
 /* SNSコンテンツ用のスタイル */
@@ -213,29 +213,11 @@
   gap: var(--spacing-xs);
 }
 
-.sns-content .link {
-  margin: var(--spacing-xs) 0;
-  width: fit-content;
-}
-
 /* アクション領域 */
 .info-window-actions {
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-text-light);
-}
-
-.info-window-actions .link {
-  border: 2px solid var(--color-primary-blue);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 14px;
-  box-shadow: var(--shadow-light);
-}
-
-.info-window-actions .link:hover {
-  background: var(--gradient-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
 }
 
 /* レスポンシブ対応 */
@@ -253,12 +235,12 @@
     font-size: 13px;
   }
 
-  .link {
+  .info-window-link {
     font-size: 12px;
     padding: var(--spacing-xs);
   }
 
-  .info-window-actions .link {
+  .info-window-link.primary {
     font-size: 13px;
     padding: var(--spacing-sm);
   }

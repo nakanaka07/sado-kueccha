@@ -327,7 +327,8 @@ class SheetsService {
     // 座標を小数点以下4桁で丸めて比較（GPS精度の範囲内）
     const lat = Math.round(poi.position.lat * 10000) / 10000;
     const lng = Math.round(poi.position.lng * 10000) / 10000;
-    return `${normalizedName}_${lat.toString()}_${lng.toString()}`;
+    // IDも含めてより一意性を保証
+    return `${poi.id}_${normalizedName}_${lat.toString()}_${lng.toString()}`;
   }
 
   // CSVテキストを解析してstring[][]に変換
@@ -413,7 +414,7 @@ export const fetchPOIs = async (): Promise<POI[]> => {
   const cachedPOIs = cacheService.getTyped(CACHE_KEY, isPOIArray);
   if (cachedPOIs) {
     console.log(`キャッシュから${String(cachedPOIs.length)}件のPOIを取得しました`);
-    return cachedPOIs;
+    return removeDuplicatePOIs(cachedPOIs);
   }
 
   try {
@@ -422,22 +423,37 @@ export const fetchPOIs = async (): Promise<POI[]> => {
 
     if (pois.length > 0) {
       console.log(`Sheets APIから${String(pois.length)}件のPOIを取得しました`);
+      const uniquePOIs = removeDuplicatePOIs(pois);
       // 成功時はキャッシュに保存（5分間）
-      cacheService.set(CACHE_KEY, pois, 5 * 60 * 1000);
-      return pois;
+      cacheService.set(CACHE_KEY, uniquePOIs, 5 * 60 * 1000);
+      return uniquePOIs;
     } else {
       console.warn("Sheets APIからデータを取得できませんでした。サンプルデータを使用します。");
-      return samplePOIs;
+      return removeDuplicatePOIs(samplePOIs);
     }
   } catch (error) {
     console.error("POIデータの取得に失敗しました。サンプルデータを使用します:", error);
     // APIが失敗した場合はサンプルデータを返す
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(samplePOIs);
+        resolve(removeDuplicatePOIs(samplePOIs));
       }, 100);
     });
   }
 };
+
+// POI重複除去ヘルパー関数
+function removeDuplicatePOIs(pois: POI[]): POI[] {
+  const uniquePOIs = pois.filter((poi, index, array) => {
+    return array.findIndex((p) => p.id === poi.id) === index;
+  });
+
+  if (pois.length !== uniquePOIs.length) {
+    const duplicateCount = pois.length - uniquePOIs.length;
+    console.warn(`POIデータの重複を除去しました: ${duplicateCount.toString()}件`);
+  }
+
+  return uniquePOIs;
+}
 
 export { sheetsService };

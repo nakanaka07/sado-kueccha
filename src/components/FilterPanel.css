@@ -3,7 +3,7 @@
   position: absolute;
   bottom: 25px;
   left: 15px;
-  z-index: 500; /* Google Mapsコントロールとの競合を避ける */
+  z-index: var(--z-index-filter-panel, 500);
   background: var(--color-background-glass);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -11,31 +11,28 @@
   padding: var(--padding-card);
   box-shadow: var(--shadow-medium);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  width: 280px; /* デスクトップは固定幅で安定性を重視 */
-  min-width: 240px;
-  max-width: 280px;
+  width: var(--filter-panel-width, 280px);
+  min-width: var(--filter-panel-min-width, 240px);
+  max-width: var(--filter-panel-max-width, 280px);
   font-family: var(--font-family);
 }
 
 .filter-panel.collapsed {
   width: auto;
-  min-width: 48px; /* アイコンが収まる最小サイズ */
-  max-width: 48px;
+  min-width: var(--filter-panel-collapsed-size, 48px);
+  max-width: var(--filter-panel-collapsed-size, 48px);
   padding: var(--spacing-sm);
 }
-
-/* 未使用のレガシースタイルを削除 */
 
 .filter-content {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  /* 開くときのアニメーション設定 */
   transition:
     max-height 0.25s ease-out,
-    opacity 0.15s ease-out 0.1s; /* 0.1s遅延でフェードイン */
+    opacity 0.15s ease-out 0.1s;
   overflow: hidden;
-  max-height: var(--content-height, auto); /* 動的な高さに変更 */
+  max-height: var(--content-height, auto);
   opacity: 1;
 }
 
@@ -93,7 +90,7 @@
 }
 
 .filter-presets .preset-button:nth-child(5) {
-  grid-column: 1 / -1; /* 5番目のボタン（全表示）を全幅に */
+  grid-column: 1 / -1;
 }
 
 .preset-button {
@@ -267,13 +264,13 @@
   text-align: left;
 }
 
-.category-expand {
+.expand-icon {
   font-size: 12px;
   transition: transform var(--transition-fast);
   transform-origin: center;
 }
 
-.category-expand.expanded {
+.expand-icon.expanded {
   transform: rotate(180deg);
 }
 
@@ -323,16 +320,6 @@
   margin-right: var(--spacing-xs);
 }
 
-.expand-icon {
-  font-size: 12px;
-  transition: transform var(--transition-fast);
-  transform-origin: center;
-}
-
-.expand-icon.expanded {
-  transform: rotate(180deg);
-}
-
 /* 折りたたみ時のヘッダー表示制御 */
 .filter-panel.collapsed .filter-title {
   display: none;
@@ -352,30 +339,17 @@
   font-size: 18px;
 }
 
-.expand-icon {
-  font-size: 12px;
-  transition: transform var(--transition-fast);
-  transform-origin: center;
-}
-
-.expand-icon.expanded {
-  transform: rotate(180deg);
-}
-
 /* モバイル・レスポンシブ対応 */
 @media (max-width: 768px) {
   .filter-panel {
-    width: fit-content; /* モバイルでは効率性を重視 */
+    width: fit-content;
     max-width: calc(100vw - 60px);
   }
 
   .filter-panel.collapsed {
     width: auto;
-    min-width: 48px;
-    max-width: 48px;
-  }
-
-  .filter-panel.collapsed .filter-toggle {
+    min-width: var(--filter-panel-collapsed-size, 48px);
+    max-width: var(--filter-panel-collapsed-size, 48px);
     padding: var(--spacing-xs);
   }
 }
@@ -392,28 +366,27 @@
   }
 }
 
-/* 閉じた状態のアニメーション - 開く時の完全な逆の動き */
+/* 閉じた状態のアニメーション */
 .filter-panel.collapsed .filter-content {
   max-height: 0;
   opacity: 0;
-  /* 開く時と完全に逆の動き：先にフェードアウト、その後高さを縮小 */
   transition:
     opacity 0.15s ease-in,
-    max-height 0.25s ease-in 0.1s; /* 0.1s遅延で高さ縮小 */
+    max-height 0.25s ease-in 0.1s;
 }
 
 /* アクセシビリティ */
 .filter-option:focus-within {
-  outline: 2px solid #4caf50;
+  outline: 2px solid var(--color-primary, #4caf50);
   outline-offset: 2px;
 }
 
-.filter-toggle-btn:focus {
-  outline: 2px solid #4caf50;
+.filter-toggle:focus {
+  outline: 2px solid var(--color-primary, #4caf50);
   outline-offset: 2px;
 }
 
-.filter-preset-btn:focus {
-  outline: 2px solid #4caf50;
+.preset-button:focus {
+  outline: 2px solid var(--color-primary, #4caf50);
   outline-offset: 2px;
 }

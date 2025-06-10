@@ -8,7 +8,20 @@ import "./GoogleMarkerCluster.css";
 
 let clusterSequence = 0;
 
-// Utility functions
+// 共通のユーティリティ関数
+const generateHashFromArray = (items: string[]): string => {
+  return Math.abs(
+    items
+      .sort()
+      .join("-")
+      .split("")
+      .reduce((hash, char) => {
+        hash = ((hash << 5) - hash + char.charCodeAt(0)) & 0xffffffff;
+        return hash;
+      }, 0),
+  ).toString(36);
+};
+
 const isInViewport = (poi: POI, bounds: google.maps.LatLngBounds | null): boolean => {
   return !bounds || GeoUtils.isInBounds(poi.position.lat, poi.position.lng, bounds);
 };
@@ -19,17 +32,18 @@ const partitionPOIsByViewport = (
 ) => {
   if (!bounds) return { inViewport: pois, outOfViewport: [] };
 
-  return pois.reduce(
-    (acc, poi) => {
-      if (isInViewport(poi, bounds)) {
-        acc.inViewport.push(poi);
-      } else {
-        acc.outOfViewport.push(poi);
-      }
-      return acc;
-    },
-    { inViewport: [] as ClusterablePOI[], outOfViewport: [] as ClusterablePOI[] },
-  );
+  const inViewport: ClusterablePOI[] = [];
+  const outOfViewport: ClusterablePOI[] = [];
+
+  for (const poi of pois) {
+    if (isInViewport(poi, bounds)) {
+      inViewport.push(poi);
+    } else {
+      outOfViewport.push(poi);
+    }
+  }
+
+  return { inViewport, outOfViewport };
 };
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -68,37 +82,20 @@ interface MarkerComponentProps {
 
 // Helper functions for clustering
 const generateCacheKey = (pois: POI[], zoomLevel: number): string => {
-  const poisIdHash = Math.abs(
-    pois
-      .map((p) => p.id)
-      .sort()
-      .join("-")
-      .split("")
-      .reduce((hash, char) => {
-        hash = ((hash << 5) - hash + char.charCodeAt(0)) & 0xffffffff;
-        return hash;
-      }, 0),
-  ).toString(36);
-
+  const poisIdHash = generateHashFromArray(pois.map((p) => p.id));
   return `cluster-${pois.length.toString()}-${Math.round(zoomLevel * 10).toString()}-${poisIdHash}`;
 };
 
 const generateClusterId = (centerLat: number, centerLng: number, cluster: POI[]): string => {
-  const sortedIds = cluster
-    .map((p) => p.id)
-    .sort()
-    .join("-");
+  const sortedIds = cluster.map((p) => p.id).sort(); // ソートして一意性を保証
   const locationHash = Math.abs(
-    Math.round(centerLat * 1000000) + Math.round(centerLng * 1000000),
+    Math.round(centerLat * 10000000) + Math.round(centerLng * 10000000), // 精度向上
   ).toString(36);
-  const idsHash = Math.abs(
-    sortedIds.split("").reduce((hash, char) => {
-      hash = ((hash << 5) - hash + char.charCodeAt(0)) & 0xffffffff;
-      return hash;
-    }, 0),
-  ).toString(36);
+  const idsHash = generateHashFromArray(sortedIds);
+  const timestamp = Date.now().toString(36); // タイムスタンプを追加
+  const randomSuffix = Math.random().toString(36).substring(2, 11); // ランダム文字列追加
 
-  return `cluster-${locationHash}-${cluster.length.toString()}-${idsHash}-${(++clusterSequence).toString(36)}`;
+  return `cluster-${locationHash}-${cluster.length.toString()}-${idsHash}-${timestamp}-${(++clusterSequence).toString(36)}-${randomSuffix}`;
 };
 
 const createClusterPOI = (cluster: POI[], poi: POI): ClusterPOI => {
@@ -220,23 +217,57 @@ const clusterPOIs = (
   return clustersWithOffsets;
 };
 
+// マーカー設定の定数
+const ZOOM_THRESHOLDS = {
+  FULL_ICON: 16,
+  COMPACT_ICON: 13,
+} as const;
+
+const MARKER_KEYWORDS = {
+  toilet: ["トイレ", "toilet", "お手洗い", "化粧室"],
+  parking: ["駐車", "parking", "パーキング"],
+} as const;
+
+const MARKER_STYLES = {
+  toilet: {
+    background: "#8B4513",
+    borderColor: "#654321",
+    glyphColor: "white",
+    glyph: "🚻",
+  },
+  parking: {
+    background: "#2E8B57",
+    borderColor: "#1F5F3F",
+    glyphColor: "white",
+    glyph: "🅿️",
+  },
+  normal: {
+    background: "#4285F4",
+    borderColor: "#1A73E8",
+    glyphColor: "white",
+  },
+} as const;
+
+const CLUSTER_CONFIGS = [
+  { min: 10, background: "#E53E3E", borderColor: "#C53030", scale: 1.5 },
+  { min: 6, background: "#FF8C00", borderColor: "#E67300", scale: 1.3 },
+  { min: 2, background: "#FF6B35", borderColor: "#CC5429", scale: 1.2 },
+] as const;
+
 // マーカータイプの判定
 const getMarkerType = (poi: POI): "toilet" | "parking" | "normal" => {
-  if (poi.name) {
-    const name = poi.name.toLowerCase();
-    if (
-      name.includes("トイレ") ||
-      name.includes("toilet") ||
-      name.includes("お手洗い") ||
-      name.includes("化粧室")
-    ) {
-      return "toilet";
-    }
+  if (!poi.name) return "normal";
 
-    if (name.includes("駐車") || name.includes("parking") || name.includes("パーキング")) {
-      return "parking";
-    }
+  const name = poi.name.toLowerCase();
+
+  if (MARKER_KEYWORDS.toilet.some((keyword) => name.includes(keyword))) {
+    return "toilet";
   }
+
+  if (MARKER_KEYWORDS.parking.some((keyword) => name.includes(keyword))) {
+    return "parking";
+  }
+
   return "normal";
 };
 
@@ -259,86 +290,63 @@ const getPinConfig = (
   poi?: POI,
   currentZoom?: number,
 ) => {
-  if (!isCluster && poi) {
-    const markerType = getMarkerType(poi);
-    const fullIconZoom = 16; // この値以上でフルサイズアイコン
-    const miniIconZoom = 13; // この値以上で小さなアイコン
+  // クラスターの場合
+  if (isCluster && clusterSize) {
+    const config =
+      CLUSTER_CONFIGS.find((c) => clusterSize >= c.min) ||
+      CLUSTER_CONFIGS[CLUSTER_CONFIGS.length - 1];
+    if (!config) return null;
 
-    // 超高ズーム：フルサイズカスタムアイコン
-    if (currentZoom && currentZoom >= fullIconZoom) {
-      const customIcon = getCustomMarkerIcon(markerType);
-      if (customIcon) {
-        return {
-          background: "transparent",
-          borderColor: "transparent",
-          scale: 1.0,
-          useCustomIcon: true,
-          customIconUrl: customIcon,
-          iconSize: "full-size",
-        };
-      }
-    }
+    // minプロパティを除外してPinコンポーネント用の設定のみを返す
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { min, ...pinProps } = config;
 
-    // 中ズーム：小さなカスタムアイコン
-    if (currentZoom && currentZoom >= miniIconZoom) {
-      const customIcon = getCustomMarkerIcon(markerType);
-      if (customIcon) {
-        return {
-          background: "transparent",
-          borderColor: "transparent",
-          scale: 1.0,
-          useCustomIcon: true,
-          customIconUrl: customIcon,
-          iconSize: "compact",
-        };
-      }
-    }
+    return {
+      ...pinProps,
+      glyphColor: "white",
+      glyph: clusterSize.toString(),
+    };
+  }
 
-    // 低ズーム：カラー＋絵文字のPinマーカー
-    switch (markerType) {
-      case "toilet":
-        return {
-          background: "#8B4513", // ブラウン系
-          borderColor: "#654321",
-          glyphColor: "white",
-          glyph: "🚻",
-          scale: 1.0,
-        };
-      case "parking":
-        return {
-          background: "#2E8B57", // シーグリーン
-          borderColor: "#1F5F3F",
-          glyphColor: "white",
-          glyph: "🅿️",
-          scale: 1.0,
-        };
-      default:
-        return {
-          background: "#4285F4",
-          borderColor: "#1A73E8",
-          glyphColor: "white",
-          scale: 1.0,
-        };
+  // 個別マーカーの場合
+  if (!poi) return null;
+
+  const markerType = getMarkerType(poi);
+
+  // 超高ズーム：フルサイズカスタムアイコン
+  if (currentZoom && currentZoom >= ZOOM_THRESHOLDS.FULL_ICON) {
+    const customIcon = getCustomMarkerIcon(markerType);
+    if (customIcon) {
+      return {
+        background: "transparent",
+        borderColor: "transparent",
+        scale: 1.0,
+        useCustomIcon: true,
+        customIconUrl: customIcon,
+        iconSize: "full-size",
+      };
     }
   }
 
-  if (!clusterSize) return null;
+  // 中ズーム：小さなカスタムアイコン
+  if (currentZoom && currentZoom >= ZOOM_THRESHOLDS.COMPACT_ICON) {
+    const customIcon = getCustomMarkerIcon(markerType);
+    if (customIcon) {
+      return {
+        background: "transparent",
+        borderColor: "transparent",
+        scale: 1.0,
+        useCustomIcon: true,
+        customIconUrl: customIcon,
+        iconSize: "compact",
+      };
+    }
+  }
 
-  const configs = [
-    { min: 10, background: "#E53E3E", borderColor: "#C53030", scale: 1.5 },
-    { min: 6, background: "#FF8C00", borderColor: "#E67300", scale: 1.3 },
-    { min: 2, background: "#FF6B35", borderColor: "#CC5429", scale: 1.2 },
-  ];
-  const config = configs.find((c) => clusterSize >= c.min) || configs[configs.length - 1];
-  if (!config) return null;
-  // minプロパティを除外してPinコンポーネント用の設定のみを返す
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { min, ...pinProps } = config;
-
+  // 低ズーム：カラー＋絵文字のPinマーカー
   return {
-    ...pinProps,
-    glyphColor: "white",
-    glyph: clusterSize.toString(),
+    ...MARKER_STYLES[markerType],
+    scale: 1.0,
   };
 };
 
@@ -361,7 +369,10 @@ const MarkerComponent = memo(
 
     // カスタムアイコンを使用する場合
     if ("useCustomIcon" in pinConfig && pinConfig.useCustomIcon && "customIconUrl" in pinConfig) {
-      const iconSizeClass = "iconSize" in pinConfig ? pinConfig.iconSize : "full-size";
+      const iconSizeClass =
+        "iconSize" in pinConfig
+          ? `custom-marker-icon--${pinConfig.iconSize}`
+          : "custom-marker-icon--full-size";
       return (
         <AdvancedMarker position={poi.position} onClick={handleClick} title={title}>
           <img
@@ -442,21 +453,30 @@ export const GoogleMarkerCluster = memo(
       }
     }, [map, clusteredPois]);
     const markerComponents = useMemo(() => {
-      return visibleMarkers.map((poi, index) => {
+      return visibleMarkers.map((poi) => {
         const isCluster = poi.id.startsWith("cluster-");
         const clusterSize = isCluster && "clusterSize" in poi ? poi.clusterSize : undefined;
-        const componentKey = `${poi.id}-${index.toString()}`;
 
-        return (
-          <MarkerComponent
-            key={componentKey}
-            poi={poi}
-            {...(onMarkerClick && { onMarkerClick })}
-            isCluster={isCluster}
-            {...(clusterSize !== undefined && { clusterSize })}
-            currentZoom={debouncedZoom}
-          />
-        );
+        const props: MarkerComponentProps = {
+          poi,
+          isCluster,
+          currentZoom: debouncedZoom,
+        };
+
+        if (onMarkerClick) {
+          props.onMarkerClick = onMarkerClick;
+        }
+
+        if (clusterSize !== undefined) {
+          props.clusterSize = clusterSize;
+        }
+
+        // POIの一意キーを生成（重複を防ぐため）
+        const latStr = poi.position.lat.toFixed(8);
+        const lngStr = poi.position.lng.toFixed(8);
+        const timestamp = Date.now().toString(36);
+        const uniqueKey = `${poi.id}-${latStr}-${lngStr}-${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
+        return <MarkerComponent key={uniqueKey} {...props} />;
       });
     }, [visibleMarkers, onMarkerClick, debouncedZoom]);
 

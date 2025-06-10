@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FilterService, type FilterPreset, type FilterStats } from "../services/filter";
 import type { FilterCategory, FilterState } from "../types/filter";
 import { FILTER_CATEGORIES } from "../types/filter";
@@ -49,57 +49,51 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       const height = contentRef.current.scrollHeight;
       contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
     }
-  }, [activeCategories, filterState, isExpanded]);
-
-  // 統計情報を取得
-  const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
-  // フィルター変更ハンドラー
-  const handleFilterToggle = (key: keyof FilterState) => {
-    const newFilterState = {
-      ...filterState,
-      [key]: !filterState[key],
-    };
-    onFilterChange(newFilterState);
-  };
+  }, [activeCategories, filterState, isExpanded]); // フィルター変更ハンドラー
+  const handleFilterToggle = useCallback(
+    (key: keyof FilterState) => {
+      onFilterChange({
+        ...filterState,
+        [key]: !filterState[key],
+      });
+    },
+    [filterState, onFilterChange],
+  );
 
   // プリセット適用ハンドラー
-  const handlePresetApply = (preset: FilterPreset) => {
-    const newFilterState = FilterService.applyPreset(preset);
-    onFilterChange(newFilterState);
+  const handlePresetApply = useCallback(
+    (preset: FilterPreset) => {
+      const newFilterState = FilterService.applyPreset(preset);
+      onFilterChange(newFilterState);
 
-    // プリセットに応じて関連カテゴリを自動で開く
-    switch (preset) {
-      case "gourmet":
-        setActiveCategories(["dining"]);
-        break;
-      case "facilities":
-        setActiveCategories(["facilities"]);
-        break;
-      case "nightlife":
-        setActiveCategories(["nightlife"]);
-        break;
-      case "all":
-        setActiveCategories(FILTER_CATEGORIES.map((category) => category.id));
-        break;
-      case "none":
-        setActiveCategories([]);
-        break;
-      default:
-        setActiveCategories(["dining"]);
-        break;
-    }
-  };
+      // プリセットに応じて関連カテゴリを自動で開く
+      const categoryMappings: Partial<Record<FilterPreset, string[]>> = {
+        gourmet: ["dining"],
+        facilities: ["facilities"],
+        nightlife: ["nightlife"],
+        all: FILTER_CATEGORIES.map((category) => category.id),
+        none: [],
+      };
+
+      setActiveCategories(categoryMappings[preset] ?? ["dining"]);
+    },
+    [onFilterChange],
+  );
 
   // カテゴリの開閉を切り替え
-  const toggleCategory = (categoryId: string) => {
+  const toggleCategory = useCallback((categoryId: string) => {
     setActiveCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
-  };
+  }, []);
+
+  // 統計情報を計算
+  const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
   return (
     <div className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${className}`}>
       {/* ヘッダー */}
       <div className="filter-header">
+        {" "}
         <button
           className="filter-toggle"
           onClick={() => {
@@ -111,13 +105,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <span className="filter-title">フィルター</span>
           <span className="filter-count">
             ({stats.visible}/{stats.total})
-          </span>{" "}
+          </span>
           <span className={`expand-icon ${isExpanded ? "expanded" : ""}`}>▲</span>
         </button>
-      </div>{" "}
-      {/* コンテンツ（CSSアニメーション用に常に存在） */}{" "}
+      </div>
+
       <div className="filter-content" ref={contentRef}>
-        {/* プリセットボタン */}
+        {" "}
         <div className="filter-presets">
           <button
             className="preset-button facilities"
@@ -145,7 +139,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             title="ナイトライフ（スナック）のみ表示"
           >
             🍸 夜遊び
-          </button>{" "}
+          </button>
           <button
             className="preset-button clear"
             onClick={() => {
@@ -165,11 +159,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             ✅ 全表示
           </button>
         </div>{" "}
-        {/* カテゴリ別フィルター */}
         <div className="filter-categories">
           {FILTER_CATEGORIES.map((category: FilterCategory) => (
             <div key={category.id} className="filter-category">
-              {" "}
               <button
                 className={`category-header ${activeCategories.includes(category.id) ? "active" : ""}`}
                 onClick={() => {
@@ -177,12 +169,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 }}
               >
                 <span className="category-icon">{category.icon}</span>
-                <span className="category-label">{category.label}</span>{" "}
+                <span className="category-label">{category.label}</span>
                 <span
-                  className={`category-expand ${activeCategories.includes(category.id) ? "expanded" : ""}`}
+                  className={`expand-icon ${activeCategories.includes(category.id) ? "expanded" : ""}`}
                 >
                   ▲
-                </span>{" "}
+                </span>
               </button>
               {activeCategories.includes(category.id) && (
                 <div className="filter-options">
@@ -203,10 +195,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               )}
             </div>
           ))}
-        </div>
-        {/* 統計情報 */}
+        </div>{" "}
         <div className="filter-stats">
-          {" "}
           <div className="stats-summary">
             <span className="stats-visible">{stats.visible}件表示中</span>
             <span className="stats-separator">/</span>
