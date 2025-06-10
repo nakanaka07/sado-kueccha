@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FilterService, type FilterPreset, type FilterStats } from "../services/filter";
 import type { FilterCategory, FilterState } from "../types/filter";
 import { FILTER_CATEGORIES } from "../types/filter";
@@ -20,10 +20,39 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // フィルターパネルの開閉時に高さを動的に設定
+  useEffect(() => {
+    if (contentRef.current) {
+      if (isExpanded) {
+        // 開く時：実際のコンテンツ高さを計算
+        const height = contentRef.current.scrollHeight;
+        contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
+      } else {
+        // 閉じる時：現在の高さから0へのアニメーションのため、一度実際の高さを設定してから0にする
+        const currentHeight = contentRef.current.offsetHeight;
+        contentRef.current.style.setProperty("--content-height", `${currentHeight.toString()}px`);
+        // 少し遅らせて0に設定（アニメーションのため）
+        setTimeout(() => {
+          if (contentRef.current) {
+            contentRef.current.style.setProperty("--content-height", "0px");
+          }
+        }, 10);
+      }
+    }
+  }, [isExpanded]);
+
+  // カテゴリが変更された時のみ、開いた状態なら高さを再計算
+  useEffect(() => {
+    if (contentRef.current && isExpanded) {
+      const height = contentRef.current.scrollHeight;
+      contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
+    }
+  }, [activeCategories, filterState, isExpanded]);
 
   // 統計情報を取得
   const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
-
   // フィルター変更ハンドラー
   const handleFilterToggle = (key: keyof FilterState) => {
     const newFilterState = {
@@ -31,7 +60,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       [key]: !filterState[key],
     };
     onFilterChange(newFilterState);
-  }; // プリセット適用ハンドラー
+  };
+
+  // プリセット適用ハンドラー
   const handlePresetApply = (preset: FilterPreset) => {
     const newFilterState = FilterService.applyPreset(preset);
     onFilterChange(newFilterState);
@@ -48,28 +79,22 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         setActiveCategories(["nightlife"]);
         break;
       case "all":
-        // すべてのカテゴリを開く
         setActiveCategories(FILTER_CATEGORIES.map((category) => category.id));
         break;
       case "none":
-        // 何も表示しないので、カテゴリを閉じる
         setActiveCategories([]);
         break;
       default:
-        // デフォルトはグルメカテゴリを開く
         setActiveCategories(["dining"]);
         break;
     }
-  }; // すべてクリアボタン
-  const handleClearAll = () => {
-    onFilterChange(FilterService.applyPreset("none"));
-    setActiveCategories([]); // カテゴリを閉じる
   };
 
-  // すべて選択ボタン
-  const handleSelectAll = () => {
-    onFilterChange(FilterService.applyPreset("all"));
-    setActiveCategories(FILTER_CATEGORIES.map((category) => category.id)); // すべてのカテゴリを開く
+  // カテゴリの開閉を切り替え
+  const toggleCategory = (categoryId: string) => {
+    setActiveCategories((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
+    );
   };
   return (
     <div className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${className}`}>
@@ -86,21 +111,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <span className="filter-title">フィルター</span>
           <span className="filter-count">
             ({stats.visible}/{stats.total})
-          </span>
-          <span className={`expand-icon ${isExpanded ? "expanded" : ""}`}>
-            {/* スマホでは上向き矢印、デスクトップでは下向き矢印 */}
-            <span className="expand-arrow-mobile">▲</span>
-            <span className="expand-arrow-desktop">▼</span>
-          </span>
+          </span>{" "}
+          <span className={`expand-icon ${isExpanded ? "expanded" : ""}`}>▲</span>
         </button>
-      </div>
-
-      {/* コンテンツ（CSSアニメーション用に常に存在） */}
-      <div className="filter-content">
-        {" "}
-        {/* プリセットボタン */}{" "}
+      </div>{" "}
+      {/* コンテンツ（CSSアニメーション用に常に存在） */}{" "}
+      <div className="filter-content" ref={contentRef}>
+        {/* プリセットボタン */}
         <div className="filter-presets">
-          {" "}
           <button
             className="preset-button facilities"
             onClick={() => {
@@ -127,43 +145,47 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             title="ナイトライフ（スナック）のみ表示"
           >
             🍸 夜遊び
-          </button>
-          <button className="preset-button clear" onClick={handleClearAll} title="すべて非表示">
+          </button>{" "}
+          <button
+            className="preset-button clear"
+            onClick={() => {
+              handlePresetApply("none");
+            }}
+            title="すべて非表示"
+          >
             ❌ クリア
           </button>
-          <button className="preset-button all" onClick={handleSelectAll} title="すべて表示">
+          <button
+            className="preset-button all"
+            onClick={() => {
+              handlePresetApply("all");
+            }}
+            title="すべて表示"
+          >
             ✅ 全表示
           </button>
-        </div>
+        </div>{" "}
         {/* カテゴリ別フィルター */}
         <div className="filter-categories">
-          {" "}
           {FILTER_CATEGORIES.map((category: FilterCategory) => (
             <div key={category.id} className="filter-category">
+              {" "}
               <button
                 className={`category-header ${activeCategories.includes(category.id) ? "active" : ""}`}
                 onClick={() => {
-                  if (activeCategories.includes(category.id)) {
-                    // カテゴリが開いている場合は閉じる
-                    setActiveCategories(activeCategories.filter((id) => id !== category.id));
-                  } else {
-                    // カテゴリが閉じている場合は開く
-                    setActiveCategories([...activeCategories, category.id]);
-                  }
+                  toggleCategory(category.id);
                 }}
               >
                 <span className="category-icon">{category.icon}</span>
-                <span className="category-label">{category.label}</span>
+                <span className="category-label">{category.label}</span>{" "}
                 <span
                   className={`category-expand ${activeCategories.includes(category.id) ? "expanded" : ""}`}
                 >
-                  ▼
-                </span>
+                  ▲
+                </span>{" "}
               </button>
-
               {activeCategories.includes(category.id) && (
                 <div className="filter-options">
-                  {" "}
                   {category.options.map((option) => (
                     <label key={option.key} className="filter-option">
                       <input
@@ -172,10 +194,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         onChange={() => {
                           handleFilterToggle(option.key);
                         }}
-                        className="filter-checkbox"
-                      />{" "}
-                      <span className="option-icon">{option.icon}</span>
-                      <span className="option-label">{option.description}</span>
+                      />
+                      <span>{option.icon}</span>
+                      <span>{option.description}</span>
                     </label>
                   ))}
                 </div>
@@ -185,11 +206,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
         {/* 統計情報 */}
         <div className="filter-stats">
+          {" "}
           <div className="stats-summary">
             <span className="stats-visible">{stats.visible}件表示中</span>
             <span className="stats-separator">/</span>
             <span className="stats-total">{stats.total}件中</span>
-          </div>{" "}
+          </div>
           {stats.hidden > 0 && <div className="stats-hidden">{stats.hidden}件が非表示</div>}
         </div>
       </div>

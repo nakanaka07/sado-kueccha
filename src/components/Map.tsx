@@ -550,7 +550,7 @@ export function MapComponent({
           mapTypeControl={true}
           mapTypeControlOptions={{
             style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-            position: google.maps.ControlPosition.TOP_RIGHT,
+            position: google.maps.ControlPosition.TOP_LEFT,
           }}
           scaleControl={true}
           clickableIcons={enableClickableIcons} // プロップで制御可能に

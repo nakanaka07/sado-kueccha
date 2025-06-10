@@ -1,8 +1,8 @@
 /* フィルターパネルのスタイル */
 .filter-panel {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  bottom: 25px;
+  left: 15px;
   z-index: 500; /* Google Mapsコントロールとの競合を避ける */
   background: var(--color-background-glass);
   -webkit-backdrop-filter: blur(10px);
@@ -11,7 +11,7 @@
   padding: var(--padding-card);
   box-shadow: var(--shadow-medium);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  width: fit-content;
+  width: 280px; /* デスクトップは固定幅で安定性を重視 */
   min-width: 240px;
   max-width: 280px;
   font-family: var(--font-family);
@@ -19,48 +19,24 @@
 
 .filter-panel.collapsed {
   width: auto;
-  min-width: auto;
-  padding: var(--spacing-sm) var(--padding-card);
+  min-width: 48px; /* アイコンが収まる最小サイズ */
+  max-width: 48px;
+  padding: var(--spacing-sm);
 }
 
-.filter-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-  border-bottom: 1px solid rgba(0, 0, 0, var(--opacity-light));
-  padding-bottom: var(--spacing-sm);
-}
-
-.filter-panel-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.filter-toggle-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  border-radius: var(--radius-small);
-  color: var(--color-text-light);
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.filter-toggle-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--color-text-primary);
-}
+/* 未使用のレガシースタイルを削除 */
 
 .filter-content {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  /* 開くときのアニメーション設定 */
+  transition:
+    max-height 0.25s ease-out,
+    opacity 0.15s ease-out 0.1s; /* 0.1s遅延でフェードイン */
+  overflow: hidden;
+  max-height: var(--content-height, auto); /* 動的な高さに変更 */
+  opacity: 1;
 }
 
 .filter-category {
@@ -105,31 +81,19 @@
   cursor: pointer;
 }
 
-.filter-option-label {
-  cursor: pointer;
-  flex: 1;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.filter-option-count {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 2px var(--spacing-sm);
-  border-radius: 10px;
-  min-width: 20px;
-  text-align: center;
-}
-
 .filter-presets {
   border-top: 1px solid rgba(0, 0, 0, var(--opacity-light));
   padding-top: var(--spacing-sm);
   margin-top: var(--spacing-sm);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, auto);
   gap: var(--spacing-xs);
   width: 100%;
+}
+
+.filter-presets .preset-button:nth-child(5) {
+  grid-column: 1 / -1; /* 5番目のボタン（全表示）を全幅に */
 }
 
 .preset-button {
@@ -222,36 +186,6 @@
   margin: 0 0 var(--spacing-sm) 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.filter-preset-buttons {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.filter-preset-btn {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  color: #495057;
-  padding: var(--spacing-sm) var(--spacing-sm);
-  border-radius: var(--radius-xl);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-weight: 500;
-  text-transform: none;
-}
-
-.filter-preset-btn:hover {
-  background: #e9ecef;
-  border-color: #dee2e6;
-}
-
-.filter-preset-btn.active {
-  background: #4caf50;
-  border-color: #4caf50;
-  color: white;
 }
 
 .filter-stats {
@@ -399,113 +333,73 @@
   transform: rotate(180deg);
 }
 
-/* 矢印アイコンの制御 */
-.expand-arrow-mobile {
+/* 折りたたみ時のヘッダー表示制御 */
+.filter-panel.collapsed .filter-title {
   display: none;
 }
 
-.expand-arrow-desktop {
-  display: inline;
+.filter-panel.collapsed .filter-count {
+  display: none;
 }
 
-/* レスポンシブデザイン */
+.filter-panel.collapsed .filter-toggle {
+  min-width: auto;
+  padding: var(--spacing-sm);
+  justify-content: center;
+}
+
+.filter-panel.collapsed .filter-icon {
+  font-size: 18px;
+}
+
+.expand-icon {
+  font-size: 12px;
+  transition: transform var(--transition-fast);
+  transform-origin: center;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* モバイル・レスポンシブ対応 */
 @media (max-width: 768px) {
   .filter-panel {
-    position: fixed;
-    bottom: 20px; /* 下部に配置 */
-    left: 10px;
-    top: auto; /* topを無効化 */
-    width: auto;
-    min-width: 200px;
-    max-width: calc(100vw - 120px); /* 右側にGoogle Mapsコントロール用のスペースを確保 */
-    z-index: 500; /* Google Mapsコントロールより低く設定 */
-    /* 上方向に開くアニメーション用の設定 */
-    transform-origin: bottom left;
-    transition: all 0.3s ease;
+    width: fit-content; /* モバイルでは効率性を重視 */
+    max-width: calc(100vw - 60px);
   }
 
   .filter-panel.collapsed {
     width: auto;
-    min-width: auto;
-    max-width: 80px; /* 折りたたみ時はより小さく */
+    min-width: 48px;
+    max-width: 48px;
   }
 
-  /* 折りたたみ時のコンテンツを下から上にアニメーション */
-  .filter-panel .filter-content {
-    transition: all 0.3s ease;
-    transform-origin: bottom;
-  }
-
-  .filter-panel.collapsed .filter-content {
-    transform: scaleY(0);
-    opacity: 0;
-    max-height: 0;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-
-  .filter-content {
-    gap: 8px;
-  }
-
-  .filter-options {
-    gap: 4px;
-  }
-
-  .filter-presets {
-    grid-template-columns: 1fr;
-  }
-
-  .preset-button {
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-
-  /* スマホでは上向き矢印を表示 */
-  .expand-arrow-mobile {
-    display: inline;
-  }
-
-  .expand-arrow-desktop {
-    display: none;
-  }
-
-  /* 展開時は矢印を回転（上向きから下向きへ） */
-  .filter-panel:not(.collapsed) .expand-arrow-mobile {
-    transform: rotate(180deg);
+  .filter-panel.collapsed .filter-toggle {
+    padding: var(--spacing-xs);
   }
 }
 
-/* 超小型デバイス用の追加調整 */
 @media (max-width: 480px) {
   .filter-panel {
-    bottom: 15px; /* より下に配置 */
+    bottom: 15px;
     left: 8px;
-    max-width: calc(100vw - 100px); /* より小さなデバイスでも右側スペースを確保 */
+    max-width: calc(100vw - 100px);
   }
 
   .filter-panel.collapsed {
-    max-width: 60px;
+    max-width: 48px;
   }
 }
 
-/* アニメーション */
-.filter-content {
-  transition:
-    opacity var(--transition-fast),
-    max-height var(--transition-normal),
-    transform var(--transition-normal);
-  overflow: hidden;
-  transform-origin: bottom; /* 下から上へのアニメーション */
-}
-
+/* 閉じた状態のアニメーション - 開く時の完全な逆の動き */
 .filter-panel.collapsed .filter-content {
-  opacity: 0;
   max-height: 0;
-  margin: 0;
-  padding: 0;
-  transform: scaleY(0); /* 縦方向に縮小 */
+  opacity: 0;
+  /* 開く時と完全に逆の動き：先にフェードアウト、その後高さを縮小 */
+  transition:
+    opacity 0.15s ease-in,
+    max-height 0.25s ease-in 0.1s; /* 0.1s遅延で高さ縮小 */
 }
 
 /* アクセシビリティ */
