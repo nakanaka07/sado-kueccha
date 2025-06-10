@@ -399,22 +399,50 @@
   transform: rotate(180deg);
 }
 
+/* 矢印アイコンの制御 */
+.expand-arrow-mobile {
+  display: none;
+}
+
+.expand-arrow-desktop {
+  display: inline;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
   .filter-panel {
     position: fixed;
-    top: 80px; /* マップタイプコントロールの下に移動 */
+    bottom: 20px; /* 下部に配置 */
     left: 10px;
+    top: auto; /* topを無効化 */
     width: auto;
     min-width: 200px;
     max-width: calc(100vw - 120px); /* 右側にGoogle Mapsコントロール用のスペースを確保 */
     z-index: 500; /* Google Mapsコントロールより低く設定 */
+    /* 上方向に開くアニメーション用の設定 */
+    transform-origin: bottom left;
+    transition: all 0.3s ease;
   }
 
   .filter-panel.collapsed {
     width: auto;
     min-width: auto;
     max-width: 80px; /* 折りたたみ時はより小さく */
+  }
+
+  /* 折りたたみ時のコンテンツを下から上にアニメーション */
+  .filter-panel .filter-content {
+    transition: all 0.3s ease;
+    transform-origin: bottom;
+  }
+
+  .filter-panel.collapsed .filter-content {
+    transform: scaleY(0);
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   .filter-content {
@@ -433,11 +461,27 @@
     font-size: 12px;
     padding: 8px 12px;
   }
+
+  /* スマホでは上向き矢印を表示 */
+  .expand-arrow-mobile {
+    display: inline;
+  }
+
+  .expand-arrow-desktop {
+    display: none;
+  }
+
+  /* 展開時は矢印を回転（上向きから下向きへ） */
+  .filter-panel:not(.collapsed) .expand-arrow-mobile {
+    transform: rotate(180deg);
+  }
 }
 
 /* 超小型デバイス用の追加調整 */
 @media (max-width: 480px) {
   .filter-panel {
+    bottom: 15px; /* より下に配置 */
+    left: 8px;
     max-width: calc(100vw - 100px); /* より小さなデバイスでも右側スペースを確保 */
   }
 
@@ -450,8 +494,10 @@
 .filter-content {
   transition:
     opacity var(--transition-fast),
-    max-height var(--transition-normal);
+    max-height var(--transition-normal),
+    transform var(--transition-normal);
   overflow: hidden;
+  transform-origin: bottom; /* 下から上へのアニメーション */
 }
 
 .filter-panel.collapsed .filter-content {
@@ -459,6 +505,7 @@
   max-height: 0;
   margin: 0;
   padding: 0;
+  transform: scaleY(0); /* 縦方向に縮小 */
 }
 
 /* アクセシビリティ */
