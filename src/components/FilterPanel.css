@@ -3,7 +3,7 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  z-index: 1000;
+  z-index: 500; /* Google Mapsコントロールとの競合を避ける */
   background: var(--color-background-glass);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -405,15 +405,16 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    right: 10px;
     width: auto;
-    min-width: auto;
-    max-width: none;
+    min-width: 200px;
+    max-width: calc(100vw - 120px); /* 右側にGoogle Mapsコントロール用のスペースを確保 */
+    z-index: 500; /* Google Mapsコントロールより低く設定 */
   }
 
   .filter-panel.collapsed {
-    right: auto;
     width: auto;
+    min-width: auto;
+    max-width: 80px; /* 折りたたみ時はより小さく */
   }
 
   .filter-content {
@@ -431,6 +432,17 @@
   .preset-button {
     font-size: 12px;
     padding: 8px 12px;
+  }
+}
+
+/* 超小型デバイス用の追加調整 */
+@media (max-width: 480px) {
+  .filter-panel {
+    max-width: calc(100vw - 100px); /* より小さなデバイスでも右側スペースを確保 */
+  }
+
+  .filter-panel.collapsed {
+    max-width: 60px;
   }
 }
 
