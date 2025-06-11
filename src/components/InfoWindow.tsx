@@ -1,7 +1,7 @@
 import { InfoWindow as GoogleInfoWindow } from "@vis.gl/react-google-maps";
 import React from "react";
 import type { POI } from "../types/google-maps";
-import { SocialUtils } from "../utils/social";
+import { linkifyText as linkifyTextUtil } from "../utils/social";
 import { BusinessHoursDisplay } from "./BusinessHoursDisplay";
 import "./InfoWindow.css";
 
@@ -12,7 +12,7 @@ interface InfoWindowProps {
 
 // 最適化：URLリンク化（メモ化）
 const linkifyText = (text: string) => {
-  const linkParts = SocialUtils.linkifyText(text, "info-window-link");
+  const linkParts = linkifyTextUtil(text, "info-window-link");
 
   return linkParts.map((part) => {
     if (part.type === "link") {

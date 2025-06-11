@@ -1,12 +1,12 @@
 import React from "react";
-import { BusinessHoursUtils } from "../utils/businessHours";
+import { formatBusinessHours } from "../utils/businessHours";
 
 interface BusinessHoursDisplayProps {
   businessHours: Record<string, string>;
 }
 
 export const BusinessHoursDisplay: React.FC<BusinessHoursDisplayProps> = ({ businessHours }) => {
-  const hoursInfo = BusinessHoursUtils.formatBusinessHours(businessHours);
+  const hoursInfo = formatBusinessHours(businessHours);
 
   // ステータスの種類を判定
   const getStatusType = () => {
