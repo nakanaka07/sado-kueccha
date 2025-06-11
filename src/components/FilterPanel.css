@@ -360,8 +360,8 @@
 
 @media (max-width: 480px) {
   .filter-panel {
-    bottom: 15px;
-    left: 8px;
+    bottom: 25px;
+    left: 15px;
     max-width: calc(100vw - 100px);
   }
 
