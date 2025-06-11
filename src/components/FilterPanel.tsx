@@ -21,35 +21,37 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  // フィルターパネルの開閉時に高さを動的に設定
+  // 最適化：単一のuseEffectで高さ管理（CSS変数使用）
   useEffect(() => {
-    if (contentRef.current) {
+    if (!contentRef.current) return;
+
+    const updateHeight = () => {
+      if (!contentRef.current) return;
+
       if (isExpanded) {
-        // 開く時：実際のコンテンツ高さを計算
+        // 展開時：実際のコンテンツ高さを設定
         const height = contentRef.current.scrollHeight;
         contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
       } else {
-        // 閉じる時：現在の高さから0へのアニメーションのため、一度実際の高さを設定してから0にする
-        const currentHeight = contentRef.current.offsetHeight;
-        contentRef.current.style.setProperty("--content-height", `${currentHeight.toString()}px`);
-        // 少し遅らせて0に設定（アニメーションのため）
-        setTimeout(() => {
-          if (contentRef.current) {
-            contentRef.current.style.setProperty("--content-height", "0px");
-          }
-        }, 10);
+        // 折りたたみ時：0に設定
+        contentRef.current.style.setProperty("--content-height", "0px");
       }
-    }
-  }, [isExpanded]);
+    };
 
-  // カテゴリが変更された時のみ、開いた状態なら高さを再計算
-  useEffect(() => {
-    if (contentRef.current && isExpanded) {
-      const height = contentRef.current.scrollHeight;
-      contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
+    // 初回実行
+    updateHeight();
+
+    // カテゴリ変更時の高さ再計算（展開時のみ）
+    if (isExpanded) {
+      // 少し遅延させて再計算（DOM更新後）
+      const timeoutId = setTimeout(updateHeight, 10);
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, [activeCategories, filterState, isExpanded]); // フィルター変更ハンドラー
+
+    return undefined;
+  }, [isExpanded, activeCategories, filterState]); // フィルター変更ハンドラー
   const handleFilterToggle = useCallback(
     (key: keyof FilterState) => {
       onFilterChange({
@@ -58,24 +60,23 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       });
     },
     [filterState, onFilterChange],
-  );
-
-  // プリセット適用ハンドラー
+  ); // 最適化：プリセット適用ハンドラー（統一化）
   const handlePresetApply = useCallback(
     (preset: FilterPreset) => {
       const newFilterState = FilterService.applyPreset(preset);
       onFilterChange(newFilterState);
 
-      // プリセットに応じて関連カテゴリを自動で開く
-      const categoryMappings: Partial<Record<FilterPreset, string[]>> = {
+      // プリセットカテゴリマッピング（型安全）
+      const categoryMappings: Record<FilterPreset, string[]> = {
         gourmet: ["dining"],
         facilities: ["facilities"],
         nightlife: ["nightlife"],
         all: FILTER_CATEGORIES.map((category) => category.id),
         none: [],
+        default: ["dining"],
       };
 
-      setActiveCategories(categoryMappings[preset] ?? ["dining"]);
+      setActiveCategories(categoryMappings[preset]);
     },
     [onFilterChange],
   );
@@ -86,9 +87,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   }, []);
-
   // 統計情報を計算
   const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
+
   return (
     <div className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${className}`}>
       {/* ヘッダー */}

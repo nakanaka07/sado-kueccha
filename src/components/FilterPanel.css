@@ -28,12 +28,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  /* 最適化：CSS Animationによる高さ制御 */
   transition:
-    max-height 0.25s ease-out,
-    opacity 0.15s ease-out 0.1s;
+    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease-out;
   overflow: hidden;
   max-height: var(--content-height, auto);
   opacity: 1;
+  /* GPU加速を有効化してレンダリング性能向上 */
+  transform: translateZ(0);
+  will-change: max-height, opacity;
 }
 
 .filter-category {

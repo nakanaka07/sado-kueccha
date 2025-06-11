@@ -305,7 +305,7 @@ class SheetsService {
             const existingPOI = poiMap.get(uniqueKey);
 
             if (existingPOI) {
-              // 推奨シートで既存データを上書き（ログ出力なし）
+              // 推奨シートで既存データを上書き（優先）
             }
 
             // 推奨シートのデータで既存データを上書き（優先）
@@ -442,11 +442,23 @@ export const fetchPOIs = async (): Promise<POI[]> => {
   }
 };
 
-// POI重複除去ヘルパー関数
+// POI重複除去ヘルパー関数（recommendedシート優先）
 function removeDuplicatePOIs(pois: POI[]): POI[] {
-  const uniquePOIs = pois.filter((poi, index, array) => {
-    return array.findIndex((p) => p.id === poi.id) === index;
+  const uniqueMap = new Map<string, POI>();
+
+  // 最初にすべてのPOIを追加
+  pois.forEach((poi) => {
+    uniqueMap.set(poi.id, poi);
   });
+
+  // 次にrecommendedシートのPOIで上書き（優先）
+  pois.forEach((poi) => {
+    if (poi.sourceSheet === "recommended") {
+      uniqueMap.set(poi.id, poi);
+    }
+  });
+
+  const uniquePOIs = Array.from(uniqueMap.values());
 
   if (pois.length !== uniquePOIs.length) {
     const duplicateCount = pois.length - uniquePOIs.length;

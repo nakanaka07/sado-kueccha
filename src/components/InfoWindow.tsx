@@ -10,7 +10,7 @@ interface InfoWindowProps {
   onClose: () => void;
 }
 
-// URLを検出してリンク化する関数
+// 最適化：URLリンク化（メモ化）
 const linkifyText = (text: string) => {
   const linkParts = SocialUtils.linkifyText(text, "info-window-link");
 
@@ -33,6 +33,10 @@ const linkifyText = (text: string) => {
 };
 
 export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
+  // メモ化されたリンク化テキスト（同一POI対策）
+  const linkifiedDescription = React.useMemo(() => {
+    return poi.description ? linkifyText(poi.description) : null;
+  }, [poi.description]);
   // 情報ウィンドウ内のクリックイベントの伝播を防ぐ
   const handleInfoWindowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,7 +53,6 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
         <div className="info-window-content">
           {poi.district && (
             <div className="info-window-field">
-              <span className="field-label">地区:</span>
               <span className="field-value">{poi.district}</span>
             </div>
           )}
@@ -57,7 +60,7 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
           {poi.description && (
             <div className="info-window-field">
               <span className="field-label">SNS:</span>
-              <div className="field-value sns-content">{linkifyText(poi.description)}</div>
+              <div className="field-value sns-content">{linkifiedDescription}</div>
             </div>
           )}
 

@@ -53,14 +53,44 @@ export function MapComponent({
   const [currentZoom, setCurrentZoom] = useState<number>(MAP_CONFIG.DEFAULT_ZOOM);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
-  // 使用するPOIデータを決定（重複除去付き）
+  // 使用するPOIデータを決定（最適化された重複除去）
   const activePois = useMemo(() => {
     const basePois = externalPois?.length ? externalPois : internalPois;
 
-    // 重複を除去（IDベースで）
-    const uniquePois = basePois.filter((poi, index, array) => {
-      return array.findIndex((p) => p.id === poi.id) === index;
+    // recommendedシート優先の重複除去
+    const seenIds = new Set<string>();
+    const positionToPoi: Record<string, POI> = {};
+
+    // まずrecommendedシート以外のPOIを処理
+    basePois.forEach((poi) => {
+      if (poi.sourceSheet === "recommended") return; // recommendedは後で処理
+
+      const positionKey = `${poi.position.lat.toFixed(6)}-${poi.position.lng.toFixed(6)}`;
+
+      if (!seenIds.has(poi.id) && !positionToPoi[positionKey]) {
+        seenIds.add(poi.id);
+        positionToPoi[positionKey] = poi;
+      }
     });
+
+    // 次にrecommendedシートのPOIを処理（優先して上書き）
+    basePois.forEach((poi) => {
+      if (poi.sourceSheet !== "recommended") return;
+
+      const positionKey = `${poi.position.lat.toFixed(6)}-${poi.position.lng.toFixed(6)}`;
+      const existingPoi = positionToPoi[positionKey];
+
+      if (existingPoi) {
+        // recommendedで既存を削除
+        seenIds.delete(existingPoi.id);
+      }
+
+      // recommendedを追加（IDが同じでも位置が同じでも優先）
+      seenIds.add(poi.id);
+      positionToPoi[positionKey] = poi;
+    });
+
+    const uniquePois: POI[] = Object.values(positionToPoi);
 
     // 重複が見つかった場合はログ出力
     if (basePois.length !== uniquePois.length) {

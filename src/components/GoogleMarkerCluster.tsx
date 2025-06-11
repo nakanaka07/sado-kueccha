@@ -8,18 +8,16 @@ import "./GoogleMarkerCluster.css";
 
 let clusterSequence = 0;
 
-// 共通のユーティリティ関数
+// 共通のユーティリティ関数 - 最適化版
 const generateHashFromArray = (items: string[]): string => {
-  return Math.abs(
-    items
-      .sort()
-      .join("-")
-      .split("")
-      .reduce((hash, char) => {
-        hash = ((hash << 5) - hash + char.charCodeAt(0)) & 0xffffffff;
-        return hash;
-      }, 0),
-  ).toString(36);
+  // ソート済み文字列のハッシュ化を最適化
+  const sortedStr = items.sort().join(",");
+  let hash = 0;
+  for (let i = 0; i < sortedStr.length; i++) {
+    const char = sortedStr.charCodeAt(i);
+    hash = ((hash << 5) - hash + char) & 0xffffffff;
+  }
+  return Math.abs(hash).toString(36);
 };
 
 const isInViewport = (poi: POI, bounds: google.maps.LatLngBounds | null): boolean => {
@@ -87,15 +85,14 @@ const generateCacheKey = (pois: POI[], zoomLevel: number): string => {
 };
 
 const generateClusterId = (centerLat: number, centerLng: number, cluster: POI[]): string => {
-  const sortedIds = cluster.map((p) => p.id).sort(); // ソートして一意性を保証
+  // 同一POI対策：位置ベースの一意ID生成（簡素化）
   const locationHash = Math.abs(
-    Math.round(centerLat * 10000000) + Math.round(centerLng * 10000000), // 精度向上
+    Math.round(centerLat * 1000000) + Math.round(centerLng * 1000000),
   ).toString(36);
-  const idsHash = generateHashFromArray(sortedIds);
-  const timestamp = Date.now().toString(36); // タイムスタンプを追加
-  const randomSuffix = Math.random().toString(36).substring(2, 11); // ランダム文字列追加
+  const clusterSize = cluster.length.toString(36);
+  const sequence = (++clusterSequence).toString(36);
 
-  return `cluster-${locationHash}-${cluster.length.toString()}-${idsHash}-${timestamp}-${(++clusterSequence).toString(36)}-${randomSuffix}`;
+  return `cluster-${locationHash}-${clusterSize}-${sequence}`;
 };
 
 const createClusterPOI = (cluster: POI[], poi: POI): ClusterPOI => {
@@ -114,7 +111,7 @@ const createClusterPOI = (cluster: POI[], poi: POI): ClusterPOI => {
   };
 };
 
-// Main clustering function
+// Main clustering function - 最適化版
 const clusterPOIs = (
   pois: POI[],
   zoomLevel: number = 10,
@@ -122,7 +119,19 @@ const clusterPOIs = (
 ): ClusterablePOI[] => {
   if (pois.length === 0) return [];
 
-  const cacheKey = generateCacheKey(pois, zoomLevel);
+  // 同一POI除去を最初に実行（Set使用で最適化）
+  const uniquePOIs = pois.filter((poi, index, array) => {
+    return (
+      array.findIndex(
+        (p) =>
+          p.id === poi.id ||
+          (Math.abs(p.position.lat - poi.position.lat) < 0.000001 &&
+            Math.abs(p.position.lng - poi.position.lng) < 0.000001),
+      ) === index
+    );
+  });
+
+  const cacheKey = generateCacheKey(uniquePOIs, zoomLevel);
   const cached = cacheService.getTyped(
     cacheKey,
     (value): value is ClusterablePOI[] =>
@@ -133,7 +142,9 @@ const clusterPOIs = (
 
   if (cached) {
     return cached;
-  } // Disable clustering at high zoom levels
+  }
+
+  // Disable clustering at high zoom levels
   if (zoomLevel >= SADO_ISLAND.ZOOM.DISABLE_CLUSTERING) {
     const maxMarkers =
       zoomLevel >= SADO_ISLAND.ZOOM.HIGH_THRESHOLD
@@ -142,12 +153,14 @@ const clusterPOIs = (
 
     let limitedPois: POI[];
 
-    if (pois.length > maxMarkers) {
+    if (uniquePOIs.length > maxMarkers) {
       // ビューポート内のマーカーを優先的に選択
-      const inViewportPois = mapBounds ? pois.filter((poi) => isInViewport(poi, mapBounds)) : [];
+      const inViewportPois = mapBounds
+        ? uniquePOIs.filter((poi) => isInViewport(poi, mapBounds))
+        : [];
       const outOfViewportPois = mapBounds
-        ? pois.filter((poi) => !isInViewport(poi, mapBounds))
-        : pois;
+        ? uniquePOIs.filter((poi) => !isInViewport(poi, mapBounds))
+        : uniquePOIs;
 
       if (mapBounds && inViewportPois.length > 0) {
         // ビューポート内のマーカーを最大限含める
@@ -159,10 +172,10 @@ const clusterPOIs = (
         limitedPois = [...selectedViewportPois, ...selectedOutOfViewportPois];
       } else {
         // マップ境界が利用できない場合は従来通り
-        limitedPois = pois.slice(0, maxMarkers);
+        limitedPois = uniquePOIs.slice(0, maxMarkers);
       }
     } else {
-      limitedPois = pois;
+      limitedPois = uniquePOIs;
     }
 
     // 非常に近い位置のマーカーにオフセットを適用
@@ -176,38 +189,54 @@ const clusterPOIs = (
   const clusters: ClusterablePOI[] = [];
   const processed = new Set<string>();
 
-  // Sort POIs for better clustering performance
-  const sortedPois = [...pois].sort((a, b) => {
-    const latDiff = a.position.lat - b.position.lat;
-    return latDiff !== 0 ? latDiff : a.position.lng - b.position.lng;
-  });
+  // 最適化：空間分割による高速クラスタリング
+  const gridSize = clusterDistance;
+  const grid = new Map<string, POI[]>();
 
-  for (const poi of sortedPois) {
-    if (processed.has(poi.id)) continue;
+  // グリッドに分割
+  for (const poi of uniquePOIs) {
+    const gridX = Math.floor(poi.position.lat / gridSize);
+    const gridY = Math.floor(poi.position.lng / gridSize);
+    const gridKey = `${gridX.toString()},${gridY.toString()}`;
 
-    const cluster = [poi];
-    processed.add(poi.id);
-
-    for (const otherPoi of sortedPois) {
-      if (processed.has(otherPoi.id)) continue;
-
-      const distanceSquared = GeoUtils.getDistanceSquared(
-        poi.position.lat,
-        poi.position.lng,
-        otherPoi.position.lat,
-        otherPoi.position.lng,
-      );
-      const clusterDistanceSquared = clusterDistance * clusterDistance;
-
-      if (distanceSquared < clusterDistanceSquared) {
-        cluster.push(otherPoi);
-        processed.add(otherPoi.id);
-      }
+    if (!grid.has(gridKey)) {
+      grid.set(gridKey, []);
     }
+    const gridCell = grid.get(gridKey);
+    if (gridCell) {
+      gridCell.push(poi);
+    }
+  }
 
-    const clusterPoi = cluster.length === 1 ? poi : createClusterPOI(cluster, poi);
+  // 各グリッドセル内でクラスタリング
+  for (const cellPois of grid.values()) {
+    for (const poi of cellPois) {
+      if (processed.has(poi.id)) continue;
 
-    clusters.push(clusterPoi);
+      const cluster = [poi];
+      processed.add(poi.id);
+
+      // 同じセル内の近隣POIを検索
+      for (const otherPoi of cellPois) {
+        if (processed.has(otherPoi.id)) continue;
+
+        const distanceSquared = GeoUtils.getDistanceSquared(
+          poi.position.lat,
+          poi.position.lng,
+          otherPoi.position.lat,
+          otherPoi.position.lng,
+        );
+        const clusterDistanceSquared = clusterDistance * clusterDistance;
+
+        if (distanceSquared < clusterDistanceSquared) {
+          cluster.push(otherPoi);
+          processed.add(otherPoi.id);
+        }
+      }
+
+      const clusterPoi = cluster.length === 1 ? poi : createClusterPOI(cluster, poi);
+      clusters.push(clusterPoi);
+    }
   }
 
   // 非常に近い位置の個別マーカーにオフセットを適用
@@ -412,7 +441,7 @@ export const GoogleMarkerCluster = memo(
       return result;
     }, [pois, debouncedZoom, map]);
 
-    // Viewport-based progressive rendering
+    // Viewport-based progressive rendering - 最適化版
     useEffect(() => {
       if (!map || clusteredPois.length === 0) {
         setVisibleMarkers(clusteredPois);
@@ -435,6 +464,7 @@ export const GoogleMarkerCluster = memo(
 
         const chunkSize = Math.min(50, Math.max(10, Math.floor(outOfViewport.length / 10)));
         let currentIndex = 0;
+        let timeoutId: NodeJS.Timeout;
 
         const loadChunk = () => {
           if (currentIndex >= outOfViewport.length) {
@@ -446,11 +476,19 @@ export const GoogleMarkerCluster = memo(
           setVisibleMarkers((prev) => [...prev, ...chunk]);
           currentIndex += chunkSize;
 
-          setTimeout(loadChunk, 16);
+          timeoutId = setTimeout(loadChunk, 16);
         };
 
-        setTimeout(loadChunk, 100);
+        timeoutId = setTimeout(loadChunk, 100);
+
+        // クリーンアップ関数
+        return () => {
+          clearTimeout(timeoutId);
+          setIsLoadingMore(false);
+        };
       }
+
+      return undefined;
     }, [map, clusteredPois]);
     const markerComponents = useMemo(() => {
       return visibleMarkers.map((poi) => {
@@ -471,11 +509,11 @@ export const GoogleMarkerCluster = memo(
           props.clusterSize = clusterSize;
         }
 
-        // POIの一意キーを生成（重複を防ぐため）
-        const latStr = poi.position.lat.toFixed(8);
-        const lngStr = poi.position.lng.toFixed(8);
-        const timestamp = Date.now().toString(36);
-        const uniqueKey = `${poi.id}-${latStr}-${lngStr}-${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
+        // 最適化されたkey生成（同一POI対策）
+        const uniqueKey = isCluster
+          ? poi.id
+          : `poi-${poi.id}-${poi.position.lat.toFixed(6)}-${poi.position.lng.toFixed(6)}`;
+
         return <MarkerComponent key={uniqueKey} {...props} />;
       });
     }, [visibleMarkers, onMarkerClick, debouncedZoom]);
