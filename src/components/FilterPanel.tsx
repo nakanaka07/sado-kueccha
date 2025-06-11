@@ -67,16 +67,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       onFilterChange(newFilterState);
 
       // プリセットカテゴリマッピング（型安全）
-      const categoryMappings: Record<FilterPreset, string[]> = {
-        gourmet: ["dining"],
-        facilities: ["facilities"],
-        nightlife: ["nightlife"],
-        all: FILTER_CATEGORIES.map((category) => category.id),
-        none: [],
-        default: ["dining"],
-      };
+      // 'none'プリセット（クリアボタン）の場合はカテゴリの開閉状態を保持
+      if (preset !== "none") {
+        const categoryMappings: Record<Exclude<FilterPreset, "none">, string[]> = {
+          gourmet: ["dining"],
+          facilities: ["facilities"],
+          nightlife: ["nightlife"],
+          all: FILTER_CATEGORIES.map((category) => category.id),
+          default: ["dining"],
+        };
 
-      setActiveCategories(categoryMappings[preset]);
+        setActiveCategories(categoryMappings[preset]);
+      }
+      // 'none'の場合はactiveCategories を変更しない（現在の開閉状態を保持）
     },
     [onFilterChange],
   );
