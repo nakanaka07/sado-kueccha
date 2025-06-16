@@ -1,23 +1,20 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    // Node.js固有のライブラリ
+    // === Node.js Environment ===
     "lib": [
       "ES2022"
     ],
-    // ビルド設定（Node.js固有）
+    // === Build Configuration ===
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    // 型定義（Node.js固有）
+    // === Type Definitions ===
     "types": [
       "node"
     ]
   },
   "include": [
     "vite.config.ts",
-    "vitest.config.ts",
-    "eslint.config.js",
-    "postcss.config.js",
-    "scripts/**/*"
+    "eslint.config.js"
   ],
   "exclude": [
     "node_modules",

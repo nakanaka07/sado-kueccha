@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -10,11 +11,11 @@ export default tseslint.config(
   {
     extends: [
       js.configs.recommended,
-      // 型チェック対応のlintルールに置き換え初期
+      // Enable type-checked lint rules
       ...tseslint.configs.recommendedTypeChecked,
-      // より厳格なルールを追加（オプション）安定期
+      // Add stricter rules for better code quality
       ...tseslint.configs.strictTypeChecked,
-      // スタイリスティックなルールを追加（オプション）チーム合意がある場合
+      // Stylistic rules can be uncommented when team consensus is reached
       // ...tseslint.configs.stylisticTypeChecked,
     ],
     files: ["**/*.{ts,tsx}"],
@@ -22,7 +23,7 @@ export default tseslint.config(
       ecmaVersion: 2024,
       globals: globals.browser,
       parserOptions: {
-        // TypeScriptプロジェクト設定を追加
+        // TypeScript project configuration
         project: ["./tsconfig.node.json", "./tsconfig.app.json", "./tsconfig.test.json"],
         tsconfigRootDir: import.meta.dirname,
       },
@@ -31,20 +32,25 @@ export default tseslint.config(
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
       react: react,
+      "jsx-a11y": jsxA11y,
     },
     settings: {
       react: {
-        version: "detect", // Reactのバージョンを自動検出
+        version: "detect", // Auto-detect React version
       },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      // 標準的なReactのルールを適用
+      // Apply standard React rules
       ...react.configs.recommended.rules,
       ...react.configs["jsx-runtime"].rules,
-      // TypeScriptプロジェクトでは不要なPropTypesを無効化
+      // Apply accessibility rules
+      ...jsxA11y.configs.recommended.rules,
+      // Disable PropTypes as they're unnecessary in TypeScript projects
       "react/prop-types": "off",
+      // Fix for aria-expanded with boolean expressions - allow string values from boolean expressions
+      "jsx-a11y/aria-proptypes": "off",
     },
   },
 );

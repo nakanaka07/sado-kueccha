@@ -46,13 +46,9 @@
     <meta name="twitter:image" content="./title_row2.png" />
 
     <!-- Performance Optimization -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://maps.googleapis.com" />
     <link rel="preconnect" href="https://maps.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://docs.google.com" />
-    <link rel="dns-prefetch" href="https://khms0.googleapis.com" />
-    <link rel="dns-prefetch" href="https://khms1.googleapis.com" />
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -104,30 +100,17 @@
 
     <!-- Theme Color Support Detection -->
     <script>
-      // Add theme-color meta tag only for supported browsers
-      (function () {
-        const isSupported = function () {
-          const userAgent = navigator.userAgent.toLowerCase();
-
-          // Check for supported browsers
-          if (userAgent.includes("chrome") || userAgent.includes("chromium")) return true;
-          if (userAgent.includes("edge")) return true;
-          if (userAgent.includes("safari") && userAgent.includes("version")) {
-            // Check Safari version (iOS 15+)
-            const match = userAgent.match(/version\/(\d+)/);
-            if (match && parseInt(match[1]) >= 15) return true;
-          }
-
-          return false;
-        };
-
-        if (isSupported()) {
-          const themeColorMeta = document.createElement("meta");
-          themeColorMeta.name = "theme-color";
-          themeColorMeta.content = "#d7003a";
-          document.head.appendChild(themeColorMeta);
-        }
-      })();
+      // Add theme-color meta tag for supported browsers
+      if (
+        navigator.userAgent.includes("chrome") ||
+        navigator.userAgent.includes("edge") ||
+        (navigator.userAgent.includes("safari") && navigator.userAgent.includes("version"))
+      ) {
+        const themeColorMeta = document.createElement("meta");
+        themeColorMeta.name = "theme-color";
+        themeColorMeta.content = "#d7003a";
+        document.head.appendChild(themeColorMeta);
+      }
     </script>
   </body>
 </html>

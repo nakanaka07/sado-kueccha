@@ -6,9 +6,12 @@ class CacheService {
   private cache = new Map<string, CacheEntry>();
   private readonly DEFAULT_EXPIRY = CACHE_CONFIG.DEFAULT_EXPIRY;
   private readonly MAX_SIZE = CACHE_CONFIG.MAX_ENTRIES;
+
+  /**
+   * データをキャッシュに保存
+   */
   set(key: string, data: unknown, expiryMs: number = this.DEFAULT_EXPIRY): void {
-    // サイズ制限チェック
-    this.enforceSize();
+    this.enforceSizeLimit();
 
     const entry: CacheEntry = {
       data,
@@ -18,84 +21,95 @@ class CacheService {
     this.cache.set(key, entry);
   }
 
-  private enforceSize(): void {
-    if (this.cache.size >= this.MAX_SIZE) {
-      // 最古のエントリを削除（LRU方式）
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey) {
-        this.cache.delete(firstKey);
-      }
-    }
-  }
-
-  get(key: string): unknown {
-    const entry = this.cache.get(key);
+  /**
+   * キャッシュからデータを取得（型安全）
+   */
+  get<T>(key: string, typeGuard?: (value: unknown) => value is T): T | null {
+    const entry = this.getValidEntry(key);
     if (!entry) {
       return null;
     }
 
-    const now = Date.now();
-    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
-    if (now - entry.timestamp > expiry) {
+    // 型ガードが提供された場合は型チェックを実行
+    if (typeGuard && !typeGuard(entry.data)) {
       this.cache.delete(key);
       return null;
     }
 
-    return entry.data;
+    return entry.data as T;
   }
 
-  // 型安全な取得メソッド（型ガード付き）
+  /**
+   * 型ガード付きでキャッシュからデータを取得
+   */
   getTyped<T>(key: string, typeGuard: (value: unknown) => value is T): T | null {
-    const value = this.get(key);
-    if (value === null || value === undefined) {
-      return null;
-    }
-
-    if (typeGuard(value)) {
-      return value;
-    }
-
-    // 型が一致しない場合はキャッシュから削除
-    this.cache.delete(key);
-    return null;
+    return this.get(key, typeGuard);
   }
 
-  // キャッシュクリア
+  /**
+   * サイズ制限を適用してキャッシュに保存
+   */
+  setWithLimit(key: string, data: unknown, expiryMs: number = this.DEFAULT_EXPIRY): void {
+    this.set(key, data, expiryMs);
+  }
+
+  /**
+   * キャッシュエントリが存在するかチェック
+   */
+  has(key: string): boolean {
+    return this.getValidEntry(key) !== null;
+  }
+
+  /**
+   * キャッシュをクリア
+   */
   clear(): void {
     this.cache.clear();
   }
 
-  // キャッシュサイズ制限付きセット
-  setWithLimit(key: string, data: unknown, expiryMs?: number, maxSize: number = 10): void {
-    if (this.cache.size >= maxSize) {
-      // 最古のエントリを削除
+  /**
+   * キャッシュサイズを取得
+   */
+  size(): number {
+    return this.cache.size;
+  }
+
+  /**
+   * 有効なキャッシュエントリを取得（期限切れチェック付き）
+   */
+  private getValidEntry(key: string): CacheEntry | null {
+    const entry = this.cache.get(key);
+    if (!entry) {
+      return null;
+    }
+
+    if (this.isExpired(entry)) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry;
+  }
+
+  /**
+   * エントリが期限切れかどうかをチェック
+   */
+  private isExpired(entry: CacheEntry): boolean {
+    const now = Date.now();
+    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
+    return now - entry.timestamp > expiry;
+  }
+
+  /**
+   * キャッシュサイズ制限を適用（LRU方式）
+   */
+  private enforceSizeLimit(): void {
+    if (this.cache.size >= this.MAX_SIZE) {
       const firstKey = this.cache.keys().next().value;
       if (firstKey) {
         this.cache.delete(firstKey);
       }
     }
-    this.set(key, data, expiryMs);
-  }
-
-  // キャッシュサイズ取得
-  size(): number {
-    return this.cache.size;
-  }
-
-  // キャッシュエントリ存在確認
-  has(key: string): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) {
-      return false;
-    }
-    const now = Date.now();
-    const expiry = entry.expiry ?? this.DEFAULT_EXPIRY;
-    if (now - entry.timestamp > expiry) {
-      this.cache.delete(key);
-      return false;
-    }
-
-    return true;
   }
 }
 

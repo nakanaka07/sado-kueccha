@@ -1,19 +1,9 @@
-import type { POI } from "../types/google-maps";
+import { GOOGLE_SHEETS_API } from "../constants/api";
+import type { POI } from "../types/poi";
 import { getAppConfig } from "../utils/env";
+import { getSheetsConfig } from "../utils/sheetsConfig";
+import { isPOIArray } from "../utils/typeGuards";
 import { cacheService } from "./cache";
-
-// POI配列の型ガード
-function isPOIArray(value: unknown): value is POI[] {
-  return (
-    Array.isArray(value) &&
-    (value.length === 0 ||
-      (typeof value[0] === "object" &&
-        value[0] !== null &&
-        "id" in value[0] &&
-        "name" in value[0] &&
-        "position" in value[0]))
-  );
-}
 
 // Google Sheets APIからデータを取得する機能
 class SheetsService {
@@ -47,28 +37,32 @@ class SheetsService {
 
   constructor() {
     const config = getAppConfig();
-    this.apiKey = config.googleSheetsApiKey || config.googleMapsApiKey;
+    this.apiKey = config.googleSheetsApiKey;
     this.spreadsheetId = config.googleSpreadsheetId;
 
-    // .envからシート設定を読み込み
+    // 新しい統合シート設定を使用
+    const sheetsConfig = getSheetsConfig();
+
     this.sheetConfigs = [
       // おすすめの飲食店をピックアップしたデータ
-      this.parseSheetConfig(config.sheets.recommended),
+      this.parseSheetConfig(sheetsConfig.recommended),
       // 両津・相川地区のデータ
-      this.parseSheetConfig(config.sheets.ryotsuAikawa),
+      this.parseSheetConfig(sheetsConfig.ryotsuAikawa),
       // 金井・佐和田・新穂・畑野・真野地区のデータ
-      this.parseSheetConfig(config.sheets.kanaiSawada),
+      this.parseSheetConfig(sheetsConfig.kanaiSawada),
       // 赤泊・羽茂・小木地区のデータ
-      this.parseSheetConfig(config.sheets.akadomariHamochi),
+      this.parseSheetConfig(sheetsConfig.akadomariHamochi),
       // スナック営業している店舗のデータ
-      this.parseSheetConfig(config.sheets.snack),
+      this.parseSheetConfig(sheetsConfig.snacks),
       // 公共トイレの位置情報のデータ
-      this.parseSheetConfig(config.sheets.toilet),
+      this.parseSheetConfig(sheetsConfig.toilets),
       // 公共の駐車場のデータ
-      this.parseSheetConfig(config.sheets.parking),
+      this.parseSheetConfig(sheetsConfig.parking),
     ].filter((configItem): configItem is { name: string; gid: string } => configItem !== null);
-  } // シート設定文字列を解析（例: "おすすめ:1043711248"）
-  private parseSheetConfig(configStr: string): { name: string; gid: string } | null {
+  }
+
+  // シート設定文字列を解析（例: "おすすめ:1043711248"）
+  private parseSheetConfig(configStr: string | undefined): { name: string; gid: string } | null {
     if (!configStr) return null;
     const [name, gid] = configStr.split(":");
     return name && gid ? { name: name.trim(), gid: gid.trim() } : null;
@@ -78,11 +72,12 @@ class SheetsService {
   async fetchSheetData(sheetName: string, range: string): Promise<string[][]> {
     try {
       return await this.fetchSheetDataAsCSV(sheetName);
-    } catch (csvError) {
-      console.log(`CSV形式での取得に失敗、API形式を試行: ${String(csvError)}`);
+    } catch {
       return await this.fetchSheetDataViaAPI(sheetName, range);
     }
-  } // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
+  }
+
+  // CSV形式でスプレッドシートからデータを取得（公開スプレッドシート用）
   private async fetchSheetDataAsCSV(sheetName: string): Promise<string[][]> {
     if (!this.spreadsheetId) {
       throw new Error("スプレッドシートIDが設定されていません。");
@@ -91,14 +86,10 @@ class SheetsService {
     // 設定から対応するGIDを取得
     const sheetConfig = this.sheetConfigs.find((config) => config.name === sheetName);
     if (!sheetConfig) {
-      console.warn(
-        `利用可能な設定:`,
-        this.sheetConfigs.map((c) => c.name),
-      );
       throw new Error(`シート "${sheetName}" の設定が見つかりません。`);
     }
 
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${this.spreadsheetId}/export?format=csv&gid=${sheetConfig.gid}&range=AB:AX`;
+    const csvUrl = `${GOOGLE_SHEETS_API.BASE_URL}/${this.spreadsheetId}/${GOOGLE_SHEETS_API.CSV_EXPORT_BASE}&gid=${sheetConfig.gid}&range=${GOOGLE_SHEETS_API.DEFAULT_RANGE}`;
     const response = await fetch(csvUrl);
 
     if (!response.ok) {
@@ -108,11 +99,13 @@ class SheetsService {
     const csvText = await response.text();
     const data: string[][] = this.parseCSV(csvText);
     return data.slice(1); // ヘッダー行をスキップ
-  } // API形式でスプレッドシートからデータを取得（従来の方法）
+  }
+
+  // API形式でスプレッドシートからデータを取得（従来の方法）
   private async fetchSheetDataViaAPI(sheetName: string, range: string): Promise<string[][]> {
     if (!this.apiKey) {
       throw new Error(
-        "Google Sheets APIキーが設定されていません。環境変数 VITE_GOOGLE_SHEETS_API_KEY または VITE_GOOGLE_MAPS_API_KEY を設定してください。",
+        "Google Sheets APIキーが設定されていません。環境変数 VITE_GOOGLE_SHEETS_API_KEY を設定してください。",
       );
     }
 
@@ -122,25 +115,18 @@ class SheetsService {
       );
     }
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${this.apiKey}`;
+    const url = `${GOOGLE_SHEETS_API.API_BASE}/${this.spreadsheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${this.apiKey}`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API呼び出し失敗:`, {
-        status: response.status,
-        statusText: response.statusText,
-        url: url.replace(this.apiKey, "[HIDDEN]"),
-        errorResponse: errorText,
-      });
-
       if (response.status === 403) {
         throw new Error(`Google Sheets APIへのアクセスが拒否されました（403）。
 考えられる原因：
 1. APIキーにGoogle Sheets APIの権限がない
 2. スプレッドシートが非公開設定になっている
 3. Google Cloud ConsoleでSheets APIが有効になっていない
-スプレッドシートを「リンクを知っている全員が閲覧可能」に設定するか、適切なAPIキーを使用してください。`);
+
+適切なAPIキーを使用するか、スプレッドシートを「リンクを知っている全員が閲覧可能」に設定してください。`);
       }
 
       throw new Error(`HTTP error! status: ${response.status.toString()}`);
@@ -148,10 +134,12 @@ class SheetsService {
 
     const data = (await response.json()) as { values?: string[][] };
     return data.values || [];
-  } // 生データをPOI形式に変換
+  }
+
+  // 生データをPOI形式に変換
   private convertToPOI(row: string[], id: string, sheetName: string): POI | null {
     try {
-      // 列定数を使用してデータを取得
+      // 列定数を使用してデータを取得（undefined対策）
       const district = row[this.COLUMNS.DISTRICT] || "";
       const coordinates = row[this.COLUMNS.COORDINATES] || "";
       const name = row[this.COLUMNS.NAME] || "";
@@ -226,16 +214,23 @@ class SheetsService {
           cashlessValue === "あり";
       } // 営業時間の処理（曜日別情報を個別に保存）
       const businessHours: Record<string, string> = {};
+      const dayMappings = [
+        { key: "月", value: monday },
+        { key: "火", value: tuesday },
+        { key: "水", value: wednesday },
+        { key: "木", value: thursday },
+        { key: "金", value: friday },
+        { key: "土", value: saturday },
+        { key: "日", value: sunday },
+        { key: "祝", value: holiday },
+        { key: "定休日", value: closedDays },
+      ];
 
-      if (monday.trim()) businessHours["月"] = monday.trim();
-      if (tuesday.trim()) businessHours["火"] = tuesday.trim();
-      if (wednesday.trim()) businessHours["水"] = wednesday.trim();
-      if (thursday.trim()) businessHours["木"] = thursday.trim();
-      if (friday.trim()) businessHours["金"] = friday.trim();
-      if (saturday.trim()) businessHours["土"] = saturday.trim();
-      if (sunday.trim()) businessHours["日"] = sunday.trim();
-      if (holiday.trim()) businessHours["祝"] = holiday.trim();
-      if (closedDays.trim()) businessHours["定休日"] = closedDays.trim();
+      dayMappings.forEach(({ key, value }) => {
+        if (value.trim()) {
+          businessHours[key] = value.trim();
+        }
+      });
 
       // 営業時間データが存在する場合のみ設定
       if (Object.keys(businessHours).length > 0) {
@@ -255,11 +250,12 @@ class SheetsService {
       }
 
       return poi;
-    } catch (error) {
-      console.error("POI変換エラー:", row, error);
+    } catch {
       return null;
     }
-  } // 複数シートからPOIデータを取得（推奨シート優先）
+  }
+
+  // 複数シートからPOIデータを取得（推奨シート優先）
   async fetchAllPOIs(): Promise<POI[]> {
     const poiMap = new Map<string, POI>();
     const recommendedSheetName = "recommended"; // VITE_SHEET_RECOMMENDEDの名前
@@ -279,8 +275,7 @@ class SheetsService {
             poiMap.set(uniqueKey, poi);
           }
         });
-      } catch (error) {
-        console.error(`シート "${config.name}" の取得に失敗:`, error);
+      } catch {
         // エラーが発生してもその他のシートの処理は続行
       }
     }
@@ -302,18 +297,12 @@ class SheetsService {
           );
           if (poi) {
             const uniqueKey = this.generatePOIKey(poi);
-            const existingPOI = poiMap.get(uniqueKey);
-
-            if (existingPOI) {
-              // 推奨シートで既存データを上書き（優先）
-            }
-
             // 推奨シートのデータで既存データを上書き（優先）
             poiMap.set(uniqueKey, poi);
           }
         });
-      } catch (error) {
-        console.error(`推奨シート "${recommendedConfig.name}" の取得に失敗:`, error);
+      } catch {
+        // 推奨シートの取得に失敗しても継続
       }
     }
 
@@ -327,8 +316,7 @@ class SheetsService {
     // 座標を小数点以下4桁で丸めて比較（GPS精度の範囲内）
     const lat = Math.round(poi.position.lat * 10000) / 10000;
     const lng = Math.round(poi.position.lng * 10000) / 10000;
-    // IDも含めてより一意性を保証
-    return `${poi.id}_${normalizedName}_${lat.toString()}_${lng.toString()}`;
+    return `${normalizedName}_${lat.toString()}_${lng.toString()}`;
   }
 
   // CSVテキストを解析してstring[][]に変換
@@ -409,49 +397,60 @@ export const samplePOIs: POI[] = [
 ];
 
 // POI データを取得する関数（キャッシュとフォールバックを組み合わせ）
+let currentFetchPromise: Promise<POI[]> | null = null;
+
 export const fetchPOIs = async (): Promise<POI[]> => {
-  const CACHE_KEY = "all_pois"; // まずキャッシュから取得を試行
-  const cachedPOIs = cacheService.getTyped(CACHE_KEY, isPOIArray);
+  // 既に進行中のリクエストがある場合は、それを再利用
+  if (currentFetchPromise) {
+    return currentFetchPromise;
+  }
+
+  const CACHE_KEY = "all_pois";
+
+  // まずキャッシュから取得を試行
+  const cachedPOIs = cacheService.get(CACHE_KEY, isPOIArray);
   if (cachedPOIs) {
-    console.log(`キャッシュから${String(cachedPOIs.length)}件のPOIを取得しました`);
     return removeDuplicatePOIs(cachedPOIs);
   }
 
-  try {
-    // 実際のGoogle Sheets APIからデータを取得を試行
-    const pois = await sheetsService.fetchAllPOIs();
+  // 新しいリクエストを開始
+  currentFetchPromise = (async () => {
+    try {
+      // 実際のGoogle Sheets APIからデータを取得を試行
+      const pois = await sheetsService.fetchAllPOIs();
 
-    if (pois.length > 0) {
-      console.log(`Sheets APIから${String(pois.length)}件のPOIを取得しました`);
-      const uniquePOIs = removeDuplicatePOIs(pois);
-      // 成功時はキャッシュに保存（5分間）
-      cacheService.set(CACHE_KEY, uniquePOIs, 5 * 60 * 1000);
-      return uniquePOIs;
-    } else {
-      console.warn("Sheets APIからデータを取得できませんでした。サンプルデータを使用します。");
+      if (pois.length > 0) {
+        const uniquePOIs = removeDuplicatePOIs(pois);
+        // 成功時はキャッシュに保存（5分間）
+        cacheService.set(CACHE_KEY, uniquePOIs, 5 * 60 * 1000);
+        return uniquePOIs;
+      } else {
+        return removeDuplicatePOIs(samplePOIs);
+      }
+    } catch {
+      // APIが失敗した場合はサンプルデータを返す
       return removeDuplicatePOIs(samplePOIs);
+    } finally {
+      // リクエストが完了したらキャッシュをクリア
+      currentFetchPromise = null;
     }
-  } catch (error) {
-    console.error("POIデータの取得に失敗しました。サンプルデータを使用します:", error);
-    // APIが失敗した場合はサンプルデータを返す
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(removeDuplicatePOIs(samplePOIs));
-      }, 100);
-    });
-  }
+  })();
+
+  return currentFetchPromise;
 };
 
 // POI重複除去ヘルパー関数（recommendedシート優先）
 function removeDuplicatePOIs(pois: POI[]): POI[] {
   const uniqueMap = new Map<string, POI>();
 
-  // 最初にすべてのPOIを追加
+  // 通常のPOIをまず追加
   pois.forEach((poi) => {
-    uniqueMap.set(poi.id, poi);
+    if (poi.sourceSheet !== "recommended") {
+      uniqueMap.set(poi.id, poi);
+    }
   });
 
-  // 次にrecommendedシートのPOIで上書き（優先）
+  // 推奨シートのPOIで上書き（優先）
   pois.forEach((poi) => {
     if (poi.sourceSheet === "recommended") {
       uniqueMap.set(poi.id, poi);
@@ -459,11 +458,6 @@ function removeDuplicatePOIs(pois: POI[]): POI[] {
   });
 
   const uniquePOIs = Array.from(uniqueMap.values());
-
-  if (pois.length !== uniquePOIs.length) {
-    const duplicateCount = pois.length - uniquePOIs.length;
-    console.warn(`POIデータの重複を除去しました: ${duplicateCount.toString()}件`);
-  }
 
   return uniquePOIs;
 }

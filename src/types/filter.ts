@@ -11,13 +11,15 @@ export interface FilterState {
   showKanaiSawada: boolean;
   showAkadomariHamochi: boolean;
   showSnacks: boolean;
+  // クラスタリング制御
+  enableClustering: boolean;
 }
 
 export interface FilterOption {
   key: keyof FilterState;
   icon: string;
   description: string;
-  category: "facilities" | "dining" | "nightlife";
+  category: "facilities" | "dining" | "nightlife" | "display";
 }
 
 export interface FilterCategory {
@@ -25,6 +27,24 @@ export interface FilterCategory {
   label: string;
   icon: string;
   options: FilterOption[];
+}
+
+// プリセットフィルターの型定義
+export type FilterPreset = "all" | "gourmet" | "facilities" | "nightlife" | "none" | "default";
+
+// プリセット設定の型定義
+export interface PresetConfig {
+  baseState?: Partial<FilterState>;
+  overrides: Partial<FilterState>;
+}
+
+// 統計情報の型定義
+export interface FilterStats {
+  total: number;
+  visible: number;
+  hidden: number;
+  sheetStats: Record<string, number>;
+  visibleSheetStats: Record<string, number>;
 }
 
 // デフォルトのフィルター状態
@@ -36,83 +56,150 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   showKanaiSawada: true,
   showAkadomariHamochi: true,
   showSnacks: false,
+  enableClustering: true,
 };
 
-// フィルターオプションの定義
-export const FILTER_OPTIONS: FilterOption[] = [
-  {
-    key: "showToilets",
-    icon: "🚻",
-    description: "トイレ施設を表示",
-    category: "facilities",
-  },
-  {
-    key: "showParking",
-    icon: "🅿️",
-    description: "駐車場を表示",
-    category: "facilities",
-  },
-  {
-    key: "showRecommended",
-    icon: "⭐",
-    description: "おすすめスポットを表示",
-    category: "dining",
-  },
-  {
-    key: "showRyotsuAikawa",
-    icon: "🏔️",
-    description: "両津・相川\nエリアを表示",
-    category: "dining",
-  },
-  {
-    key: "showKanaiSawada",
-    icon: "🌾",
-    description: "金井・佐和田・新穂・畑野・真野\nエリアを表示",
-    category: "dining",
-  },
-  {
-    key: "showAkadomariHamochi",
-    icon: "🌊",
-    description: "赤泊・羽茂・小木\nエリアを表示",
-    category: "dining",
-  },
-  {
-    key: "showSnacks",
-    icon: "🍻",
-    description: "スナック営業店舗を表示",
-    category: "nightlife",
-  },
-];
-
-// カテゴリ別グループ化
+// フィルターカテゴリー定義
 export const FILTER_CATEGORIES: FilterCategory[] = [
   {
     id: "facilities",
     label: "施設",
     icon: "🏢",
-    options: FILTER_OPTIONS.filter((option) => option.category === "facilities"),
+    options: [
+      {
+        key: "showToilets",
+        icon: "🚻",
+        description: "トイレ",
+        category: "facilities",
+      },
+      {
+        key: "showParking",
+        icon: "🅿️",
+        description: "駐車場",
+        category: "facilities",
+      },
+    ],
   },
   {
     id: "dining",
     label: "グルメ",
     icon: "🍽️",
-    options: FILTER_OPTIONS.filter((option) => option.category === "dining"),
+    options: [
+      {
+        key: "showRecommended",
+        icon: "⭐",
+        description: "おすすめ",
+        category: "dining",
+      },
+      {
+        key: "showRyotsuAikawa",
+        icon: "🍜",
+        description: "両津・相川エリア",
+        category: "dining",
+      },
+      {
+        key: "showKanaiSawada",
+        icon: "🍱",
+        description: "金井・佐和田エリア",
+        category: "dining",
+      },
+      {
+        key: "showAkadomariHamochi",
+        icon: "🍣",
+        description: "赤泊・羽茂エリア",
+        category: "dining",
+      },
+    ],
   },
   {
     id: "nightlife",
     label: "ナイトライフ",
     icon: "🍸",
-    options: FILTER_OPTIONS.filter((option) => option.category === "nightlife"),
+    options: [
+      {
+        key: "showSnacks",
+        icon: "🍻",
+        description: "スナック・バー",
+        category: "nightlife",
+      },
+    ],
+  },
+  {
+    id: "display",
+    label: "表示設定",
+    icon: "⚙️",
+    options: [
+      {
+        key: "enableClustering",
+        icon: "🔗",
+        description: "マーカーをクラスタリング",
+        category: "display",
+      },
+    ],
   },
 ];
 
-// シート名とフィルターキーのマッピング
-export const SHEET_FILTER_MAPPING: Record<string, keyof FilterState> = {
-  toilet: "showToilets",
-  parking: "showParking",
-  recommended: "showRecommended",
-  ryotsu_aikawa: "showRyotsuAikawa",
-  kanai_sawada: "showKanaiSawada",
-  akadomari_hamochi: "showAkadomariHamochi",
-  snack: "showSnacks",
+// プリセット設定定義
+export const PRESET_CONFIGS: Record<FilterPreset, PresetConfig> = {
+  all: {
+    baseState: DEFAULT_FILTER_STATE,
+    overrides: {
+      showToilets: true,
+      showParking: true,
+      showRecommended: true,
+      showRyotsuAikawa: true,
+      showKanaiSawada: true,
+      showAkadomariHamochi: true,
+      showSnacks: true,
+      enableClustering: true,
+    },
+  },
+  gourmet: {
+    baseState: DEFAULT_FILTER_STATE,
+    overrides: {
+      showRecommended: true,
+      showRyotsuAikawa: true,
+      showKanaiSawada: true,
+      showAkadomariHamochi: true,
+      enableClustering: true,
+    },
+  },
+  facilities: {
+    baseState: DEFAULT_FILTER_STATE,
+    overrides: {
+      showToilets: true,
+      showParking: true,
+      showRecommended: false,
+      showRyotsuAikawa: false,
+      showKanaiSawada: false,
+      showAkadomariHamochi: false,
+      enableClustering: false, // 施設は個別表示の方が見やすい
+    },
+  },
+  nightlife: {
+    baseState: DEFAULT_FILTER_STATE,
+    overrides: {
+      showSnacks: true,
+      showRecommended: false,
+      showRyotsuAikawa: false,
+      showKanaiSawada: false,
+      showAkadomariHamochi: false,
+      enableClustering: true,
+    },
+  },
+  none: {
+    overrides: {
+      showToilets: false,
+      showParking: false,
+      showRecommended: false,
+      showRyotsuAikawa: false,
+      showKanaiSawada: false,
+      showAkadomariHamochi: false,
+      showSnacks: false,
+      enableClustering: false, // 何も表示しない場合はクラスタリングも無効
+    },
+  },
+  default: {
+    overrides: DEFAULT_FILTER_STATE,
+  },
 };

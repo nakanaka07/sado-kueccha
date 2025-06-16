@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm type-check && vite build",
-    "build:vite": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
@@ -18,8 +17,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run",
-    "analyze": "pnpm build && pnpm dlx serve dist"
+    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.5.3",
@@ -47,6 +45,7 @@
     "@vitest/ui": "^3.1.4",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",

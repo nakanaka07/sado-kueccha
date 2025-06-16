@@ -1,7 +1,7 @@
 import { InfoWindow as GoogleInfoWindow } from "@vis.gl/react-google-maps";
 import React from "react";
-import type { POI } from "../types/google-maps";
-import { linkifyText as linkifyTextUtil } from "../utils/social";
+import type { POI } from "../types/poi";
+import { parseTextWithLinks } from "../utils/social";
 import { BusinessHoursDisplay } from "./BusinessHoursDisplay";
 import "./InfoWindow.css";
 
@@ -10,41 +10,32 @@ interface InfoWindowProps {
   onClose: () => void;
 }
 
-// 最適化：URLリンク化（メモ化）
-const linkifyText = (text: string) => {
-  const linkParts = linkifyTextUtil(text, "info-window-link");
-
-  return linkParts.map((part) => {
-    if (part.type === "link") {
-      return (
-        <a
-          key={part.key}
-          href={part.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={part.className}
-        >
-          {part.icon} リンクを開く
-        </a>
-      );
-    }
-    return part.content;
-  });
-};
-
 export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
-  // メモ化されたリンク化テキスト（同一POI対策）
-  const linkifiedDescription = React.useMemo(() => {
-    return poi.description ? linkifyText(poi.description) : null;
-  }, [poi.description]);
-  // 情報ウィンドウ内のクリックイベントの伝播を防ぐ
-  const handleInfoWindowClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // リンク化されたSNSコンテンツを生成
+  const renderLinkifiedContent = (text: string) => {
+    const linkParts = parseTextWithLinks(text, "info-window-link");
+
+    return linkParts.map((part) => {
+      if (part.type === "link") {
+        return (
+          <a
+            key={part.key}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={part.className}
+          >
+            {part.icon} リンクを開く
+          </a>
+        );
+      }
+      return <span key={part.key}>{part.content}</span>;
+    });
   };
 
   return (
-    <GoogleInfoWindow position={poi.position} onCloseClick={onClose} maxWidth={300}>
-      <div className="info-window" onClick={handleInfoWindowClick}>
+    <GoogleInfoWindow position={poi.position} onCloseClick={onClose}>
+      <div className="info-window">
         <div className="info-window-header">
           <h3 className="info-window-title">{poi.name}</h3>
           <span className="info-window-genre">{poi.genre}</span>
@@ -60,7 +51,9 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
           {poi.description && (
             <div className="info-window-field">
               <span className="field-label">SNS:</span>
-              <div className="field-value sns-content">{linkifiedDescription}</div>
+              <div className="field-value sns-content">
+                {renderLinkifiedContent(poi.description)}
+              </div>
             </div>
           )}
 

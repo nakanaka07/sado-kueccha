@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FilterService, type FilterPreset, type FilterStats } from "../services/filter";
-import type { FilterCategory, FilterState } from "../types/filter";
-import { FILTER_CATEGORIES } from "../types/filter";
-import type { POI } from "../types/google-maps";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFullscreenPanel } from "../hooks/useFullscreenPanel";
+import { useFullscreenState } from "../hooks/useFullscreenState";
+import type { FilterCategory, FilterPreset, FilterState, FilterStats } from "../types/filter";
+import { DEFAULT_FILTER_STATE, FILTER_CATEGORIES, PRESET_CONFIGS } from "../types/filter";
+import type { POI } from "../types/poi";
 import "./FilterPanel.css";
 
 interface FilterPanelProps {
@@ -19,83 +21,116 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   className = "",
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeCategories, setActiveCategories] = useState<string[]>(["display"]); // 初期状態で表示設定を開く
   const contentRef = useRef<HTMLDivElement>(null);
-  // 最適化：単一のuseEffectで高さ管理（CSS変数使用）
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // カスタムフックを使用してフルスクリーン状態を管理
+  const { isFullscreen, fullscreenContainer } = useFullscreenState(); // 統計情報を計算（メモ化でパフォーマンス最適化）
+  const stats = useMemo((): FilterStats => {
+    const visibleCount = pois.filter(() => {
+      return (
+        filterState.showRecommended ||
+        filterState.showRyotsuAikawa ||
+        filterState.showKanaiSawada ||
+        filterState.showAkadomariHamochi
+      );
+    }).length;
+
+    return {
+      total: pois.length,
+      visible: visibleCount,
+      hidden: pois.length - visibleCount,
+      sheetStats: {},
+      visibleSheetStats: {},
+    };
+  }, [pois, filterState]); // フルスクリーンパネル管理
+  useFullscreenPanel(fullscreenContainer, isFullscreen, {
+    filterState,
+    isExpanded,
+    onFilterChange,
+    onToggleExpanded: () => {
+      setIsExpanded(!isExpanded);
+    },
+    stats: { visible: stats.visible, total: stats.total },
+  });
   useEffect(() => {
     if (!contentRef.current) return;
 
     const updateHeight = () => {
       if (!contentRef.current) return;
-
-      if (isExpanded) {
-        // 展開時：実際のコンテンツ高さを設定
-        const height = contentRef.current.scrollHeight;
-        contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
-      } else {
-        // 折りたたみ時：0に設定
-        contentRef.current.style.setProperty("--content-height", "0px");
-      }
+      const height = isExpanded ? contentRef.current.scrollHeight : 0;
+      contentRef.current.style.setProperty("--content-height", `${height.toString()}px`);
     };
 
-    // 初回実行
     updateHeight();
 
-    // カテゴリ変更時の高さ再計算（展開時のみ）
     if (isExpanded) {
-      // 少し遅延させて再計算（DOM更新後）
       const timeoutId = setTimeout(updateHeight, 10);
       return () => {
         clearTimeout(timeoutId);
       };
     }
-
     return undefined;
-  }, [isExpanded, activeCategories, filterState]); // フィルター変更ハンドラー
+  }, [isExpanded, activeCategories]); // フィルター変更ハンドラー（最適化版）
   const handleFilterToggle = useCallback(
     (key: keyof FilterState) => {
+      const newValue = !filterState[key];
+
       onFilterChange({
         ...filterState,
-        [key]: !filterState[key],
+        [key]: newValue,
       });
     },
     [filterState, onFilterChange],
-  ); // 最適化：プリセット適用ハンドラー（統一化）
+  );
+
+  // プリセット適用ハンドラー（最適化版）
   const handlePresetApply = useCallback(
     (preset: FilterPreset) => {
-      const newFilterState = FilterService.applyPreset(preset);
-      onFilterChange(newFilterState);
+      const config = PRESET_CONFIGS[preset];
+      const baseState = config.baseState;
 
-      // プリセットカテゴリマッピング（型安全）
-      // 'none'プリセット（クリアボタン）の場合はカテゴリの開閉状態を保持
+      const newFilterState: FilterState = {
+        ...DEFAULT_FILTER_STATE,
+        ...baseState,
+        ...config.overrides,
+      };
+      onFilterChange(newFilterState); // プリセットに応じてカテゴリの開閉状態を更新
       if (preset !== "none") {
         const categoryMappings: Record<Exclude<FilterPreset, "none">, string[]> = {
-          gourmet: ["dining"],
-          facilities: ["facilities"],
-          nightlife: ["nightlife"],
+          gourmet: ["dining", "display"], // 表示設定も開く
+          facilities: ["facilities", "display"],
+          nightlife: ["nightlife", "display"],
           all: FILTER_CATEGORIES.map((category) => category.id),
-          default: ["dining"],
+          default: ["dining", "display"],
         };
-
         setActiveCategories(categoryMappings[preset]);
+      } else {
+        // noneの場合は表示設定のみを開く
+        setActiveCategories(["display"]);
       }
-      // 'none'の場合はactiveCategories を変更しない（現在の開閉状態を保持）
     },
     [onFilterChange],
   );
 
-  // カテゴリの開閉を切り替え
+  // カテゴリの開閉を切り替え（最適化版）
   const toggleCategory = useCallback((categoryId: string) => {
     setActiveCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   }, []);
-  // 統計情報を計算
-  const stats: FilterStats = FilterService.getFilterStats(pois, filterState);
-
-  return (
-    <div className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${className}`}>
-      {/* ヘッダー */}
+  // 通常時のパネルコンテンツ（最適化版）
+  const renderPanelContent = () => (
+    <div
+      ref={panelRef}
+      className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${isFullscreen ? "fullscreen-mode" : ""} ${className}`}
+      data-fullscreen={isFullscreen}
+      role="region"
+      aria-label="フィルターパネル"
+    >
+      {" "}
+      {/* ヘッダー（アクセシビリティ強化） */}
       <div className="filter-header">
         {" "}
         <button
@@ -104,25 +139,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             setIsExpanded(!isExpanded);
           }}
           data-expanded={isExpanded}
+          aria-expanded={isExpanded}
+          aria-controls="filter-content"
+          aria-label={`フィルターパネルを${isExpanded ? "折りたたむ" : "展開する"}`}
         >
-          <span className="filter-icon">🔍</span>
+          <span className="filter-icon" aria-hidden="true">
+            🔍
+          </span>
           <span className="filter-title">フィルター</span>
           <span className="filter-count">
             ({stats.visible}/{stats.total})
           </span>
-          <span className={`expand-icon ${isExpanded ? "expanded" : ""}`}>▲</span>
+          <span className={`expand-icon ${isExpanded ? "expanded" : ""}`} aria-hidden="true">
+            ▼
+          </span>
         </button>
       </div>
-
-      <div className="filter-content" ref={contentRef}>
-        {" "}
-        <div className="filter-presets">
+      <div className="filter-content" ref={contentRef} id="filter-content">
+        {/* プリセットボタン（最適化版） */}
+        <div className="filter-presets" role="group" aria-label="フィルタープリセット">
+          {" "}
           <button
             className="preset-button facilities"
             onClick={() => {
               handlePresetApply("facilities");
             }}
             title="施設のみ表示"
+            aria-label="施設のみ表示するプリセット"
           >
             🏢 施設
           </button>
@@ -132,6 +175,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               handlePresetApply("gourmet");
             }}
             title="一般的な飲食店のみ表示（スナック除く）"
+            aria-label="グルメのみ表示するプリセット"
           >
             🍽️ グルメ
           </button>
@@ -141,6 +185,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               handlePresetApply("nightlife");
             }}
             title="ナイトライフ（スナック）のみ表示"
+            aria-label="ナイトライフのみ表示するプリセット"
           >
             🍸 夜遊び
           </button>
@@ -150,6 +195,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               handlePresetApply("none");
             }}
             title="すべて非表示"
+            aria-label="すべてのフィルターをクリア"
           >
             ❌ クリア
           </button>
@@ -159,48 +205,67 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               handlePresetApply("all");
             }}
             title="すべて表示"
+            aria-label="すべてのアイテムを表示"
           >
             ✅ 全表示
           </button>
-        </div>{" "}
-        <div className="filter-categories">
+        </div>
+
+        {/* カテゴリ別フィルター（最適化版） */}
+        <div className="filter-categories" role="group" aria-label="カテゴリ別フィルター">
           {FILTER_CATEGORIES.map((category: FilterCategory) => (
             <div key={category.id} className="filter-category">
+              {" "}
               <button
                 className={`category-header ${activeCategories.includes(category.id) ? "active" : ""}`}
                 onClick={() => {
                   toggleCategory(category.id);
                 }}
+                aria-expanded={activeCategories.includes(category.id)}
+                aria-controls={`category-${category.id}`}
+                aria-label={`${category.label}カテゴリを${activeCategories.includes(category.id) ? "折りたたむ" : "展開する"}`}
               >
-                <span className="category-icon">{category.icon}</span>
+                <span className="category-icon" aria-hidden="true">
+                  {category.icon}
+                </span>
                 <span className="category-label">{category.label}</span>
                 <span
                   className={`expand-icon ${activeCategories.includes(category.id) ? "expanded" : ""}`}
+                  aria-hidden="true"
                 >
-                  ▲
+                  ▼
                 </span>
               </button>
               {activeCategories.includes(category.id) && (
-                <div className="filter-options">
+                <div
+                  className="filter-options"
+                  id={`category-${category.id}`}
+                  role="group"
+                  aria-label={`${category.label}のフィルターオプション`}
+                >
                   {category.options.map((option) => (
                     <label key={option.key} className="filter-option">
+                      {" "}
                       <input
                         type="checkbox"
                         checked={filterState[option.key]}
                         onChange={() => {
                           handleFilterToggle(option.key);
                         }}
+                        aria-describedby={`desc-${option.key}`}
                       />
-                      <span>{option.icon}</span>
-                      <span>{option.description}</span>
+                      <span aria-hidden="true">{option.icon}</span>
+                      <span id={`desc-${option.key}`}>{option.description}</span>
                     </label>
                   ))}
                 </div>
               )}
             </div>
           ))}
-        </div>{" "}
-        <div className="filter-stats">
+        </div>
+
+        {/* 統計表示（最適化版） */}
+        <div className="filter-stats" role="status" aria-live="polite">
           <div className="stats-summary">
             <span className="stats-visible">{stats.visible}件表示中</span>
             <span className="stats-separator">/</span>
@@ -210,5 +275,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
       </div>
     </div>
+  );
+  return (
+    <>
+      {/* フルスクリーン時はPortalを使用してフルスクリーンコンテナに描画 */}
+      {isFullscreen && fullscreenContainer
+        ? createPortal(renderPanelContent(), fullscreenContainer)
+        : renderPanelContent()}
+
+      {/* デバッグ表示（開発時のみ） */}
+      {process.env.NODE_ENV === "development" && isFullscreen && (
+        <div className="fullscreen-debug-indicator">✅ Fullscreen Active - Full Panel</div>
+      )}
+    </>
   );
 };

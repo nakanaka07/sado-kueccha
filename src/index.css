@@ -1,6 +1,4 @@
-/* ==========================================================================
-   佐渡で食えっちゃ - 統一スタイルシート
-   ========================================================================== */
+/* 佐渡で食えっちゃ - 統一スタイルシート */
 
 *,
 *::before,
@@ -9,10 +7,14 @@
 }
 
 :root {
-  /* フォント */
   --font-family:
     'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', Meiryo, system-ui,
     sans-serif;
+
+  /* z-index階層管理 */
+  --z-index-loading-overlay: 9999;
+  --z-index-modal-backdrop: 1000;
+  --z-index-filter-panel: 10000;
 
   /* 佐渡島テーマカラー */
   --color-primary-blue: #2792c3;
@@ -22,7 +24,6 @@
   --color-primary-green: #007b43;
   --color-text-primary: #1a202c;
   --color-text-secondary: #555;
-  --color-text-light: #666;
   --color-text-muted: #999;
   --color-background-primary: #ffffff;
   --color-background-light: #f9fafb;
@@ -34,25 +35,15 @@
     var(--color-primary-blue) 0%,
     var(--color-primary-purple) 100%
   );
-  --gradient-warm: linear-gradient(
-    45deg,
-    var(--color-primary-gold) 0%,
-    var(--color-primary-red) 100%
-  );
-  --gradient-cool: linear-gradient(45deg, var(--color-primary-blue) 0%, #26c6da 100%);
 
-  /* シャドウ（統一） */
+  /* シャドウ */
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-heavy: 0 8px 25px rgba(0, 0, 0, 0.25);
-  --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.2);
-  --shadow-focus: 0 0 0 2px rgba(76, 175, 80, 0.3);
-  --shadow-marker: 0 2px 4px rgba(0, 0, 0, 0.3);
 
-  /* トランジション（統一） */
+  /* トランジション */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
 
   /* スペーシング */
   --spacing-xs: 0.25rem;
@@ -60,35 +51,11 @@
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-  --spacing-xxl: 3rem;
 
   /* ボーダー半径 */
-  --radius-small: 4px;
   --radius-medium: 8px;
   --radius-large: 12px;
-  --radius-xl: 16px;
   --radius-rounded: 50px;
-
-  /* 透明度 */
-  --opacity-light: 0.1;
-  --opacity-medium: 0.3;
-  --opacity-heavy: 0.8;
-
-  /* 標準padding値 */
-  --padding-xs: var(--spacing-xs);
-  --padding-sm: var(--spacing-sm);
-  --padding-md: var(--spacing-md);
-  --padding-lg: var(--spacing-lg);
-  --padding-button: var(--spacing-xs) var(--spacing-sm);
-  --padding-card: var(--spacing-md);
-  --padding-panel: var(--spacing-md) var(--spacing-lg);
-
-  /* 共通サイズ */
-  --icon-size-small: 16px;
-  --icon-size-medium: 24px;
-  --icon-size-large: 40px;
-  --panel-width-min: 280px;
-  --panel-width-max: 320px;
 }
 
 /* Base Layout */
@@ -108,13 +75,11 @@ body {
   flex-direction: column;
 }
 
-/* アプリケーション全体のスタイル */
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-background-light);
-  will-change: transform;
 }
 
 .app-main {
@@ -122,19 +87,14 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  transform: translateZ(0);
 }
 
 .map-container {
   flex: 1;
   height: 100vh;
   width: 100%;
-  margin: 0;
-  border-radius: 0;
-  overflow: hidden;
-  box-shadow: none;
   background: var(--gradient-primary);
-  transform: translateZ(0);
+  position: relative;
 }
 
 /* ローディング画面 */
@@ -144,40 +104,28 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9999;
+  z-index: var(--z-index-loading-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
   background: var(--gradient-primary);
-  transform: translateZ(0);
 }
 
-/* ローディングコンテンツの共通ベーススタイル */
 .loading-content,
 .map-loading-content {
   text-align: center;
   color: white;
-  transform: translateY(0);
-  box-sizing: border-box;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-/* マップローディングコンテンツ（アニメーション効果付き） */
 .map-loading-content {
   transition:
     transform 0.3s ease-out,
     opacity 0.3s ease-out;
 }
 
-/* フェードアウト時のコンテンツアニメーション（マップローディングのみ） */
-.map-loading-overlay.fade-out .map-loading-content {
-  transform: translateY(0);
-  opacity: 0.8;
-}
-
-/* ローディング画像の共通スタイル */
 .loading-title-image,
 .map-loading-title-image {
   width: 100%;
@@ -185,38 +133,28 @@ body {
   margin-bottom: var(--spacing-lg);
   border-radius: var(--radius-medium);
   box-shadow: var(--shadow-heavy);
-  box-sizing: border-box;
   max-width: 100%;
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* マップローディング画像のアニメーション効果 */
 .map-loading-title-image {
   transition:
     transform 0.3s ease-out,
     opacity 0.3s ease-out;
 }
 
-/* フェードアウト時の画像アニメーション（マップローディングのみ） */
-.map-loading-overlay.fade-out .map-loading-title-image {
-  transform: scale(0.95);
-  opacity: 0.7;
-}
-
-/* マップローディングオーバーレイ */
 .map-loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  z-index: var(--z-index-modal-backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
-  /* 動的背景グラデーション - 佐渡島の美しい色彩 */
   background: linear-gradient(
     45deg,
     var(--color-primary-blue),
@@ -226,17 +164,24 @@ body {
   );
   background-size: 400% 400%;
   animation: gradientShift 8s ease-in-out infinite;
-  /* フェードアウト効果を高速化 */
   opacity: 1;
   transition: opacity 0.6s ease-out;
 }
 
-/* オーバーレイが消える時のアニメーション */
 .map-loading-overlay.fade-out {
   opacity: 0;
 }
 
-/* 背景グラデーションアニメーション */
+.map-loading-overlay.fade-out .map-loading-content {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
+.map-loading-overlay.fade-out .map-loading-title-image {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
 @keyframes gradientShift {
   0% {
     background-position: 0% 50%;
@@ -255,7 +200,6 @@ body {
   }
 }
 
-/* ローディングスピナー */
 .loading-spinner {
   width: 50px;
   height: 50px;
@@ -264,8 +208,6 @@ body {
   border-top: 4px solid var(--color-primary-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  box-sizing: border-box;
-  display: block;
 }
 
 @keyframes spin {
@@ -282,15 +224,11 @@ body {
   margin: var(--spacing-md) 0 0 0;
   font-size: 1.1rem;
   opacity: 0.9;
-  text-align: center;
-  box-sizing: border-box;
 }
 
 .loading-progress {
   margin-top: var(--spacing-sm);
   opacity: 0.8;
-  text-align: center;
-  box-sizing: border-box;
 }
 
 .loading-progress small {

@@ -1,18 +1,17 @@
 {
     "extends": "./tsconfig.app.json",
     "compilerOptions": {
-        // テスト固有の型定義
+        // === Test Environment Type Definitions ===
         "types": [
             "node",
             "google.maps",
             "@testing-library/jest-dom",
             "vitest/globals"
         ],
-        // テスト固有の設定緩和
+        // === Relaxed Rules for Tests ===
         "noUnusedLocals": false,
         "noUnusedParameters": false,
-        // ビルド設定（テスト固有）
-        "incremental": true,
+        // === Build Configuration ===
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo"
     },
     "include": [

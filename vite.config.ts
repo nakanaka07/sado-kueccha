@@ -9,7 +9,7 @@ import { defineConfig, loadEnv } from "vite";
 
 /**
  * Vite設定ファイル
- * React + TypeScript + Google Maps API統合プロジェクト用の設定
+ * React + TypeScript + Google Maps API統合プロジェクト用の最適化された設定
  */
 export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
   // 環境変数の読み込み
@@ -20,15 +20,93 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
   validateEnvironmentVariables(env);
 
   return {
-    plugins: createPlugins(isProduction),
+    plugins: [
+      reactSWC(),
+      ...(isProduction
+        ? [
+            visualizer({
+              filename: "dist/stats.html",
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+              template: "treemap",
+            }),
+          ]
+        : []),
+    ],
     base: getBasePath(env),
     publicDir: "public",
-    resolve: createResolveConfig(),
-    server: createServerConfig(isProduction),
-    build: createBuildConfig(isProduction),
-    optimizeDeps: createOptimizeDepsConfig(),
-    // @ts-expect-error Vitestの設定はViteの型定義に含まれていないため
-    test: createTestConfig(),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+        "@components": path.resolve(__dirname, "./src/components"),
+        "@services": path.resolve(__dirname, "./src/services"),
+        "@utils": path.resolve(__dirname, "./src/utils"),
+      },
+    },
+    server: {
+      // HTTPS設定（証明書がない場合はHTTPで起動）
+      https: getHttpsConfig(isProduction),
+
+      // HMR設定
+      hmr: {
+        overlay: false, // エラーオーバーレイを無効化
+      },
+
+      watch: {
+        usePolling: false,
+      },
+
+      // Google Sheets API用のプロキシ設定（CORS回避）
+      proxy: {
+        "/api/sheets": {
+          target: "https://docs.google.com",
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api\/sheets/, "/spreadsheets"),
+          secure: true,
+          followRedirects: true,
+          configure: configureProxy,
+        },
+      },
+    },
+    build: {
+      outDir: "dist",
+      emptyOutDir: true,
+      target: "es2022",
+      sourcemap: !isProduction,
+      chunkSizeWarningLimit: 1000,
+      minify: isProduction ? ("esbuild" as const) : false,
+      rollupOptions: {
+        output: {
+          // 手動チャンク分割でバンドルサイズを最適化
+          manualChunks: {
+            vendor: ["react", "react-dom"],
+            maps: ["@vis.gl/react-google-maps"],
+            sheets: ["google-spreadsheet", "googleapis"],
+            utils: ["src/services/cache.ts", "src/services/preload.ts"],
+          },
+
+          // キャッシュ最適化のためのハッシュ付きファイル名
+          entryFileNames: "assets/[name]-[hash].js",
+          chunkFileNames: "assets/[name]-[hash].js",
+          assetFileNames: "assets/[name]-[hash].[ext]",
+        },
+        external: isProduction ? [] : [],
+      },
+    },
+    optimizeDeps: {
+      include: ["react", "react-dom", "@vis.gl/react-google-maps", "google-spreadsheet"],
+      exclude: [],
+      esbuildOptions: {
+        target: "es2022",
+      },
+    },
+    test: {
+      globals: true,
+      environment: "jsdom",
+      setupFiles: ["./src/setupTests.ts"],
+      include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    },
   };
 });
 
@@ -37,10 +115,17 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
  */
 function validateEnvironmentVariables(env: Record<string, string>): void {
   const requiredEnvVars = ["VITE_BASE_PATH", "VITE_GOOGLE_MAPS_API_KEY"];
+  const isProduction = process.env.NODE_ENV === "production" || process.env.CI === "true";
 
   for (const varName of requiredEnvVars) {
     if (!env[varName]) {
-      console.warn(`⚠️ 環境変数 ${varName} が設定されていません`);
+      const message = `環境変数 ${varName} が設定されていません`;
+
+      if (isProduction) {
+        throw new Error(`❌ ${message} - 本番環境では必須です`);
+      } else {
+        console.warn(`⚠️ ${message} - 開発環境では任意ですが推奨されます`);
+      }
     }
   }
 }
@@ -62,73 +147,6 @@ function getBasePath(env: Record<string, string>): string {
 
   // デフォルト
   return "/";
-}
-
-/**
- * プラグイン設定の作成
- */
-function createPlugins(isProduction: boolean) {
-  return [
-    reactSWC(),
-    ...(isProduction
-      ? [
-          visualizer({
-            filename: "dist/stats.html",
-            open: false,
-            gzipSize: true,
-            brotliSize: true,
-            template: "treemap",
-          }),
-        ]
-      : []),
-  ];
-}
-
-/**
- * resolve設定の作成
- */
-function createResolveConfig() {
-  return {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@components": path.resolve(__dirname, "./src/components"),
-      "@services": path.resolve(__dirname, "./src/services"),
-      "@types": path.resolve(__dirname, "./src/types"),
-      "@utils": path.resolve(__dirname, "./src/utils"),
-      "@constants": path.resolve(__dirname, "./src/constants"),
-    },
-  };
-}
-
-/**
- * 開発サーバー設定の作成
- */
-function createServerConfig(isProduction: boolean) {
-  return {
-    // HTTPS設定（証明書がない場合はHTTPで起動）
-    https: getHttpsConfig(isProduction),
-
-    // HMR設定
-    hmr: {
-      overlay: false, // エラーオーバーレイを無効化
-    },
-
-    watch: {
-      usePolling: false,
-    },
-
-    // Google Sheets API用のプロキシ設定（CORS回避）
-    proxy: {
-      "/api/sheets": {
-        target: "https://docs.google.com",
-        changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/api\/sheets/, "/spreadsheets"),
-        secure: true,
-        followRedirects: true,
-        configure: configureProxy,
-      },
-    },
-  };
 }
 
 /**
@@ -156,7 +174,7 @@ function configureProxy(proxy: any) {
   // エラーハンドリング
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   proxy.on("error", (err: Error, _req: any, res: any) => {
-    console.log("🚨 プロキシエラー:", err.message);
+    console.error("🚨 プロキシエラー:", err.message);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (res && !res.headersSent) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -165,80 +183,4 @@ function configureProxy(proxy: any) {
       res.end("プロキシエラー: " + err.message);
     }
   });
-
-  // リクエスト・レスポンスのログ
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  proxy.on("proxyReq", (_proxyReq: any, req: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    console.log("📤 プロキシリクエスト:", req.method, req.url);
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  proxy.on("proxyRes", (proxyRes: any, req: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    console.log("📥 プロキシレスポンス:", proxyRes.statusCode, req.url);
-
-    // リダイレクトステータスのログ
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (proxyRes.statusCode === 307 || proxyRes.statusCode === 302) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      console.log("🔄 リダイレクト先:", proxyRes.headers.location);
-    }
-  });
-}
-
-/**
- * ビルド設定の作成
- */
-function createBuildConfig(isProduction: boolean) {
-  return {
-    outDir: "dist",
-    emptyOutDir: true,
-    target: "es2022",
-    sourcemap: !isProduction,
-    chunkSizeWarningLimit: 1000,
-    minify: isProduction ? ("esbuild" as const) : false,
-    rollupOptions: {
-      output: {
-        // 手動チャンク分割でバンドルサイズを最適化
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          maps: ["@vis.gl/react-google-maps"],
-          sheets: ["google-spreadsheet", "googleapis"],
-          utils: ["src/services/cache.ts", "src/services/preload.ts"],
-        },
-
-        // キャッシュ最適化のためのハッシュ付きファイル名
-        entryFileNames: "assets/[name]-[hash].js",
-        chunkFileNames: "assets/[name]-[hash].js",
-        assetFileNames: "assets/[name]-[hash].[ext]",
-      },
-      external: isProduction ? [] : [],
-    },
-  };
-}
-
-/**
- * 依存関係最適化設定の作成
- */
-function createOptimizeDepsConfig() {
-  return {
-    include: ["react", "react-dom", "@vis.gl/react-google-maps", "google-spreadsheet"],
-    exclude: [],
-    esbuildOptions: {
-      target: "es2022",
-    },
-  };
-}
-
-/**
- * テスト設定の作成（Vitest）
- */
-function createTestConfig() {
-  return {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: ["./src/setupTests.ts"],
-    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-  };
 }

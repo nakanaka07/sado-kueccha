@@ -1,44 +1,54 @@
 /**
  * Google Maps API型定義拡張
- * vis.gl/react-google-maps用の型定義補完
+ * vis.gl/react-google-maps用の型定義補完と拡張
  */
 
-// Google Maps APIの基本型定義
-export interface LatLngLiteral {
-  lat: number;
-  lng: number;
+// 基本的な Google Maps API 型の再エクスポート
+export type LatLngLiteral = google.maps.LatLngLiteral;
+export type LatLngBounds = google.maps.LatLngBounds;
+
+/**
+ * マーカークラスタリング関連の拡張型
+ */
+export interface MarkerClusterOptions {
+  gridSize?: number;
+  maxZoom?: number;
+  zoomOnClick?: boolean;
+  averageCenter?: boolean;
+  minimumClusterSize?: number;
 }
 
 /**
- * ベースPOI型定義
+ * カスタムマーカー表示オプション
  */
-export interface POI {
-  id: string;
-  name: string;
-  position: LatLngLiteral;
-  genre: string;
-  description?: string;
-  parking?: string;
-  cashless?: boolean;
-  businessHours?: {
-    [key: string]: string; // 曜日別営業時間
-  };
-  contact?: string;
-  googleMapsUrl?: string;
-  address?: string;
-  district?: string; // 地区情報
-  sourceSheet?: string; // データソースのシート名
+export interface CustomMarkerOptions {
+  position: google.maps.LatLngLiteral;
+  map?: google.maps.Map;
+  icon?: string | google.maps.Icon | google.maps.Symbol;
+  title?: string;
+  clickable?: boolean;
+  draggable?: boolean;
+  visible?: boolean;
 }
 
 /**
- * クラスター拡張POI型定義
+ * Google Maps APIのイベントハンドラー型
  */
-export interface ClusterPOI extends POI {
-  clusterSize: number;
-  originalPois: POI[];
-}
+export type MapEventHandler<T = unknown> = (event: T) => void;
 
 /**
- * クラスター可能POI型（Union型）
+ * 地図の表示設定
  */
-export type ClusterablePOI = POI | ClusterPOI;
+export interface MapDisplayOptions {
+  center?: google.maps.LatLngLiteral;
+  zoom?: number;
+  mapTypeId?: google.maps.MapTypeId;
+  gestureHandling?: "cooperative" | "greedy" | "none" | "auto";
+  disableDefaultUI?: boolean;
+  zoomControl?: boolean;
+  mapTypeControl?: boolean;
+  scaleControl?: boolean;
+  streetViewControl?: boolean;
+  rotateControl?: boolean;
+  fullscreenControl?: boolean;
+}

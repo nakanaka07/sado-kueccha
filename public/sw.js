@@ -17,20 +17,18 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then(async (cache) => {
-        console.log("Caching static assets");
         // 各アセットを個別にキャッシュして、エラーを避ける
         const cachePromises = STATIC_ASSETS.map(async (asset) => {
           try {
             await cache.add(asset);
-            console.log(`Successfully cached: ${asset}`);
-          } catch (error) {
-            console.warn(`Failed to cache asset: ${asset}`, error);
+          } catch {
+            // キャッシュ失敗は非致命的エラーとして扱う
           }
         });
         await Promise.all(cachePromises);
       })
-      .catch((error) => {
-        console.error("Failed to open cache:", error);
+      .catch(() => {
+        // キャッシュ作成失敗は非致命的エラーとして扱う
       }),
   );
   self.skipWaiting();
@@ -43,7 +41,6 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log("Deleting old cache:", cacheName);
             return caches.delete(cacheName);
           }
         }),
@@ -94,7 +91,6 @@ self.addEventListener("fetch", (event) => {
 // バックグラウンド同期（将来的な機能拡張用）
 self.addEventListener("sync", (event) => {
   if (event.tag === "background-sync") {
-    console.log("Background sync triggered");
     // 必要に応じてデータ同期処理を実装
   }
 });

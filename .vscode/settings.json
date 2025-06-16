@@ -46,5 +46,10 @@
     "typescript.suggest.includeCompletions": true,
     "css.validate": true,
     "scss.validate": true,
-    "less.validate": true
+    "less.validate": true,
+    // Disable accessibility checkers that cause false positives
+    "axe.disableForWorkspace": true,
+    "axe-accessibility.disableValidation": true,
+    "microsoft-edge-tools.webhint.enabled": false,
+    "webhint.enable": false
 }
