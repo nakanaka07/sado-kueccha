@@ -3,21 +3,41 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "vite",
+    "maps",
+    "sado"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "pnpm type-check && vite build",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "lint": "eslint . --flag unstable_config_lookup_from_file",
+    "lint:fix": "eslint . --fix --flag unstable_config_lookup_from_file",
+    "lint:report": "eslint . --format html --output-file eslint-report.html",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,css,scss,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,css,scss,json,md,yaml,yml}\"",
+    "format:staged": "prettier --write",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit",
-    "type-check:watch": "tsc --noEmit --watch",
+    "type-check": "tsc --noEmit --incremental",
+    "type-check:watch": "tsc --noEmit --watch --incremental",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run"
+    "ci": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run",
+    "pre-commit": "pnpm type-check && pnpm lint && pnpm format:check && pnpm test:run",
+    "postinstall": "pnpm type-check",
+    "clean": "rimraf dist node_modules/.vite node_modules/.cache .turbo",
+    "clean:all": "rimraf dist node_modules/.vite node_modules/.cache .turbo node_modules",
+    "prepare": "husky || true",
+    "analyze": "vite-bundle-analyzer dist/stats.html"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.5.3",
@@ -40,7 +60,7 @@
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
-    "@vitejs/plugin-react-swc": "^3.10.0",
+    "@vitejs/plugin-react-swc": "^3.10.2",
     "@vitest/coverage-v8": "^3.1.4",
     "@vitest/ui": "^3.1.4",
     "eslint": "^9.28.0",
@@ -51,17 +71,54 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
+    "lint-staged": "^15.2.11",
     "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.33.0",
     "vite": "^6.3.5",
     "vitest": "^3.1.4"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --flag unstable_config_lookup_from_file",
+      "prettier --write"
+    ],
+    "*.{css,scss,sass,less}": [
+      "prettier --write"
+    ],
+    "*.{json,jsonc,json5}": [
+      "prettier --write"
+    ],
+    "*.{md,mdx}": [
+      "prettier --write"
+    ],
+    "*.{yaml,yml}": [
+      "prettier --write"
+    ],
+    "package.json": [
+      "prettier --write"
+    ]
+  },
   "browserslist": [
     ">0.2%",
     "not dead",
     "not op_mini all"
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.1.6",
+      "@types/react-dom": "^19.1.5"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19"
+      }
+    }
+  },
+  "sideEffects": false
 }

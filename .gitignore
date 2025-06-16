@@ -1,4 +1,4 @@
-# Logs
+# === ログファイル ===
 logs
 *.log
 npm-debug.log*
@@ -6,47 +6,167 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+bun-debug.log*
 
+# === 依存関係・ビルド成果物 ===
+# 📦 Node.js 関連
 node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+bun-debug.log*
+
+# 🏗️ ビルド成果物
 dist
 dist-ssr
+build
+out
+.next
+.turbo
 *.local
 
-# Editor directories and files
+# 📈 バンドル解析
+bundle-analyzer-report.html
+stats.html
+bundle-stats.json
+
+# === キャッシュディレクトリ ===
+# ⚡ ビルドツールキャッシュ
+.cache
+.vite
+.parcel-cache
+.nyc_output
+.rollup.cache
+.swc
+
+# 🔄 ランタイムキャッシュ
+.nuxt
+.output
+.nitro
+.netlify
+
+# === エディター・IDE設定 ===
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
 
-# ディレクトリ
-.local/
+# === OS生成ファイル ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 
-# 環境変数（APIキーなどの機密情報が含まれるため）
+# === 環境変数・機密情報 ===
+# 🔒 環境変数ファイル（セキュリティ重要）
 .env
+.env.*
+!.env.example
+!.env.template
+!.env.schema
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.staging.local
 
-# テストカバレッジ
+# 🔐 追加のセキュリティファイル
+.envrc
+.secrets
+secrets.json
+config/secrets.yml
+
+# === 証明書・セキュリティファイル ===
+.local/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# === テスト関連 ===
+# 🧪 テスト出力
 coverage/
 .nyc_output/
+junit.xml
+test-results/
+playwright-report/
+blob-report/
+coverage-reports/
 
-# TypeScript
+# 📊 テストキャッシュ
+.vitest
+.jest
+.pytest_cache/
+__pycache__/
+
+# === TypeScript・JavaScript ===
 *.tsbuildinfo
+*.d.ts.map
 
-# ビルド統計
+# === パッケージマネージャー ===
+.pnpm-debug.log*
+.yarn/install-state.gz
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/plugins/
+.yarn/releases/
+
+# === ビルド解析・統計 ===
 dist/stats.html
+bundle-analyzer-report.html
+eslint-report.html
 
-# OS generated files
-Thumbs.db
-ehthumbs.db
-Desktop.ini
+# === デプロイプラットフォーム ===
+# ☁️ 各種クラウドプラットフォーム
+.vercel
+.netlify
+.firebase
+.aws-sam/
+.terraform/
+.pulumi/
+
+# 🐳 コンテナ関連
+docker-compose.override.yml
+.dockerignore
+Dockerfile.local
+
+# === その他の一時ファイル ===
+# 🗂️ 一時ファイル
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# 🔍 開発ツール
+.history/
+.vscode-server/
+*.code-workspace
+
+# 📱 モバイル開発
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+
+# 🤖 AI・自動生成ファイル
+.cursorrules
+.ai/
+.github/copilot/

@@ -65,7 +65,7 @@ export function getSNSIcon(url: string): string {
  */
 export function parseTextWithLinks(
   text: string,
-  linkClassName: string = "info-window-link",
+  linkClassName = "info-window-link",
 ): ParsedTextPart[] {
   if (!text || typeof text !== "string") {
     return [

@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { formatBusinessHours, STATUS_CONFIG } from "../utils/businessHours";
 
 interface BusinessHoursDisplayProps {
@@ -16,9 +16,9 @@ export const BusinessHoursDisplay: React.FC<BusinessHoursDisplayProps> = ({ busi
           <span className="status-icon">{STATUS_CONFIG[hoursInfo.statusType].icon}</span>
           <span className="status-text">{hoursInfo.currentStatus}</span>
         </div>
-        {hoursInfo.shouldShowTodayHours && (
+        {hoursInfo.shouldShowTodayHours ? (
           <div className="hours-info">本日: {hoursInfo.todayHours}</div>
-        )}
+        ) : null}
       </div>
     </div>
   );

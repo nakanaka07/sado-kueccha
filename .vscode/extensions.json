@@ -1,13 +1,36 @@
 {
-    "recommendations": [
-        "ms-vscode.vscode-typescript-next",
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "ms-vscode.vscode-json",
-        "ms-vscode.vscode-css",
-        "ms-vscode.vscode-html",
-        "vitest.explorer",
-        "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-react-next"
-    ]
+  "recommendations": [
+    // 必須の開発ツール
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+
+    // React開発支援
+    "ms-vscode.vscode-react-next",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+
+    // 基本的な言語サポート
+    "ms-vscode.vscode-json",
+    "ms-vscode.vscode-css",
+    "ms-vscode.vscode-html",
+    "redhat.vscode-yaml",
+
+    // Git関連
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+
+    // 開発体験向上
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
+    "christian-kohler.path-intellisense",
+    "wix.vscode-import-cost",
+
+    // テスト関連
+    "vitest.explorer",
+
+    // その他の便利ツール
+    "streetsidesoftware.code-spell-checker",
+    "ms-vscode.vscode-css-peek"
+  ]
 }

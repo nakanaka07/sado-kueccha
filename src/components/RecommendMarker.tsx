@@ -1,5 +1,6 @@
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
-import React, { useCallback, useEffect, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { POI } from "../types/poi";
 import { ASSETS } from "../utils/assets";
 import "./RecommendMarker.css";
@@ -74,7 +75,7 @@ export const RecommendMarker: React.FC<RecommendMarkerProps> = ({
             className="recommend-marker-icon"
           />
         </div>
-        {(showLabel || isHighlighted) && <div className="recommend-marker-label">おすすめ</div>}
+        {showLabel || isHighlighted ? <div className="recommend-marker-label">おすすめ</div> : null}
       </div>
     </AdvancedMarker>
   );

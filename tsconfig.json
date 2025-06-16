@@ -3,42 +3,95 @@
     // === Language and Environment ===
     "target": "ES2022",
     "lib": [
-      "ES2022"
+      "ES2023",
+      "DOM",
+      "DOM.Iterable",
+      "WebWorker"
     ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
     // === JSX ===
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "useDefineForClassFields": true,
-    // === Type Checking ===
+    // === Type Checking (Enhanced) ===
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "forceConsistentCasingInFileNames": true,
     // === Modules ===
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "allowJs": true,
+    "declaration": false,
+    "declarationMap": false,
     // === Emit ===
     "noEmit": true,
+    "removeComments": false,
+    "sourceMap": true,
     // === Interop Constraints ===
     "skipLibCheck": true,
     // === Incremental Compilation ===
     "incremental": true,
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
     "assumeChangesOnlyAffectDirectDependencies": true,
+    // === Path Mapping ===
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@services/*": [
+        "./src/services/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@types/*": [
+        "./src/types/*"
+      ],
+      "@constants/*": [
+        "./src/constants/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ]
+    },
     // === Type Definitions ===
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
     ]
-  }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }

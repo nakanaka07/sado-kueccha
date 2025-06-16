@@ -11,6 +11,11 @@
         // === Relaxed Rules for Tests ===
         "noUnusedLocals": false,
         "noUnusedParameters": false,
+        "noImplicitReturns": false,
+        // === Test specific settings ===
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
         // === Build Configuration ===
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo"
     },

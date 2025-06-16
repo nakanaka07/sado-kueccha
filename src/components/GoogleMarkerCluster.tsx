@@ -115,7 +115,9 @@ const checkMarkersOverlapping = (pois: POI[], map: google.maps.Map): boolean => 
 
   for (let i = 0; i < pois.length; i++) {
     for (let j = i + 1; j < pois.length; j++) {
-      if (areMarkersOverlapping(pois[i].position, pois[j].position, map)) {
+      const pos1 = pois[i]?.position;
+      const pos2 = pois[j]?.position;
+      if (pos1 && pos2 && areMarkersOverlapping(pos1, pos2, map)) {
         return true;
       }
     }
@@ -153,7 +155,7 @@ const isInViewport = (poi: ClusterablePOI, bounds: google.maps.LatLngBounds | nu
   if (!bounds) return true;
 
   // ClusterablePOIは常にpositionを持つ
-  const position = poi.position;
+  const { position } = poi;
   return GeoUtils.isInBounds(position.lat, position.lng, bounds);
 };
 
@@ -320,7 +322,7 @@ const isClusterablePOIArray = (value: unknown): value is ClusterablePOI[] => {
 // 改良されたクラスタリング関数 - 重なり判定を追加
 const clusterPOIs = (
   pois: POI[],
-  zoomLevel: number = 10,
+  zoomLevel = 10,
   mapBounds: google.maps.LatLngBounds | null = null,
   map: google.maps.Map | null = null,
   clusteringState: ClusteringState = {
@@ -539,12 +541,12 @@ const getPinConfig = (
   // クラスターの場合
   if (isCluster && clusterSize) {
     const config =
-      CLUSTER_CONFIGS.find((c) => clusterSize >= c.min) ||
+      CLUSTER_CONFIGS.find((c) => clusterSize >= c.min) ??
       CLUSTER_CONFIGS[CLUSTER_CONFIGS.length - 1];
     if (!config) return null;
 
     // minプロパティを除外してPinコンポーネント用の設定のみを返す
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const { min, ...pinProps } = config;
 
     return {
@@ -765,7 +767,7 @@ export const GoogleMarkerCluster = memo(
 
     const clusteredPois = useMemo(() => {
       // ビューポート内のPOIを事前にフィルタリングして効率化
-      const bounds = map?.getBounds() || null;
+      const bounds = map?.getBounds() ?? null;
       let visiblePois = pois;
 
       if (bounds && pois.length > 1000) {
@@ -839,7 +841,7 @@ export const GoogleMarkerCluster = memo(
     const markerComponents = useMemo(() => {
       return visibleMarkers.map((poi) => {
         const isCluster = poi.clusterSize !== undefined;
-        const clusterSize = poi.clusterSize;
+        const { clusterSize } = poi;
         const isAnimating = clusteringState.animatingClusters.has(poi.id);
 
         const props: MarkerComponentProps = {
@@ -872,7 +874,9 @@ export const GoogleMarkerCluster = memo(
     return (
       <>
         {markerComponents}
-        {isLoadingMore && <div className="marker-loading-indicator">🔄 マーカー読み込み中...</div>}
+        {isLoadingMore ? (
+          <div className="marker-loading-indicator">🔄 マーカー読み込み中...</div>
+        ) : null}
       </>
     );
   },

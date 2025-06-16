@@ -58,7 +58,8 @@ export const useAppState = (): AppState & AppStateActions => {
           await preloadImagesWithValidation(imagesToPreload);
         }
 
-        const { googleMapsApiKey } = getAppConfig();
+        const { maps } = getAppConfig();
+        const { apiKey: googleMapsApiKey } = maps;
         if (googleMapsApiKey) {
           preloadGoogleMapsAPI(googleMapsApiKey);
         }

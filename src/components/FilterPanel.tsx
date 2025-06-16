@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFullscreenPanel } from "../hooks/useFullscreenPanel";
 import { useFullscreenState } from "../hooks/useFullscreenState";
@@ -89,7 +90,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handlePresetApply = useCallback(
     (preset: FilterPreset) => {
       const config = PRESET_CONFIGS[preset];
-      const baseState = config.baseState;
+      const { baseState } = config;
 
       const newFilterState: FilterState = {
         ...DEFAULT_FILTER_STATE,
@@ -284,9 +285,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         : renderPanelContent()}
 
       {/* デバッグ表示（開発時のみ） */}
-      {process.env.NODE_ENV === "development" && isFullscreen && (
+      {process.env.NODE_ENV === "development" && isFullscreen ? (
         <div className="fullscreen-debug-indicator">✅ Fullscreen Active - Full Panel</div>
-      )}
+      ) : null}
     </>
   );
 };

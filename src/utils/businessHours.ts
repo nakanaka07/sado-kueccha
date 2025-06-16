@@ -264,10 +264,10 @@ export function getCurrentTime(): { day: string; time: number } {
  * 営業時間データの形式を統一
  */
 function normalizeBusinessHoursData(businessHours: Record<string, string>): Record<string, string> {
-  if (businessHours["general"]) {
+  if (businessHours.general) {
     const hoursData: Record<string, string> = {};
-    businessHours["general"].split(",").forEach((entry) => {
-      const match = entry.trim().match(/^([月火水木金土日祝]):?\s*(.+)$/);
+    businessHours.general.split(",").forEach((entry) => {
+      const match = /^([月火水木金土日祝]):?\s*(.+)$/.exec(entry.trim());
       if (match?.[1] && match[2]) {
         hoursData[match[1]] = match[2].trim();
       }

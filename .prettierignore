@@ -1,20 +1,56 @@
 # ビルド出力やキャッシュ
 /dist/
+/build/
+/out/
 /.cache/
+/.vite/
 /node_modules/
+**/.turbo/
+**/coverage/
 
-# 設定ファイル
+# パッケージマネージャー関連
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+bun.lockb
 
-# 証明書ファイル
+# 証明書・セキュリティファイル
 .local/
+**/.env*
+**/*.pem
+**/*.key
+**/*.crt
 
-# IDE設定
+# IDE・エディター設定
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# その他
+# ログファイル
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 最適化・圧縮ファイル
 *.min.js
 *.min.css
+*.min.mjs
+*.min.cjs
+
+# TypeScript・JavaScript設定ファイル（フォーマット対象外）
+tsconfig*.json
+jsconfig*.json
+
+# プロジェクト固有ファイル
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# Prettierの自己参照防止
+.prettierrc*
+prettier.config*

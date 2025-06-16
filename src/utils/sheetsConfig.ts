@@ -31,24 +31,24 @@ const DEFAULT_SHEETS_CONFIG: SheetsConfig = {
 export function getSheetsConfig(): SheetsConfig {
   return {
     recommended: getEnvValue(
-      import.meta.env["VITE_SHEETS_RECOMMENDED"],
+      import.meta.env.VITE_SHEETS_RECOMMENDED,
       DEFAULT_SHEETS_CONFIG.recommended,
     ),
-    toilets: getEnvValue(import.meta.env["VITE_SHEETS_TOILETS"], DEFAULT_SHEETS_CONFIG.toilets),
-    parking: getEnvValue(import.meta.env["VITE_SHEETS_PARKING"], DEFAULT_SHEETS_CONFIG.parking),
+    toilets: getEnvValue(import.meta.env.VITE_SHEETS_TOILETS, DEFAULT_SHEETS_CONFIG.toilets),
+    parking: getEnvValue(import.meta.env.VITE_SHEETS_PARKING, DEFAULT_SHEETS_CONFIG.parking),
     ryotsuAikawa: getEnvValue(
-      import.meta.env["VITE_SHEETS_RYOTSU_AIKAWA"],
+      import.meta.env.VITE_SHEETS_RYOTSU_AIKAWA,
       DEFAULT_SHEETS_CONFIG.ryotsuAikawa,
     ),
     kanaiSawada: getEnvValue(
-      import.meta.env["VITE_SHEETS_KANAI_SAWADA"],
+      import.meta.env.VITE_SHEETS_KANAI_SAWADA,
       DEFAULT_SHEETS_CONFIG.kanaiSawada,
     ),
     akadomariHamochi: getEnvValue(
-      import.meta.env["VITE_SHEETS_AKADOMARI_HAMOCHI"],
+      import.meta.env.VITE_SHEETS_AKADOMARI_HAMOCHI,
       DEFAULT_SHEETS_CONFIG.akadomariHamochi,
     ),
-    snacks: getEnvValue(import.meta.env["VITE_SHEETS_SNACKS"], DEFAULT_SHEETS_CONFIG.snacks),
+    snacks: getEnvValue(import.meta.env.VITE_SHEETS_SNACKS, DEFAULT_SHEETS_CONFIG.snacks),
   };
 }
 

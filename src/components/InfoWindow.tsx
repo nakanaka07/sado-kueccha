@@ -1,5 +1,5 @@
 import { InfoWindow as GoogleInfoWindow } from "@vis.gl/react-google-maps";
-import React from "react";
+import type React from "react";
 import type { POI } from "../types/poi";
 import { parseTextWithLinks } from "../utils/social";
 import { BusinessHoursDisplay } from "./BusinessHoursDisplay";
@@ -42,43 +42,45 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
         </div>
 
         <div className="info-window-content">
-          {poi.district && (
+          {poi.district ? (
             <div className="info-window-field">
               <span className="field-value">{poi.district}</span>
             </div>
-          )}
+          ) : null}
 
-          {poi.description && (
+          {poi.description ? (
             <div className="info-window-field">
               <span className="field-label">SNS:</span>
               <div className="field-value sns-content">
                 {renderLinkifiedContent(poi.description)}
               </div>
             </div>
-          )}
+          ) : null}
 
-          {poi.address && (
+          {poi.address ? (
             <div className="info-window-field">
               <span className="field-label">所在地:</span>
               <span className="field-value">{poi.address}</span>
             </div>
-          )}
+          ) : null}
 
-          {poi.businessHours && (
+          {poi.businessHours ? (
             <div className="info-window-field">
               <span className="field-label">営業時間:</span>
               <BusinessHoursDisplay businessHours={poi.businessHours} />
             </div>
-          )}
+          ) : null}
 
           <div className="info-window-features">
-            {poi.parking && (
+            {poi.parking ? (
               <div className="feature-badge parking">🅿️ 隣接駐車場: {poi.parking}</div>
-            )}
-            {poi.cashless && <div className="feature-badge cashless">💳 キャッシュレス対応</div>}
+            ) : null}
+            {poi.cashless ? (
+              <div className="feature-badge cashless">💳 キャッシュレス対応</div>
+            ) : null}
           </div>
 
-          {poi.contact && (
+          {poi.contact ? (
             <div className="info-window-field">
               <span className="field-label">連絡先:</span>
               <span className="field-value">
@@ -87,9 +89,9 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
                 </a>
               </span>
             </div>
-          )}
+          ) : null}
 
-          {poi.googleMapsUrl && (
+          {poi.googleMapsUrl ? (
             <div className="info-window-actions">
               <a
                 href={poi.googleMapsUrl}
@@ -100,7 +102,7 @@ export const InfoWindow: React.FC<InfoWindowProps> = ({ poi, onClose }) => {
                 📍 Google Mapsで開く
               </a>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </GoogleInfoWindow>

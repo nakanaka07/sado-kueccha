@@ -16,8 +16,8 @@ export function isValidPosition(position: unknown): position is LatLngLiteral {
   }
 
   const pos = position as Record<string, unknown>;
-  const lat = pos["lat"];
-  const lng = pos["lng"];
+  const { lat } = pos;
+  const { lng } = pos;
 
   return (
     typeof lat === "number" &&
@@ -49,10 +49,10 @@ export function isPOI(data: unknown): data is POI {
 
   const obj = data as Record<string, unknown>;
   return (
-    isValidString(obj["id"]) &&
-    isValidString(obj["name"]) &&
-    isValidString(obj["genre"]) &&
-    isValidPosition(obj["position"])
+    isValidString(obj.id) &&
+    isValidString(obj.name) &&
+    isValidString(obj.genre) &&
+    isValidPosition(obj.position)
   );
 }
 
@@ -85,12 +85,12 @@ export function isPOICluster(data: unknown): data is POICluster {
 
   const obj = data as Record<string, unknown>;
   return (
-    isValidString(obj["id"]) &&
-    isValidPosition(obj["center"]) &&
-    typeof obj["size"] === "number" &&
-    Number.isInteger(obj["size"]) &&
-    obj["size"] >= 0 &&
-    Array.isArray(obj["pois"]) &&
-    isPOIArray(obj["pois"])
+    isValidString(obj.id) &&
+    isValidPosition(obj.center) &&
+    typeof obj.size === "number" &&
+    Number.isInteger(obj.size) &&
+    obj.size >= 0 &&
+    Array.isArray(obj.pois) &&
+    isPOIArray(obj.pois)
   );
 }

@@ -1,5 +1,6 @@
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SADO_ISLAND } from "../constants";
 import { fetchPOIs } from "../services/sheets";
@@ -27,9 +28,7 @@ function deduplicatePOIs(pois: POI[]): POI[] {
   pois.forEach((poi) => {
     if (poi.sourceSheet === "recommended") return;
     const key = `${poi.position.lat.toFixed(6)}-${poi.position.lng.toFixed(6)}`;
-    if (!positionMap[key]) {
-      positionMap[key] = poi;
-    }
+    positionMap[key] ??= poi;
   });
 
   // recommendedで上書き
@@ -45,27 +44,31 @@ function deduplicatePOIs(pois: POI[]): POI[] {
 /**
  * エラー状態表示コンポーネント
  */
-function ErrorDisplay({ message, className }: { message: string; className: string }) {
+const ErrorDisplay = ({ message, className }: { message: string; className: string }) => {
   return (
     <div className={className}>
       <div className="map-state-display map-error">{message}</div>
     </div>
   );
-}
+};
 
 /**
  * ローディング状態表示コンポーネント
  */
-function LoadingDisplay({ className }: { className: string }) {
+const LoadingDisplay = ({ className }: { className: string }) => {
   return (
     <div className={className}>
       <div className="map-state-display map-loading">地図を読み込み中...</div>
     </div>
   );
-}
+};
 
 // マップインスタンス取得用ヘルパー
-function MapInstanceCapture({ onMapInstance }: { onMapInstance: (map: google.maps.Map) => void }) {
+const MapInstanceCapture = ({
+  onMapInstance,
+}: {
+  onMapInstance: (map: google.maps.Map) => void;
+}) => {
   const map = useMap();
 
   useEffect(() => {
@@ -75,7 +78,7 @@ function MapInstanceCapture({ onMapInstance }: { onMapInstance: (map: google.map
   }, [map, onMapInstance]);
 
   return null;
-}
+};
 
 interface MapComponentProps {
   className?: string;
@@ -87,7 +90,7 @@ interface MapComponentProps {
   isPoisLoading?: boolean;
 }
 
-export function MapComponent({
+export const MapComponent = ({
   className = "map-container",
   onMapLoaded,
   enableClickableIcons = false,
@@ -95,7 +98,7 @@ export function MapComponent({
   pois: externalPois,
   children,
   isPoisLoading = false,
-}: MapComponentProps) {
+}: MapComponentProps) => {
   const [internalPois, setInternalPois] = useState<POI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +109,7 @@ export function MapComponent({
 
   // 使用するPOIデータを決定（簡素化された重複除去）
   const activePois = useMemo(() => {
-    const basePois = externalPois !== undefined ? externalPois : internalPois;
+    const basePois = externalPois ?? internalPois;
     return deduplicatePOIs(basePois);
   }, [externalPois, internalPois]);
 
@@ -130,14 +133,15 @@ export function MapComponent({
   }, [activePois, filterState]);
 
   // APIキーとライブラリ設定
-  const { googleMapsApiKey, googleMapsMapId } = getAppConfig();
+  const { maps } = getAppConfig();
+  const { apiKey: googleMapsApiKey, mapId: googleMapsMapId } = maps;
   const libraries = useMemo(() => ["marker"], []);
 
   // Google Maps API読み込み状態を監視
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (typeof google !== "undefined" && google?.maps && google.maps.MapTypeId) {
+      if (typeof google !== "undefined" && google?.maps?.MapTypeId) {
         setIsGoogleMapsLoaded(true);
       }
     };
@@ -342,16 +346,16 @@ export function MapComponent({
             currentZoom={currentZoom}
             clusteringEnabled={filterState?.enableClustering ?? true}
           />
-          {selectedPoi && (
+          {selectedPoi ? (
             <InfoWindow
               poi={selectedPoi}
               onClose={() => {
                 setSelectedPoi(null);
               }}
             />
-          )}
+          ) : null}
         </Map>
       </APIProvider>
     </div>
   );
-}
+};

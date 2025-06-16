@@ -64,7 +64,8 @@ const registerServiceWorker = async (): Promise<void> => {
   }
 
   try {
-    const { baseUrl } = getAppConfig();
+    const { app } = getAppConfig();
+    const { baseUrl } = app;
     const swPath = `${baseUrl}sw.js`.replace(/\/+/g, "/");
     await navigator.serviceWorker.register(swPath);
   } catch (error) {

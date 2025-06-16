@@ -19,6 +19,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   showKanaiSawada: true,
   showAkadomariHamochi: true,
   showSnacks: false,
+  enableClustering: true,
 };
 
 // フィルターオプションの定義

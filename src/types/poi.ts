@@ -13,9 +13,7 @@ export interface POI {
   description?: string;
   parking?: string;
   cashless?: boolean;
-  businessHours?: {
-    [key: string]: string; // 曜日別営業時間
-  };
+  businessHours?: Record<string, string>;
   contact?: string;
   googleMapsUrl?: string;
   address?: string;

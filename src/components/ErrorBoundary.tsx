@@ -8,7 +8,7 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error?: Error | null;
 }
 
 /**
@@ -41,23 +41,23 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         <div className="error-boundary">
           <div className="error-content">
             <h2>申し訳ございません。エラーが発生しました。</h2>
-            <p>ページを再読み込みしてもう一度お試しください。</p>
+            <p>ページを再読み込みしてもう一度お試しください。</p>{" "}
             <button
               onClick={() => {
-                this.setState({ hasError: false, error: undefined });
+                this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
               className="error-reload-button"
             >
-              ページを再読み込み
+              ページを再読み込み{" "}
             </button>
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error ? (
               <details className="error-details">
                 <summary>エラー詳細（開発用）</summary>
                 <pre>{this.state.error.toString()}</pre>
                 <pre>{this.state.error.stack}</pre>
               </details>
-            )}
+            ) : null}
           </div>
         </div>
       );

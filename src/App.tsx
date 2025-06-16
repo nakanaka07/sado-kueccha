@@ -3,7 +3,7 @@ import { LoadingScreen, MapLoadingOverlay } from "./components/LoadingScreen";
 import { MapComponent } from "./components/Map";
 import { useAppState } from "./hooks/useAppState";
 
-function App() {
+const App = () => {
   const {
     loading,
     mapLoading,
@@ -21,7 +21,7 @@ function App() {
 
   return (
     <div className="app">
-      {mapLoading && <MapLoadingOverlay fadeOut={fadeOut} poisLoading={poisLoading} />}
+      {mapLoading ? <MapLoadingOverlay fadeOut={fadeOut} poisLoading={poisLoading} /> : null}
       <main className="app-main">
         <MapComponent
           className="map-container"
@@ -36,6 +36,6 @@ function App() {
       </main>
     </div>
   );
-}
+};
 
 export default App;

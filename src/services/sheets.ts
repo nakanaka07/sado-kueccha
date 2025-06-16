@@ -37,8 +37,8 @@ class SheetsService {
 
   constructor() {
     const config = getAppConfig();
-    this.apiKey = config.googleSheetsApiKey;
-    this.spreadsheetId = config.googleSpreadsheetId;
+    this.apiKey = config.data.sheetsApiKey;
+    this.spreadsheetId = config.data.spreadsheetId;
 
     // 新しい統合シート設定を使用
     const sheetsConfig = getSheetsConfig();
@@ -133,7 +133,7 @@ class SheetsService {
     }
 
     const data = (await response.json()) as { values?: string[][] };
-    return data.values || [];
+    return data.values ?? [];
   }
 
   // 生データをPOI形式に変換

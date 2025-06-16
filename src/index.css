@@ -8,8 +8,7 @@
 
 :root {
   --font-family:
-    'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', Meiryo, system-ui,
-    sans-serif;
+    'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', Meiryo, system-ui, sans-serif;
 
   /* z-index階層管理 */
   --z-index-loading-overlay: 9999;
@@ -30,11 +29,7 @@
   --color-background-glass: rgba(255, 255, 255, 0.95);
 
   /* グラデーション */
-  --gradient-primary: linear-gradient(
-    135deg,
-    var(--color-primary-blue) 0%,
-    var(--color-primary-purple) 100%
-  );
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-blue) 0%, var(--color-primary-purple) 100%);
 
   /* シャドウ */
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);

@@ -24,7 +24,7 @@ export const useFullscreenState = (): FullscreenState => {
   }, []);
 
   const updateFullscreenState = useCallback(() => {
-    const fullscreenElement = document.fullscreenElement;
+    const { fullscreenElement } = document;
     const isFullscreen = !!fullscreenElement;
     const fullscreenContainer = isFullscreen ? detectFullscreenContainer() : null;
 

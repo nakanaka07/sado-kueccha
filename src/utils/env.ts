@@ -1,12 +1,12 @@
 /**
- * 環境変数アクセスユーティリティ
- * 型安全で統一された環境変数アクセスを提供
+ * 🌍 環境変数管理ユーティリティ
+ * 最新のベストプラクティスに基づいた型安全な環境変数管理
  */
 
 import { getSheetsConfig } from "./sheetsConfig";
 
 /**
- * 環境変数の型安全な取得
+ * 🔧 環境変数の型安全な取得
  * @param value 環境変数の値
  * @param defaultValue デフォルト値（オプション）
  * @returns 環境変数の値
@@ -16,7 +16,7 @@ export const getEnvValue = (value: string | undefined, defaultValue = ""): strin
 };
 
 /**
- * 数値型環境変数の取得
+ * 🔢 数値型環境変数の取得
  * @param value 環境変数の値
  * @param defaultValue デフォルト値
  * @returns 数値型の環境変数の値
@@ -27,7 +27,18 @@ export const getEnvNumber = (value: string | undefined, defaultValue: number): n
 };
 
 /**
- * 必須環境変数の検証
+ * ✅ ブール型環境変数の取得
+ * @param value 環境変数の値
+ * @param defaultValue デフォルト値
+ * @returns ブール型の環境変数の値
+ */
+export const getEnvBoolean = (value: string | undefined, defaultValue: boolean): boolean => {
+  if (value === undefined || value === "") return defaultValue;
+  return value === "true" || value === "1" || value === "yes";
+};
+
+/**
+ * 🛡️ 必須環境変数の検証
  * @param vars 環境変数の値のオブジェクト
  * @param requiredKeys 必須キーのリスト
  * @throws 欠落している環境変数がある場合はエラー
@@ -39,71 +50,181 @@ export const validateRequiredEnvVars = (
   const missing = requiredKeys.filter((key) => !vars[key]);
 
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+    throw new Error(`❌ 必須環境変数が不足しています: ${missing.join(", ")}`);
   }
 };
 
 /**
- * 開発環境チェック
+ * 🚀 開発環境チェック
  */
 export const isDevelopment = () => import.meta.env.DEV;
 
 /**
- * 本番環境チェック
+ * 🏗️ 本番環境チェック
  */
 export const isProduction = () => import.meta.env.PROD;
 
-// デフォルト設定値
+/**
+ * 🐛 デバッグ機能
+ */
+export const debugLog = (message: string, ...args: unknown[]): void => {
+  if (isDevelopment() || getEnvBoolean(import.meta.env.VITE_ENABLE_CONSOLE_LOGS, false)) {
+    // eslint-disable-next-line no-console
+    console.log(`🐛 [DEBUG] ${message}`, ...args);
+  }
+};
+
+/**
+ * ⚠️ 警告ログ
+ */
+export const warnLog = (message: string, ...args: unknown[]): void => {
+  console.warn(`⚠️ [WARN] ${message}`, ...args);
+};
+
+/**
+ * ❌ エラーログ
+ */
+export const errorLog = (message: string, ...args: unknown[]): void => {
+  console.error(`❌ [ERROR] ${message}`, ...args);
+};
+
+// 🎯 デフォルト設定値（最新のベストプラクティス）
 const DEFAULT_CONFIG = {
   GOOGLE_MAPS_MAP_ID: "佐渡島マップ",
-  BASE_PATH: "",
-  CACHE_TTL: 300000,
+  BASE_PATH: "/",
+  CACHE_TTL: 3600000, // 1時間
+  API_TIMEOUT: 10000, // 10秒
+  BATCH_SIZE: 100,
+  MAX_RETRIES: 3,
 } as const;
 
 /**
- * アプリケーション設定の取得（統合版）
+ * 🌟 アプリケーション設定の取得（統合版・強化版）
  */
 export const getAppConfig = () => {
   const sheetsConfig = getSheetsConfig();
 
   return {
-    // Google Maps関連
-    googleMapsApiKey: getEnvValue(import.meta.env.VITE_GOOGLE_MAPS_API_KEY),
-    googleMapsMapId: getEnvValue(
-      import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
-      DEFAULT_CONFIG.GOOGLE_MAPS_MAP_ID,
-    ),
+    // 🏗️ 基本アプリケーション設定
+    app: {
+      name: getEnvValue(import.meta.env.VITE_APP_NAME, "sado-kueccha"),
+      version: getEnvValue(import.meta.env.VITE_APP_VERSION, "0.1.0"),
+      basePath: getEnvValue(import.meta.env.VITE_BASE_PATH, DEFAULT_CONFIG.BASE_PATH),
+      baseUrl: import.meta.env.BASE_URL || "/",
+    },
 
-    // データソース関連
-    googleSpreadsheetId: getEnvValue(import.meta.env.VITE_GOOGLE_SPREADSHEET_ID),
-    googleSheetsApiKey: getEnvValue(import.meta.env.VITE_GOOGLE_SHEETS_API_KEY),
+    // 🗺️ Google Maps関連
+    maps: {
+      apiKey: getEnvValue(import.meta.env.VITE_GOOGLE_MAPS_API_KEY),
+      mapId: getEnvValue(
+        import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
+        DEFAULT_CONFIG.GOOGLE_MAPS_MAP_ID,
+      ),
+    },
 
-    // アプリケーション基本設定
-    basePath: getEnvValue(import.meta.env.VITE_BASE_PATH, DEFAULT_CONFIG.BASE_PATH),
-    cacheTtl: getEnvNumber(import.meta.env.VITE_CACHE_TTL, DEFAULT_CONFIG.CACHE_TTL),
+    // 📊 データソース関連
+    data: {
+      spreadsheetId: getEnvValue(import.meta.env.VITE_GOOGLE_SPREADSHEET_ID),
+      sheetsApiKey: getEnvValue(import.meta.env.VITE_GOOGLE_SHEETS_API_KEY),
+      sheets: sheetsConfig,
+    },
 
-    // スプレッドシート設定（統合済み）
-    sheets: sheetsConfig,
+    // 📧 EmailJS設定
+    email: {
+      serviceId: getEnvValue(import.meta.env.VITE_EMAILJS_SERVICE_ID),
+      templateId: getEnvValue(import.meta.env.VITE_EMAILJS_TEMPLATE_ID),
+      publicKey: getEnvValue(import.meta.env.VITE_EMAILJS_PUBLIC_KEY),
+    },
 
-    // 環境フラグ
-    isDev: isDevelopment(),
-    isProd: isProduction(),
+    // ⚡ パフォーマンス設定
+    performance: {
+      cacheTtl: getEnvNumber(import.meta.env.VITE_CACHE_TTL, DEFAULT_CONFIG.CACHE_TTL),
+      apiTimeout: getEnvNumber(import.meta.env.VITE_API_TIMEOUT, DEFAULT_CONFIG.API_TIMEOUT),
+      batchSize: getEnvNumber(import.meta.env.VITE_BATCH_SIZE, DEFAULT_CONFIG.BATCH_SIZE),
+      maxRetries: getEnvNumber(import.meta.env.VITE_MAX_RETRIES, DEFAULT_CONFIG.MAX_RETRIES),
+    },
 
-    // ベースURL（Vite組み込み変数）
-    baseUrl: import.meta.env.BASE_URL || "/",
+    // 🔧 開発・デバッグ設定
+    debug: {
+      mode: getEnvBoolean(import.meta.env.VITE_DEBUG_MODE, false),
+      enableLogs: getEnvBoolean(import.meta.env.VITE_ENABLE_CONSOLE_LOGS, false),
+    },
+
+    // 🚀 フィーチャーフラグ
+    features: {
+      offlineMode: getEnvBoolean(import.meta.env.VITE_FEATURE_OFFLINE_MODE, true),
+      pwaInstall: getEnvBoolean(import.meta.env.VITE_FEATURE_PWA_INSTALL, true),
+      geolocation: getEnvBoolean(import.meta.env.VITE_FEATURE_GEOLOCATION, true),
+    },
+
+    // 🌍 環境フラグ
+    env: {
+      isDev: isDevelopment(),
+      isProd: isProduction(),
+      mode: import.meta.env.MODE,
+    },
   };
 };
 
 /**
- * 必須環境変数の検証（アプリケーション用）
+ * 🛡️ 必須環境変数の検証（アプリケーション用・強化版）
  */
 export const validateAppConfig = (): void => {
-  const env = import.meta.env;
+  const { env } = import.meta;
+
+  // 必須のAPIキー検証
+  const requiredApiKeys = [
+    "VITE_GOOGLE_MAPS_API_KEY",
+    "VITE_GOOGLE_SPREADSHEET_ID",
+    "VITE_GOOGLE_SHEETS_API_KEY",
+  ];
+
   validateRequiredEnvVars(
     {
       VITE_GOOGLE_MAPS_API_KEY: env.VITE_GOOGLE_MAPS_API_KEY,
       VITE_GOOGLE_SPREADSHEET_ID: env.VITE_GOOGLE_SPREADSHEET_ID,
+      VITE_GOOGLE_SHEETS_API_KEY: env.VITE_GOOGLE_SHEETS_API_KEY,
     },
-    ["VITE_GOOGLE_MAPS_API_KEY", "VITE_GOOGLE_SPREADSHEET_ID"],
+    requiredApiKeys,
   );
+
+  // セキュリティチェック
+  if (isProduction()) {
+    const sensitiveKeys = requiredApiKeys.filter((key) => {
+      const value = env[key as keyof typeof env] as string | undefined;
+      return (
+        !value ||
+        (typeof value === "string" && (value.includes("your_") || value.includes("example")))
+      );
+    });
+
+    if (sensitiveKeys.length > 0) {
+      throw new Error(`🚨 本番環境で無効なAPIキーが検出されました: ${sensitiveKeys.join(", ")}`);
+    }
+  }
+
+  debugLog("✅ 環境変数の検証が完了しました");
+};
+
+/**
+ * 🔍 アプリケーション起動時の環境チェック
+ */
+export const performStartupCheck = (): void => {
+  try {
+    validateAppConfig();
+    const config = getAppConfig();
+
+    debugLog("🚀 アプリケーション設定", {
+      app: config.app,
+      env: config.env,
+      features: config.features,
+    });
+
+    if (config.env.isDev) {
+      debugLog("🔧 開発モードで実行中");
+    }
+  } catch (error) {
+    errorLog("環境設定エラー", error);
+    throw error;
+  }
 };

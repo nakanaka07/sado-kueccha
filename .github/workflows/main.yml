@@ -6,19 +6,19 @@ on:
     branches:
       - main
     paths:
-      - "src/**"
-      - "public/**"
-      - "index.html"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "vite.config.ts"
-      - "tsconfig*.json"
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
   pull_request:
     branches:
       - main
     paths-ignore:
-      - "**.md"
-      - "docs/**"
+      - '**.md'
+      - 'docs/**'
   # リリースタグでのデプロイ
   release:
     types: [published]
@@ -33,13 +33,13 @@ permissions:
 
 # 並行実行制御：同時デプロイの防止
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 # デフォルト実行環境の設定
 env:
-  NODE_VERSION: "22" # 最新のLTS Node.jsバージョン（2025年5月現在）
-  PNPM_VERSION: "10" # 最新のpnpmメジャーバージョン（2025年5月現在）
+  NODE_VERSION: '22' # 最新のLTS Node.jsバージョン（2025年5月現在）
+  PNPM_VERSION: '10' # 最新のpnpmメジャーバージョン（2025年5月現在）
 
 jobs:
   # 品質チェック（PR用）
@@ -61,8 +61,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-          cache-dependency-path: "pnpm-lock.yaml"
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -106,8 +106,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-          cache-dependency-path: "pnpm-lock.yaml"
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
 
       # 依存関係のインストール（セキュリティ強化）
       - name: Install dependencies
@@ -138,7 +138,7 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
-          VITE_SHEET_RECOMMENDED: "recommended:1043711248"
+          VITE_SHEET_RECOMMENDED: 'recommended:1043711248'
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
           NODE_ENV: production
 
@@ -169,18 +169,18 @@ jobs:
           VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
           VITE_GOOGLE_SHEETS_API_KEY: ${{ secrets.VITE_GOOGLE_SHEETS_API_KEY }}
           VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
-          VITE_SHEET_RECOMMENDED: "recommended:1043711248"
-          VITE_SHEET_RYOTSU_AIKAWA: "ryotsu_aikawa:95850266"
-          VITE_SHEET_KANAI_SAWADA: "kanai_sawada:431330115"
-          VITE_SHEET_AKADOMARI_HAMOCHI: "akadomari_hamochi:1375085632"
-          VITE_SHEET_SNACK: "snack:490189070"
-          VITE_SHEET_TOILET: "toilet:1271565248"
-          VITE_SHEET_PARKING: "parking:716861286"
+          VITE_SHEET_RECOMMENDED: 'recommended:1043711248'
+          VITE_SHEET_RYOTSU_AIKAWA: 'ryotsu_aikawa:95850266'
+          VITE_SHEET_KANAI_SAWADA: 'kanai_sawada:431330115'
+          VITE_SHEET_AKADOMARI_HAMOCHI: 'akadomari_hamochi:1375085632'
+          VITE_SHEET_SNACK: 'snack:490189070'
+          VITE_SHEET_TOILET: 'toilet:1271565248'
+          VITE_SHEET_PARKING: 'parking:716861286'
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
           NODE_ENV: production
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: '--max_old_space_size=4096'
 
       # ビルド成果物の詳細検証
       - name: Verify build output
@@ -210,7 +210,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./dist"
+          path: './dist'
 
       # GitHub Pagesへのデプロイ（新しい推奨方法）
       - name: Deploy to GitHub Pages

@@ -1,3 +1,50 @@
 # pnpm workspace configuration
 packages:
-  - "."
+  - '.'
+
+# Performance and security settings
+prefer-workspace-packages: true
+link-workspace-packages: true
+shared-workspace-lockfile: true
+
+# Node.js and dependency resolution settings
+auto-install-peers: true
+strict-peer-dependencies: false
+resolution-mode: 'highest'
+
+# Build and lifecycle settings
+ignore-scripts: false
+shell-emulator: true
+
+# Cache and performance optimization
+side-effects-cache: true
+side-effects-cache-readonly: false
+store-dir: ~/.pnpm-store
+
+# Workspace concurrency (optimized for development)
+workspace-concurrency: 4
+
+# Hoisting settings for better compatibility
+hoist: true
+hoist-pattern: ['*']
+public-hoist-pattern: ['*eslint*', '*prettier*', '*typescript*']
+
+# Security settings
+audit-level: 'moderate'
+fund: false
+
+# Registry and network settings
+registry: 'https://registry.npmjs.org/'
+network-timeout: 60000
+fetch-retries: 3
+fetch-retry-factor: 10
+fetch-retry-mintimeout: 10000
+fetch-retry-maxtimeout: 60000
+
+# Enable modern features
+enable-pre-post-scripts: true
+enable-modules-dir: true
+
+# Dependency management
+save-workspace-protocol: 'rolling'
+update-notifier: false

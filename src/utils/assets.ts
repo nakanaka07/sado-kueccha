@@ -15,7 +15,8 @@ export const resolveAssetPath = (path: string): string => {
     return "";
   }
 
-  const basePath = getAppConfig().basePath;
+  const { app } = getAppConfig();
+  const { basePath } = app;
 
   // 既に完全パスの場合はそのまま返す
   if (path.startsWith("http") || path.startsWith("//")) {

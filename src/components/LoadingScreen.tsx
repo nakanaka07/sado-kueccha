@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { ASSETS } from "../utils/assets";
 
 interface LoadingScreenProps {
@@ -16,7 +16,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     <div className="loading">
       <div className="loading-content">
         <img src={ASSETS.TITLE.ROW1} alt={title} className="loading-title-image" />
-        <div className="loading-spinner"></div>
+        <div className="loading-spinner" />
         <p>{message}</p>
         <div className="loading-progress">
           <small>{progress}</small>
@@ -36,7 +36,7 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = ({ fadeOut, p
     <div className={`map-loading-overlay ${fadeOut ? "fade-out" : ""}`}>
       <div className="map-loading-content">
         <img src={ASSETS.TITLE.ROW1} alt="佐渡で食えっちゃ" className="map-loading-title-image" />
-        <div className="loading-spinner"></div>
+        <div className="loading-spinner" />
         <p>{poisLoading ? "お店のデータを読み込み中..." : "地図を準備中..."}</p>
         <div className="loading-progress">
           <small>

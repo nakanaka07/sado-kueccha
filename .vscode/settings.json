@@ -1,55 +1,116 @@
 {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "prettier.requireConfig": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.workingDirectories": ["."],
+  "eslint.useFlatConfig": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "emmet.includeLanguages": {
+    "typescript": "typescriptreact",
+    "javascript": "javascriptreact"
+  },
+  "files.associations": {
+    "*.css": "css"
+  },
+  "editor.rulers": [100],
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/coverage": true,
+    "**/*.lock": true,
+    "**/.local": true,
+    "**/.vite": true,
+    "**/.cache": true,
+    "**/build": true,
+    "**/.turbo": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.local": true,
+    "**/tsconfig.tsbuildinfo": true,
+    "**/.vite": true,
+    "**/.cache": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/.vite/**": true,
+    "**/.cache/**": true,
+    "**/build/**": true,
+    "**/.turbo/**": true
+  },
+  "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "prettier.requireConfig": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit",
-        "source.organizeImports": "explicit"
-    },
-    "typescript.preferences.importModuleSpecifier": "relative",
-    "typescript.suggest.autoImports": true,
-    "typescript.updateImportsOnFileMove.enabled": "always",
-    "emmet.includeLanguages": {
-        "typescript": "typescriptreact",
-        "javascript": "javascriptreact"
-    },
-    "files.associations": {
-        "*.css": "css"
-    },
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/.git": true,
-        "**/coverage": true,
-        "**/*.lock": true,
-        "**/.local": true
-    },
-    "files.exclude": {
-        "**/.git": true,
-        "**/.DS_Store": true,
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/.local": true,
-        "**/tsconfig.tsbuildinfo": true
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "react.snippets.enabled": true,
-    "javascript.suggest.includeCompletions": true,
-    "typescript.suggest.includeCompletions": true,
-    "css.validate": true,
-    "scss.validate": true,
-    "less.validate": true,
-    // Disable accessibility checkers that cause false positives
-    "axe.disableForWorkspace": true,
-    "axe-accessibility.disableValidation": true,
-    "microsoft-edge-tools.webhint.enabled": false,
-    "webhint.enable": false
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "editor.rulers": [80]
+  },
+  "react.snippets.enabled": true,
+  "javascript.suggest.includeCompletions": true,
+  "typescript.suggest.includeCompletions": true,
+  "css.validate": true,
+  "scss.validate": true,
+  "less.validate": true,
+  // 2025年最新の開発体験向上設定
+  "editor.inlayHints.enabled": "on",
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+  // Git関連の設定強化
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  // パフォーマンス最適化
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  },
+  // Disable accessibility checkers that cause false positives
+  "axe.disableForWorkspace": true,
+  "axe-accessibility.disableValidation": true,
+  "microsoft-edge-tools.webhint.enabled": false,
+  "webhint.enable": false
 }
