@@ -1,10 +1,12 @@
-name: Build and Deploy to GitHub Pages
+name: '🚀 CI/CD Pipeline - Build & Deploy'
 
-# ワークフロー実行のトリガー設定
+# 実行名の動的設定（2025年新機能）
+run-name: 'Deploy to Pages by @${{ github.actor }} from ${{ github.ref_name }}'
+
+# ワークフロー実行のトリガー設定（最新化・最適化）
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'src/**'
       - 'public/**'
@@ -13,52 +15,146 @@ on:
       - 'pnpm-lock.yaml'
       - 'vite.config.ts'
       - 'tsconfig*.json'
+      - '.github/workflows/**'
   pull_request:
-    branches:
-      - main
+    branches: [main]
     paths-ignore:
       - '**.md'
       - 'docs/**'
-  # リリースタグでのデプロイ
+      - 'LICENSE'
+      - '.gitignore'
   release:
     types: [published]
-  # 手動実行のためのオプション
+  # 手動実行（トラブルシューティング対応）
   workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'デプロイ先環境'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'テストをスキップ'
+        required: false
+        default: false
+        type: boolean
 
-# セキュリティ強化：最小権限の原則
+# セキュリティ強化：最小権限の原則（OpenID Connect対応）
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
+  checks: read
 
-# 並行実行制御：同時デプロイの防止
+# 並行実行制御：ブランチ別管理
 concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# デフォルト実行環境の設定
+# グローバル環境変数（2025年推奨構成）
 env:
-  NODE_VERSION: '22' # 最新のLTS Node.jsバージョン（2025年5月現在）
-  PNPM_VERSION: '10' # 最新のpnpmメジャーバージョン（2025年5月現在）
+  NODE_VERSION: '22.14.0' # 最新LTSバージョン固定（セキュリティ強化）
+  PNPM_VERSION: '10.13.1' # 最新安定版固定
+  CI: true
+  NODE_ENV: production
+  FORCE_COLOR: 3
 
 jobs:
-  # 品質チェック（PR用）
-  quality-checks:
-    if: github.event_name == 'pull_request'
+  # セキュリティ監査・依存関係チェック（全実行時）
+  security-audit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-file-monitoring: false
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Verify lockfile
+        run: |
+          echo "🔍 Verifying pnpm-lock.yaml integrity..."
+          pnpm install --frozen-lockfile --dry-run
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run security audit
+        run: |
+          echo "🔒 Running security audit..."
+          pnpm audit --audit-level high || {
+            echo "⚠️ Security vulnerabilities found. Review required."
+            pnpm audit --audit-level high --json > audit-results.json || true
+            echo "Audit results saved for review."
+          }
+
+      - name: Check for outdated dependencies
+        run: |
+          echo "📦 Checking for outdated dependencies..."
+          pnpm outdated || echo "Some dependencies are outdated. Consider updating."
+
+  # 品質チェック（PR用・強化版）
+  quality-checks:
+    if: github.event_name == 'pull_request' || inputs.skip_tests == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        check-type: [typescript, linting, formatting, testing]
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+          disable-sudo: true
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
@@ -67,103 +163,162 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run type checking
-        run: pnpm type-check
+      - name: Run TypeScript checking
+        if: matrix.check-type == 'typescript'
+        run: |
+          echo "🔧 Running TypeScript type checking..."
+          pnpm type-check
 
-      - name: Run linting
-        run: pnpm lint
+      - name: Run ESLint
+        if: matrix.check-type == 'linting'
+        run: |
+          echo "🔍 Running ESLint..."
+          pnpm lint --format=stylish
 
-      - name: Run formatting check
-        run: pnpm format:check
+      - name: Run Prettier check
+        if: matrix.check-type == 'formatting'
+        run: |
+          echo "💅 Checking code formatting..."
+          pnpm format:check
 
-      - name: Run tests
-        run: pnpm test
-  # ビルドとデプロイ（メインブランチまたはリリース用）
+      - name: Run tests with coverage
+        if: matrix.check-type == 'testing'
+        run: |
+          echo "🧪 Running tests with coverage..."
+          pnpm test:coverage || {
+            echo "❌ Tests failed. Checking for test files..."
+            find src -name "*.test.*" -o -name "*.spec.*" | head -5
+            exit 1
+          }
+
+      - name: Upload coverage reports
+        if: matrix.check-type == 'testing' && github.event_name == 'pull_request'
+        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8 # v4.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN || '' }}
+          fail_ci_if_error: false
+          verbose: true
+  # ビルド・デプロイ（メイン・リリース・手動実行用・強化版）
   build-and-deploy:
+    needs: [security-audit]
     if: |
       (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
       github.event_name == 'release' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      actions: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
+    outputs:
+      deployment-url: ${{ steps.deployment.outputs.page_url }}
+      build-size: ${{ steps.build-stats.outputs.build-size }}
+
     steps:
-      # リポジトリのコードをチェックアウト
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
-          fetch-depth: 0 # 完全な履歴を取得      # pnpmのインストール
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+          egress-policy: audit
+          disable-sudo: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            nodejs.org:443
+            registry.npmjs.org:443
+            objects.githubusercontent.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      # Node.jsのセットアップ（公式推奨のシンプルなキャッシュ戦略）
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js with caching
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: 'pnpm-lock.yaml'
 
-      # 依存関係のインストール（セキュリティ強化）
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # 品質チェック（ビルド前）
-      - name: Run type checking
-        run: pnpm type-check
-
-      - name: Run linting
-        run: pnpm lint
-
-      - name: Run tests
-        run: pnpm test # リポジトリ名から動的にベースパスを設定      # 環境変数の検証
-      - name: Verify environment variables
         run: |
-          echo "Checking environment variables..."
+          echo "📦 Installing dependencies..."
+          pnpm install --frozen-lockfile
+          echo "✅ Dependencies installed successfully"
+
+      - name: Pre-build quality checks
+        if: inputs.skip_tests != true
+        run: |
+          echo "🔍 Running pre-build quality checks..."
+          echo "Running TypeScript check..."
+          pnpm type-check
+          echo "Running linter..."
+          pnpm lint
+          echo "Running tests..."
+          pnpm test || {
+            echo "❌ Quality checks failed"
+            exit 1
+          }
+          echo "✅ All quality checks passed"
+
+      - name: Verify environment configuration
+        run: |
+          echo "🔧 Verifying environment configuration..."
           echo "NODE_ENV: $NODE_ENV"
           echo "CI: $CI"
-          echo "VITE_BASE_PATH: $VITE_BASE_PATH"
-          [ -n "$VITE_GOOGLE_MAPS_API_KEY" ] && echo "✅ VITE_GOOGLE_MAPS_API_KEY is set" || echo "❌ VITE_GOOGLE_MAPS_API_KEY is missing"
-          [ -n "$VITE_GOOGLE_SPREADSHEET_ID" ] && echo "✅ VITE_GOOGLE_SPREADSHEET_ID is set" || echo "❌ VITE_GOOGLE_SPREADSHEET_ID is missing"
-          [ -n "$VITE_EMAILJS_SERVICE_ID" ] && echo "✅ VITE_EMAILJS_SERVICE_ID is set" || echo "❌ VITE_EMAILJS_SERVICE_ID is missing"
-          [ -n "$VITE_BASE_PATH" ] && echo "✅ VITE_BASE_PATH is set" || echo "❌ VITE_BASE_PATH is missing"
-          [ -n "$VITE_SHEET_RECOMMENDED" ] && echo "✅ VITE_SHEET_RECOMMENDED is set" || echo "❌ VITE_SHEET_RECOMMENDED is missing"
+          echo "Repository: ${{ github.repository }}"
+          echo "Base path will be: /${{ github.event.repository.name }}/"
+
+          # 必須環境変数の検証（セキュリティ考慮）
+          check_var() {
+            if [ -n "${!1}" ]; then
+              echo "✅ $1 is configured"
+            else
+              echo "❌ $1 is missing"
+              return 1
+            fi
+          }
+
+          check_var "VITE_GOOGLE_MAPS_API_KEY"
+          check_var "VITE_GOOGLE_SPREADSHEET_ID"
+          check_var "VITE_EMAILJS_SERVICE_ID"
+
+          echo "✅ Environment verification completed"
         env:
-          CI: true
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
-          VITE_SHEET_RECOMMENDED: 'recommended:1043711248'
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
-          NODE_ENV: production
 
-      # アプリケーションのビルド（改良された設定）
       - name: Build application
+        id: build
         run: |
-          echo "Starting build process..."
-          echo "Repository name: ${{ github.event.repository.name }}"
+          echo "🏗️ Starting optimized build process..."
+          echo "Repository: ${{ github.repository }}"
           echo "Base path: /${{ github.event.repository.name }}/"
+          echo "Build timestamp: $(date -Iseconds)"
+
+          # メモリ使用量最適化
+          export NODE_OPTIONS="--max_old_space_size=4096"
+
+          # ビルド実行
           pnpm build
-          echo "Build process completed"
-          echo "Checking build output..."
-          ls -la
-          if [ -d "./dist" ]; then
-            echo "✅ dist directory found"
-            ls -la ./dist
-            echo "Dist directory size: $(du -sh ./dist)"
-          else
-            echo "❌ dist directory not found"
-            echo "Searching for build output..."
-            find . -name "*.html" -o -name "*.js" -o -name "*.css" | head -10
-            exit 1
-          fi
+
+          echo "✅ Build completed successfully"
         env:
           CI: true
+          NODE_ENV: production
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
@@ -179,46 +334,157 @@ jobs:
           VITE_EMAILJS_SERVICE_ID: ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
-          NODE_ENV: production
-          NODE_OPTIONS: '--max_old_space_size=4096'
 
-      # ビルド成果物の詳細検証
-      - name: Verify build output
+      - name: Analyze build output
+        id: build-stats
         run: |
-          echo "Verifying build output..."
+          echo "📊 Analyzing build output..."
+
           if [ ! -d "./dist" ]; then
-            echo "❌ Error: Build output directory not found"
+            echo "❌ Build output directory not found"
             echo "Available directories:"
             ls -la
             exit 1
           fi
 
           if [ ! -f "./dist/index.html" ]; then
-            echo "❌ Warning: index.html not found in dist"
+            echo "❌ index.html not found in dist"
             echo "Contents of dist directory:"
             ls -la ./dist
             exit 1
           fi
 
-          echo "✅ Build verification successful"
-          echo "Dist directory size: $(du -sh ./dist)"
-          echo "Number of files: $(find ./dist -type f | wc -l)"
+          # ビルドサイズ計算
+          BUILD_SIZE=$(du -sh ./dist | cut -f1)
+          FILE_COUNT=$(find ./dist -type f | wc -l)
 
-      # GitHub Pagesの設定
+          echo "✅ Build analysis completed"
+          echo "📦 Build size: $BUILD_SIZE"
+          echo "📄 File count: $FILE_COUNT"
+          echo "🕒 Analysis timestamp: $(date -Iseconds)"
+
+          # GitHub Actions outputs
+          echo "build-size=$BUILD_SIZE" >> $GITHUB_OUTPUT
+          echo "file-count=$FILE_COUNT" >> $GITHUB_OUTPUT
+
+          # セキュリティチェック: 機密情報の漏洩検査
+          echo "🔒 Running security scan on build output..."
+          if grep -r "API_KEY\|SECRET\|PASSWORD\|TOKEN" ./dist/ --exclude-dir=node_modules || true; then
+            echo "⚠️ Potential sensitive data found in build output. Review required."
+          else
+            echo "✅ No sensitive data detected in build output"
+          fi
+
+      - name: Generate build report
+        run: |
+          echo "📋 Generating build report..."
+          cat > build-report.md << EOF
+          # Build Report 📊
+
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Build Size:** ${{ steps.build-stats.outputs.build-size }}
+          **File Count:** ${{ steps.build-stats.outputs.file-count }}
+          **Build Time:** $(date -Iseconds)
+
+          ## Build Environment
+          - Node.js: ${{ env.NODE_VERSION }}
+          - pnpm: ${{ env.PNPM_VERSION }}
+          - OS: ubuntu-latest
+
+          ## Build Status
+          ✅ Build completed successfully
+          EOF
+
+          echo "Build report generated"
+
       - name: Setup Pages
-        uses: actions/configure-pages@v4 # アーティファクトのアップロード
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: './dist'
 
-      # GitHub Pagesへのデプロイ（新しい推奨方法）
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 
-      # デプロイ成功の確認
-      - name: Verify deployment
+      - name: Post-deployment verification
         run: |
-          echo "Deployment URL: ${{ steps.deployment.outputs.page_url }}"
-          echo "Deployment successful at $(date)"
+          echo "🎉 Deployment completed successfully!"
+          echo "🌐 Deployment URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📅 Deployment time: $(date -Iseconds)"
+          echo "📦 Build size: ${{ steps.build-stats.outputs.build-size }}"
+          echo "📄 File count: ${{ steps.build-stats.outputs.file-count }}"
+
+          # デプロイメント成功をSlackやその他の通知システムに送信する場合はここに追加
+          # echo "Sending deployment notification..."
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "🧹 Performing cleanup..."
+          # 機密情報を含む可能性のある一時ファイルの削除
+          rm -f .env.local .env.*.local 2>/dev/null || true
+          echo "✅ Cleanup completed"
+
+  # 通知・レポート（オプション）
+  notify-success:
+    needs: [build-and-deploy]
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - name: Deployment success notification
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "📊 Deployment Summary:"
+          echo "├── URL: ${{ needs.build-and-deploy.outputs.deployment-url }}"
+          echo "├── Build Size: ${{ needs.build-and-deploy.outputs.build-size }}"
+          echo "├── Repository: ${{ github.repository }}"
+          echo "├── Branch: ${{ github.ref_name }}"
+          echo "├── Commit: ${{ github.sha }}"
+          echo "└── Timestamp: $(date -Iseconds)"
+
+          # 将来的にSlack、Teams、Discord等への通知を追加する場合はここに実装
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"✅ Deployment successful: ${{ needs.build-and-deploy.outputs.deployment-url }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # 失敗時の通知・デバッグ情報収集
+  notify-failure:
+    needs: [security-audit, quality-checks, build-and-deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - name: Failure analysis and notification
+        run: |
+          echo "❌ Workflow failed!"
+          echo "🔍 Failure Analysis:"
+          echo "├── Repository: ${{ github.repository }}"
+          echo "├── Branch: ${{ github.ref_name }}"
+          echo "├── Commit: ${{ github.sha }}"
+          echo "├── Actor: ${{ github.actor }}"
+          echo "├── Event: ${{ github.event_name }}"
+          echo "└── Timestamp: $(date -Iseconds)"
+          echo ""
+          echo "📋 Job Status:"
+          echo "├── Security Audit: ${{ needs.security-audit.result }}"
+          echo "├── Quality Checks: ${{ needs.quality-checks.result }}"
+          echo "└── Build & Deploy: ${{ needs.build-and-deploy.result }}"
+          echo ""
+          echo "💡 Troubleshooting Tips:"
+          echo "1. Check the failed job logs above"
+          echo "2. Verify all required secrets are configured"
+          echo "3. Ensure code quality standards are met"
+          echo "4. Check for dependency vulnerabilities"
+          echo "5. Review recent commits for breaking changes"

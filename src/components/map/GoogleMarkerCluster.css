@@ -1,0 +1,390 @@
+/* CSS カスタムプロパティの定義 - 2025年最新標準 */
+:root {
+  /* サイズシステム */
+  --marker-icon-size-small: 16px;
+  --marker-icon-size-medium: 24px;
+  --marker-icon-size-large: 32px;
+
+  /* シャドウシステム */
+  --marker-shadow-subtle: drop-shadow(0 1px 2px oklch(0% 0 0 / 0.15));
+  --marker-shadow-elevated: drop-shadow(0 4px 8px oklch(0% 0 0 / 0.25));
+
+  /* トランジションシステム */
+  --marker-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --marker-transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* スケールシステム */
+  --marker-scale-hover: 1.1;
+  --marker-scale-active: 0.95;
+
+  /* カラーシステム */
+  --marker-primary-color: oklch(0.6 0.15 258); /* #4285f4 in OKLCH */
+  --marker-surface-light: oklch(1 0 0 / 0.95);
+  --marker-surface-dark: oklch(0.1 0 0 / 0.9);
+  --marker-border-light: oklch(0% 0 0 / 0.1);
+  --marker-border-dark: oklch(100% 0 0 / 0.2);
+}
+
+/* カスタムマーカーアイコン - 共通スタイル */
+.custom-marker-icon {
+  block-size: var(--marker-icon-size-medium);
+  inline-size: var(--marker-icon-size-medium);
+  object-fit: contain;
+  cursor: pointer;
+  filter: var(--marker-shadow-subtle);
+  transition:
+    transform var(--marker-transition-fast),
+    filter var(--marker-transition-fast);
+  position: relative;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  /* フォーカス管理の改善 */
+  outline: none;
+}
+
+.custom-marker-icon:hover {
+  transform: scale(var(--marker-scale-hover));
+  filter: var(--marker-shadow-elevated);
+}
+
+.custom-marker-icon:active {
+  transform: scale(var(--marker-scale-active));
+}
+
+/* フォーカス状態（キーボードナビゲーション対応） */
+.custom-marker-icon:focus-visible {
+  outline: 2px solid var(--marker-primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ズームレベル別サイズバリエーション */
+.custom-marker-icon--full-size {
+  block-size: var(--marker-icon-size-large);
+  inline-size: var(--marker-icon-size-large);
+}
+
+.custom-marker-icon--compact {
+  block-size: var(--marker-icon-size-medium);
+  inline-size: var(--marker-icon-size-medium);
+}
+
+.custom-marker-icon--small {
+  block-size: var(--marker-icon-size-small);
+  inline-size: var(--marker-icon-size-small);
+}
+
+/* 読み込み中インジケーター - モダンなデザイン */
+.marker-loading-indicator {
+  position: fixed;
+  inset-block-end: 20px;
+  inset-inline-end: 20px;
+  background: color-mix(in oklch, black 90%, transparent);
+  color: white;
+  padding-block: 12px;
+  padding-inline: 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in oklch, white 20%, transparent);
+  box-shadow:
+    0 4px 12px color-mix(in oklch, black 25%, transparent),
+    0 1px 3px color-mix(in oklch, black 30%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* コンテインメント最適化 */
+  contain: layout style paint;
+}
+
+.marker-loading-indicator::before {
+  content: '';
+  inline-size: 16px;
+  block-size: 16px;
+  border: 2px solid color-mix(in oklch, white 30%, transparent);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* マーカーアニメーション - パフォーマンス最適化 */
+@keyframes markerExpanding {
+  0% {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale3d(1.15, 1.15, 1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+
+/* クラスターズーム開始アニメーション - よりスムーズに */
+@keyframes clusterZoomPulse {
+  0% {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--marker-primary-color) 40%, transparent);
+  }
+  25% {
+    transform: scale3d(1.05, 1.05, 1);
+    opacity: 0.98;
+    box-shadow: 0 0 0 4px color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+    opacity: 0.95;
+    box-shadow: 0 0 0 8px color-mix(in oklch, var(--marker-primary-color) 20%, transparent);
+  }
+  75% {
+    transform: scale3d(1.05, 1.05, 1);
+    opacity: 0.9;
+    box-shadow: 0 0 0 4px color-mix(in oklch, var(--marker-primary-color) 10%, transparent);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.85;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* クラスター分散アニメーション - 3D効果付き */
+@keyframes clusterBreakApart {
+  0% {
+    transform: scale3d(1, 1, 1) rotate3d(0, 0, 1, 0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale3d(1.3, 1.3, 1) rotate3d(0, 0, 1, 180deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale3d(0, 0, 1) rotate3d(0, 0, 1, 360deg);
+    opacity: 0;
+  }
+}
+
+.marker-expanding {
+  animation: markerExpanding 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, opacity;
+}
+
+/* クラスターズーム時の特別なアニメーション */
+.cluster-zooming {
+  animation: clusterZoomPulse 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 50%;
+  display: inline-block;
+  overflow: visible;
+  transform-origin: center;
+  will-change: transform, opacity, box-shadow;
+}
+
+/* クラスター解散時のアニメーション */
+.cluster-breaking {
+  animation: clusterBreakApart 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+/* スムーズなトランジション効果 */
+.marker-transition {
+  transition: all var(--marker-transition-medium);
+  will-change: transform, opacity;
+}
+
+/* クラスタリング制御パネル - モダンなデザイン */
+.clustering-controls {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  z-index: 1000;
+  background: var(--marker-surface-light);
+  padding-block: 12px;
+  padding-inline: 16px;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px color-mix(in oklch, black 15%, transparent),
+    0 1px 3px color-mix(in oklch, black 20%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--marker-border-light);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'Roboto',
+    sans-serif;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  /* コンテインメント最適化 */
+  contain: layout style;
+}
+
+.clustering-controls button {
+  padding-block: 8px;
+  padding-inline: 12px;
+  border: 1px solid color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
+  border-radius: 8px;
+  background: var(--marker-primary-color);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--marker-transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-block-size: 36px;
+}
+
+.clustering-controls button:hover {
+  background: color-mix(in oklch, var(--marker-primary-color) 90%, black);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 8px color-mix(in oklch, var(--marker-primary-color) 30%, transparent),
+    0 1px 3px color-mix(in oklch, var(--marker-primary-color) 40%, transparent);
+}
+
+.clustering-controls button:active {
+  transform: translateY(0);
+  background: color-mix(in oklch, var(--marker-primary-color) 80%, black);
+}
+
+.clustering-controls button:focus-visible {
+  outline: 2px solid var(--marker-primary-color);
+  outline-offset: 2px;
+}
+
+.clustering-controls button:disabled {
+  background: color-mix(in oklch, black 20%, transparent);
+  color: color-mix(in oklch, black 50%, transparent);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* レスポンシブデザイン対応 */
+@container (max-width: 768px) {
+  .clustering-controls {
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    padding-block: 8px;
+    padding-inline: 12px;
+  }
+
+  .clustering-controls button {
+    padding-block: 6px;
+    padding-inline: 10px;
+    font-size: 12px;
+    min-block-size: 32px;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .clustering-controls {
+    background: var(--marker-surface-dark);
+    border-color: var(--marker-border-dark);
+  }
+
+  .marker-loading-indicator {
+    background: color-mix(in oklch, black 95%, transparent);
+    border-color: var(--marker-border-dark);
+  }
+}
+
+/* 動きを減らす設定の尊重 */
+@media (prefers-reduced-motion: reduce) {
+  .custom-marker-icon,
+  .marker-transition,
+  .clustering-controls button {
+    transition: none;
+  }
+
+  .marker-expanding,
+  .cluster-zooming,
+  .cluster-breaking {
+    animation: none;
+  }
+}
+
+/* CSS View Transitions対応 - 最新ブラウザ機能 */
+@supports (view-transition-name: auto) {
+  .custom-marker-icon {
+    view-transition-name: auto;
+  }
+
+  .clustering-controls {
+    view-transition-name: auto;
+  }
+}
+
+/* コンテナクエリーの強化 - より細かい対応 */
+@container (max-width: 480px) {
+  .clustering-controls {
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    padding-block: 6px;
+    padding-inline: 8px;
+    border-radius: 8px;
+  }
+
+  .clustering-controls button {
+    padding-block: 4px;
+    padding-inline: 8px;
+    font-size: 11px;
+    min-block-size: 28px;
+  }
+
+  .marker-loading-indicator {
+    inset-block-end: 16px;
+    inset-inline-end: 16px;
+    padding-block: 8px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .custom-marker-icon {
+    filter: var(--marker-shadow-elevated);
+  }
+
+  .clustering-controls {
+    border-width: 2px;
+  }
+
+  .clustering-controls button {
+    border-width: 2px;
+  }
+}
+
+/* 透明度削減設定の尊重 */
+@media (prefers-reduced-transparency: reduce) {
+  .clustering-controls,
+  .marker-loading-indicator {
+    backdrop-filter: none;
+    background: oklch(1 0 0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .clustering-controls,
+    .marker-loading-indicator {
+      background: oklch(0.15 0 0);
+    }
+  }
+}

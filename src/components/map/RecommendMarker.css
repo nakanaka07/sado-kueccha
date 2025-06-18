@@ -1,0 +1,335 @@
+/* おすすめマーカー専用スタイル - 最新のCSS基準に準拠 */
+
+/* CSS Custom Properties */
+:root {
+  --recommend-marker-size: 48px;
+  --recommend-marker-size-mobile: 40px;
+  --recommend-marker-icon-size: 24px;
+  --recommend-marker-icon-size-mobile: 20px;
+  --recommend-marker-border-width: 3px;
+  --recommend-marker-shadow-color: rgb(255 107 53 / 0.4);
+  --recommend-marker-gradient: linear-gradient(135deg, #ff6b35, #ff8e00, #ffb600);
+  --recommend-marker-hover-shadow: rgb(255 107 53 / 0.6);
+  --recommend-marker-animation-duration: 0.6s;
+  --recommend-marker-pulse-duration: 3s;
+  --recommend-marker-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ベースマーカー */
+.recommend-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--recommend-marker-transition);
+  z-index: 1000;
+  isolation: isolate;
+  /* フォーカス表示の改善 */
+  outline: none;
+}
+
+/* フォーカス状態 */
+.recommend-marker:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+/* パルスエフェクト - パフォーマンス最適化 */
+.recommend-marker::before {
+  content: '';
+  position: absolute;
+  inset: 50%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
+  width: 100%;
+  background: var(--recommend-marker-shadow-color);
+  border-radius: 50%;
+  animation: pulseGlow var(--recommend-marker-pulse-duration) infinite;
+  z-index: -1;
+  will-change: transform, opacity;
+}
+
+/* マーカー本体 - Grid Layout使用 */
+.recommend-marker-content {
+  position: relative;
+  width: var(--recommend-marker-size);
+  height: var(--recommend-marker-size);
+  background: var(--recommend-marker-gradient);
+  border: var(--recommend-marker-border-width) solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 4px 12px var(--recommend-marker-shadow-color),
+    0 2px 6px rgb(0 0 0 / 0.2),
+    inset 0 1px 3px rgb(255 255 255 / 0.3);
+  display: grid;
+  place-items: center;
+  transition: var(--recommend-marker-transition);
+  z-index: 1;
+  /* パフォーマンス最適化 */
+  will-change: transform, box-shadow;
+  /* アンチエイリアシングの改善 */
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* アイコン - object-fit使用 */
+.recommend-marker-icon {
+  width: var(--recommend-marker-icon-size);
+  height: var(--recommend-marker-icon-size);
+  object-fit: contain;
+  filter: brightness(1.2) drop-shadow(0 1px 2px rgb(0 0 0 / 0.3));
+  transition: var(--recommend-marker-transition);
+  /* GPU加速 */
+  will-change: transform, filter;
+}
+
+/* ホバー効果 - Logical Properties使用 */
+.recommend-marker:hover {
+  transform: scale(1.1);
+}
+
+.recommend-marker:hover .recommend-marker-content {
+  transform: scale(1.05);
+  box-shadow:
+    0 6px 20px var(--recommend-marker-hover-shadow),
+    0 3px 10px rgb(0 0 0 / 0.3),
+    inset 0 1px 3px rgb(255 255 255 / 0.4);
+}
+
+.recommend-marker:hover .recommend-marker-icon {
+  transform: scale(1.1);
+  filter: brightness(1.3) drop-shadow(0 2px 4px rgb(0 0 0 / 0.4));
+}
+
+/* ラベル - Modern CSS Grid Layout */
+.recommend-marker-label {
+  position: absolute;
+  inset-block-start: -40px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  background: var(--recommend-marker-gradient);
+  color: white;
+  padding-block: 4px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow:
+    0 2px 8px var(--recommend-marker-shadow-color),
+    0 1px 3px rgb(0 0 0 / 0.2);
+  opacity: 0;
+  transition: var(--recommend-marker-transition);
+  pointer-events: none;
+  z-index: 2;
+  /* テキストレンダリング最適化 */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ラベルのテール */
+.recommend-marker-label::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-inline: 6px solid transparent;
+  border-block-start: 6px solid #ff6b35;
+}
+
+/* ラベル表示 */
+.recommend-marker:hover .recommend-marker-label {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* ハイライト状態 */
+.recommend-marker-highlighted .recommend-marker-content {
+  box-shadow:
+    0 0 0 4px rgb(255 255 255 / 0.8),
+    0 0 0 8px rgb(255 107 53 / 0.6),
+    0 6px 20px var(--recommend-marker-hover-shadow),
+    0 3px 10px rgb(0 0 0 / 0.3);
+  animation: highlight-pulse 2s infinite;
+}
+
+/* アニメーション定義 - contain使用でパフォーマンス改善 */
+@keyframes pulseGlow {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes specialIntro {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes highlight-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgb(255 255 255 / 0.8),
+      0 0 0 8px rgb(255 107 53 / 0.6),
+      0 6px 20px var(--recommend-marker-hover-shadow),
+      0 3px 10px rgb(0 0 0 / 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgb(255 255 255 / 1),
+      0 0 0 8px rgb(255 107 53 / 0.8),
+      0 8px 24px var(--recommend-marker-hover-shadow),
+      0 4px 12px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* バウンスアニメーション */
+.recommend-marker-bounce {
+  animation: bounce var(--recommend-marker-animation-duration) ease-out;
+}
+
+/* スペシャルマーカー効果 */
+.recommend-marker-special {
+  animation: specialIntro 0.8s ease-out;
+}
+
+/* Container Queries対応準備 */
+@container (max-width: 768px) {
+  .recommend-marker-content {
+    width: var(--recommend-marker-size-mobile);
+    height: var(--recommend-marker-size-mobile);
+  }
+
+  .recommend-marker-icon {
+    width: var(--recommend-marker-icon-size-mobile);
+    height: var(--recommend-marker-icon-size-mobile);
+  }
+
+  .recommend-marker-label {
+    font-size: 11px;
+    padding-block: 3px;
+    padding-inline: 8px;
+  }
+}
+
+/* レスポンシブ - Media Queries */
+@media (width <= 768px) {
+  .recommend-marker-content {
+    width: var(--recommend-marker-size-mobile);
+    height: var(--recommend-marker-size-mobile);
+  }
+
+  .recommend-marker-icon {
+    width: var(--recommend-marker-icon-size-mobile);
+    height: var(--recommend-marker-icon-size-mobile);
+  }
+
+  .recommend-marker-label {
+    font-size: 11px;
+    padding-block: 3px;
+    padding-inline: 8px;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .recommend-marker-content {
+    border: 4px solid #000;
+    background: #ff6b35;
+  }
+
+  .recommend-marker-label {
+    background: #000;
+    color: #fff;
+    border: 2px solid #ff6b35;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .recommend-marker-content {
+    border-color: #222;
+    box-shadow:
+      0 4px 12px rgb(255 107 53 / 0.6),
+      0 2px 6px rgb(0 0 0 / 0.4),
+      inset 0 1px 3px rgb(255 255 255 / 0.2);
+  }
+
+  .recommend-marker:focus-visible {
+    outline-color: #4da6ff;
+  }
+}
+
+/* アニメーション削減設定対応 */
+@media (prefers-reduced-motion: reduce) {
+  .recommend-marker::before {
+    animation: none;
+  }
+
+  .recommend-marker-bounce,
+  .recommend-marker-special,
+  .recommend-marker-highlighted .recommend-marker-content {
+    animation: none;
+  }
+
+  .recommend-marker,
+  .recommend-marker-content,
+  .recommend-marker-icon,
+  .recommend-marker-label {
+    transition: none;
+  }
+}
+
+/* 透明度削減設定対応 */
+@media (prefers-reduced-transparency: reduce) {
+  .recommend-marker::before {
+    opacity: 0.3;
+  }
+
+  .recommend-marker-label {
+    background: #ff6b35;
+  }
+}

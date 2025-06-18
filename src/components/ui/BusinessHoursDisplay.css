@@ -1,0 +1,279 @@
+/* BusinessHoursDisplay スタイル - 最新CSS標準対応 */
+:root {
+  /* BusinessHours専用カスタムプロパティ */
+  --business-hours-gap: 0.5rem;
+  --business-hours-border-radius: 0.75rem;
+  --business-hours-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --business-hours-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+
+  /* ステータス別の色定義 */
+  --status-open-bg: #10b981;
+  --status-open-text: #ffffff;
+  --status-closed-bg: #ef4444;
+  --status-closed-text: #ffffff;
+  --status-unknown-bg: #6b7280;
+  --status-unknown-text: #ffffff;
+  --status-temp-closed-bg: #f59e0b;
+  --status-temp-closed-text: #ffffff;
+  --status-opening-soon-bg: #eab308;
+  --status-opening-soon-text: #ffffff;
+  --status-closing-soon-bg: #f97316;
+  --status-closing-soon-text: #ffffff;
+  --status-permanent-closed-bg: #7f1d1d;
+  --status-permanent-closed-text: #ffffff;
+}
+
+.business-hours {
+  container-type: inline-size;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'Hiragino Kaku Gothic ProN',
+    'Hiragino Sans',
+    sans-serif;
+}
+
+.business-hours-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--business-hours-gap);
+  align-items: flex-start;
+}
+
+/* ステータスバッジの基本スタイル */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--business-hours-border-radius);
+  font-weight: 600;
+  font-size: clamp(0.75rem, 2cqi + 0.625rem, 0.875rem);
+  line-height: 1.2;
+  box-shadow: var(--business-hours-shadow);
+  transition: var(--business-hours-transition);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  min-height: 2rem;
+}
+
+/* ステータス別のバッジスタイル */
+.status-badge.open {
+  background-color: var(--status-open-bg);
+  color: var(--status-open-text);
+  border-color: color-mix(in srgb, var(--status-open-bg), black 10%);
+}
+
+.status-badge.closed {
+  background-color: var(--status-closed-bg);
+  color: var(--status-closed-text);
+  border-color: color-mix(in srgb, var(--status-closed-bg), black 10%);
+}
+
+.status-badge.unknown,
+.status-badge.confirmation-needed {
+  background-color: var(--status-unknown-bg);
+  color: var(--status-unknown-text);
+  border-color: color-mix(in srgb, var(--status-unknown-bg), black 10%);
+}
+
+.status-badge.time-outside {
+  background-color: var(--status-closed-bg);
+  color: var(--status-closed-text);
+  border-color: color-mix(in srgb, var(--status-closed-bg), black 10%);
+}
+
+.status-badge.temporarily-closed {
+  background-color: var(--status-temp-closed-bg);
+  color: var(--status-temp-closed-text);
+  border-color: color-mix(in srgb, var(--status-temp-closed-bg), black 10%);
+}
+
+.status-badge.permanently-closed {
+  background-color: var(--status-permanent-closed-bg);
+  color: var(--status-permanent-closed-text);
+  border-color: color-mix(in srgb, var(--status-permanent-closed-bg), black 10%);
+}
+
+.status-badge.opening-soon {
+  background-color: var(--status-opening-soon-bg);
+  color: var(--status-opening-soon-text);
+  border-color: color-mix(in srgb, var(--status-opening-soon-bg), black 10%);
+}
+
+.status-badge.closing-soon {
+  background-color: var(--status-closing-soon-bg);
+  color: var(--status-closing-soon-text);
+  border-color: color-mix(in srgb, var(--status-closing-soon-bg), black 10%);
+}
+
+.status-badge.\32 4h {
+  background-color: var(--status-open-bg);
+  color: var(--status-open-text);
+  border-color: color-mix(in srgb, var(--status-open-bg), black 10%);
+  position: relative;
+}
+
+.status-badge.\32 4h::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ステータスアイコンとテキスト */
+.status-icon {
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.1));
+}
+
+.status-text {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* 営業時間情報の表示 */
+.hours-info {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background-color: color-mix(in srgb, var(--color-background-primary, #ffffff), transparent 95%);
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-text-secondary, #6b7280), transparent 80%);
+  font-size: clamp(0.8125rem, 2.5cqi + 0.625rem, 0.9375rem);
+  color: var(--color-text-secondary, #4b5563);
+  transition: var(--business-hours-transition);
+}
+
+.hours-info:hover {
+  background-color: color-mix(in srgb, var(--color-primary-blue, #3b82f6), transparent 95%);
+  border-color: var(--color-primary-blue, #3b82f6);
+}
+
+.hours-label {
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+  flex-shrink: 0;
+}
+
+.hours-value {
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  font-feature-settings: 'tnum' 1; /* タブ文字を使用して数字を等幅に */
+}
+
+/* 詳細情報の表示 */
+.hours-description {
+  padding: 0.375rem 0.75rem;
+  background-color: color-mix(in srgb, var(--color-background-light, #f9fafb), transparent 50%);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--color-primary-blue, #3b82f6);
+  font-size: clamp(0.75rem, 2cqi + 0.5rem, 0.875rem);
+  color: var(--color-text-secondary, #4b5563);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ホバー・フォーカス効果 */
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -1px rgb(0 0 0 / 0.06);
+}
+
+.status-badge:focus-visible {
+  outline: 2px solid var(--color-primary-blue, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* コンテナクエリを使用したレスポンシブ対応 */
+@container (max-width: 200px) {
+  .business-hours-status {
+    gap: 0.25rem;
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .hours-info {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+  }
+}
+
+@container (min-width: 300px) {
+  .business-hours-status {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .hours-info {
+    background-color: color-mix(in srgb, var(--color-background-primary, #1f2937), white 5%);
+    border-color: color-mix(in srgb, var(--color-text-secondary, #9ca3af), transparent 70%);
+  }
+
+  .hours-description {
+    background-color: color-mix(in srgb, var(--color-background-light, #374151), transparent 50%);
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .status-badge {
+    border-width: 2px;
+    font-weight: 700;
+  }
+
+  .hours-info {
+    border-width: 2px;
+  }
+}
+
+/* 動きを控えめにする設定 */
+@media (prefers-reduced-motion: reduce) {
+  .status-badge,
+  .hours-info {
+    transition: none;
+  }
+
+  .status-badge:hover {
+    transform: none;
+  }
+
+  .status-badge.\32 4h::before {
+    animation: none;
+  }
+}
+
+/* 印刷用スタイル */
+@media print {
+  .status-badge {
+    box-shadow: none;
+    border: 2px solid currentColor;
+  }
+
+  .status-icon {
+    display: none;
+  }
+}

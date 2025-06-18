@@ -1,30 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    // === Node.js Environment ===
-    "lib": [
-      "ES2022"
-    ],
-    // === Node.js specific settings ===
+    "lib": ["ES2022"],
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "declaration": true,
-    "declarationMap": true,
     "outDir": "./dist/node",
-    // === Build Configuration ===
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    // === Type Definitions ===
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "vite.config.ts",
-    "eslint.config.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/**/*"
-  ]
+  "include": ["vite.config.ts", "eslint.config.js"],
+  "exclude": ["src/**/*"]
 }

@@ -4,8 +4,17 @@
   "prettier.requireConfig": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
+    "source.organizeImports": "explicit",
+    "source.removeUnusedImports": "explicit"
   },
+  // Vitest 拡張機能設定
+  "vitest.configFiles": ["vitest.config.ts"],
+  "vitest.workspaceConfig": "",
+  "vitest.rootConfig": "./vitest.config.ts",
+  "vitest.commandLine": "pnpm vitest",
+  "vitest.enable": true,
+  "vitest.showFailMessages": true,
+  "vitest.disableWorkspaceWarning": true,
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -38,6 +47,7 @@
     "**/.local": true,
     "**/.vite": true,
     "**/.cache": true,
+    "**/.swc": true,
     "**/build": true,
     "**/.turbo": true
   },
@@ -49,7 +59,8 @@
     "**/.local": true,
     "**/tsconfig.tsbuildinfo": true,
     "**/.vite": true,
-    "**/.cache": true
+    "**/.cache": true,
+    "**/.swc": true
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
@@ -57,6 +68,7 @@
     "**/coverage/**": true,
     "**/.vite/**": true,
     "**/.cache/**": true,
+    "**/.swc/**": true,
     "**/build/**": true,
     "**/.turbo/**": true
   },
@@ -112,5 +124,23 @@
   "axe.disableForWorkspace": true,
   "axe-accessibility.disableValidation": true,
   "microsoft-edge-tools.webhint.enabled": false,
-  "webhint.enable": false
+  "webhint.enable": false,
+  // Code Improvement Support Settings
+  "editor.quickSuggestions": {
+    "comments": "on",
+    "strings": "on",
+    "other": "on"
+  },
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "code-spell-checker.words": [
+    "cleanup",
+    "refactor",
+    "modernize",
+    "standardize",
+    "optimize"
+  ],
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#1f4788",
+    "statusBar.foreground": "#ffffff"
+  }
 }

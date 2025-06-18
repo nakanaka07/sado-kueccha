@@ -48,7 +48,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         rewrite: (path: string) => path.replace(/^\/api\/sheets/, "/spreadsheets"),
         secure: true,
         followRedirects: true,
-        configure: configureProxy,
+        configure: configureProxy as (proxy: unknown, options: unknown) => void,
       },
     },
     // HTTPS設定（証明書がある場合のみ追加）
@@ -57,29 +57,37 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
 
   return {
     // === プラグイン設定 ===
-    plugins: [
-      reactSWC({
-        // React 19対応の最新設定 (Vite 6.x + SWC最適化)
-        jsxImportSource: "react",
-        plugins: [],
-        // TypeScript分離型チェック推奨 (Vite公式ガイダンス)
-        devTarget: "es2022",
-        // SWC最適化オプション
-        tsDecorators: true,
-      }),
-      ...(isProduction
-        ? [
-            visualizer({
-              filename: "dist/bundle-analysis.html",
-              open: false,
-              gzipSize: true,
-              brotliSize: true,
-              template: "treemap",
-              title: "Bundle Analysis - Sado Kueccha",
-            }),
-          ]
-        : []),
-    ],
+    plugins: (() => {
+      const basePlugins = [
+        reactSWC({
+          // React 19対応の最新設定 (Vite 6.x + SWC最適化)
+          jsxImportSource: "react",
+          plugins: [],
+          // TypeScript分離型チェック推奨 (Vite公式ガイダンス)
+          devTarget: "es2022",
+          // SWC最適化オプション
+          tsDecorators: true,
+        }),
+      ];
+
+      if (isProduction) {
+        try {
+          const bundleAnalyzer = (visualizer as unknown as (...args: unknown[]) => unknown)({
+            filename: "dist/bundle-analysis.html",
+            open: false,
+            gzipSize: true,
+            brotliSize: true,
+            template: "treemap" as const,
+            title: "Bundle Analysis - Sado Kueccha",
+          });
+          basePlugins.push(bundleAnalyzer as never);
+        } catch (error) {
+          console.warn("Bundle analyzer plugin could not be loaded:", error);
+        }
+      }
+
+      return basePlugins;
+    })(),
     // === 基本設定 ===
     base: getBasePath(env),
     publicDir: "public",
@@ -344,22 +352,30 @@ function getHttpsConfig(isProduction: boolean) {
 /**
  * プロキシの設定 (Vite 6.x改良版 - 型安全)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function configureProxy(proxy: any) {
+function configureProxy(proxy: Record<string, unknown>) {
+  // プロキシオブジェクトを安全にキャスト
+  const proxyEventEmitter = proxy as {
+    on?: (event: string, handler: (...args: unknown[]) => void) => void;
+  };
+
   // エラーハンドリング
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  proxy.on("error", (err: Error, _req: unknown, res: unknown) => {
-    console.error("🚨 プロキシエラー:", err.message);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-    if (res && !(res as any).headersSent) {
+  proxyEventEmitter.on?.("error", (err: unknown, _req: unknown, res: unknown) => {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("🚨 プロキシエラー:", error.message);
+
+    // レスポンスオブジェクトの型安全チェック
+    const response = res as {
+      headersSent?: boolean;
+      writeHead?: (status: number, headers: Record<string, string>) => void;
+      end?: (data: string) => void;
+    } | null;
+    if (response?.headersSent !== true && response) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (res as any).writeHead(500, { "Content-Type": "application/json" });
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (res as any).end(
+        response.writeHead?.(500, { "Content-Type": "application/json" });
+        response.end?.(
           JSON.stringify({
             error: "プロキシエラー",
-            message: err.message,
+            message: error.message,
             timestamp: new Date().toISOString(),
           }),
         );
@@ -371,15 +387,16 @@ function configureProxy(proxy: any) {
 
   // リクエストログ (開発時のみ)
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    proxy.on("proxyReq", (proxyReq: unknown, req: unknown) => {
+    proxyEventEmitter.on?.("proxyReq", (proxyReq: unknown, req: unknown) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        const method = String((req as any)?.method ?? "UNKNOWN");
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        const url = String((req as any)?.url ?? "UNKNOWN");
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        const host = String((proxyReq as any)?.getHeader?.("host") ?? "UNKNOWN");
+        const request = req as { method?: string; url?: string } | null;
+        const proxyRequest = proxyReq as {
+          getHeader?: (name: string) => string | undefined;
+        } | null;
+
+        const method = String(request?.method ?? "UNKNOWN");
+        const url = String(request?.url ?? "UNKNOWN");
+        const host = String(proxyRequest?.getHeader?.("host") ?? "UNKNOWN");
         console.log(`📡 プロキシリクエスト: ${method} ${url} -> ${host}`);
       } catch {
         console.log("📡 プロキシリクエスト: [詳細取得エラー]");

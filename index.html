@@ -1,16 +1,37 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" dir="ltr">
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="./title_row2.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="./title_row2.png" />
+    <!-- Critical Resource Hints for Performance -->
+    <link rel="preconnect" href="https://maps.googleapis.com" />
+    <link rel="preconnect" href="https://maps.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://docs.google.com" />
 
-    <!-- Viewport and Mobile Optimization -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Preload Critical Assets -->
+    <link rel="preload" href="./assets/title_row2.png" as="image" type="image/png" />
+    <link rel="preload" href="./src/critical.css" as="style" />
 
-    <!-- SEO Meta Tags -->
+    <!-- Prefetch Important Assets for Next User Actions -->
+    <link rel="prefetch" href="./assets/current_location.png" as="image" />
+    <link rel="prefetch" href="./assets/recommend.png" as="image" />
+
+    <!-- Preload Fonts if using custom fonts -->
+    <!-- <link rel="preload" href="./fonts/custom-font.woff2" as="font" type="font/woff2" crossorigin /> -->
+
+    <!-- Favicon and App Icons (Optimized) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/title_row2.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/title_row2.png" />
+    <link rel="mask-icon" href="./assets/title_row2.png" color="#d7003a" />
+
+    <!-- Viewport and Mobile Optimization (Enhanced) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes, maximum-scale=5.0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no, email=no" />
+
+    <!-- SEO Meta Tags (Enhanced with modern standards) -->
     <title>佐渡で食えっちゃ | 佐渡島グルメマップ - 地元おすすめ飲食店ガイド</title>
     <meta
       name="description"
@@ -21,95 +42,299 @@
       content="佐渡島,グルメ,飲食店,観光マップ,佐渡観光,レストラン,カフェ,駐車場,トイレ,両津,相川,畑野"
     />
     <meta name="author" content="佐渡で食えっちゃ" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
     <link rel="canonical" href="https://sado-kueccha.com/" />
 
-    <!-- Open Graph / Social Media -->
+    <!-- Geographic and Location Meta Tags -->
+    <meta name="geo.region" content="JP-15" />
+    <meta name="geo.placename" content="佐渡島" />
+    <meta name="geo.position" content="38.0549;138.3691" />
+    <meta name="ICBM" content="38.0549, 138.3691" />
+
+    <!-- Language and Regional Settings -->
+    <meta name="language" content="Japanese" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="rating" content="general" />
+
+    <!-- Open Graph / Social Media (Enhanced) -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="佐渡で食えっちゃ | 佐渡島グルメマップ" />
     <meta
       property="og:description"
       content="佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ"
     />
-    <meta property="og:image" content="./title_row2.png" />
+    <meta property="og:image" content="https://sado-kueccha.com/assets/title_row2.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="佐渡で食えっちゃ - 佐渡島グルメマップアプリ" />
     <meta property="og:url" content="https://sado-kueccha.com/" />
     <meta property="og:site_name" content="佐渡で食えっちゃ" />
     <meta property="og:locale" content="ja_JP" />
+    <meta property="og:updated_time" content="2025-06-16T00:00:00Z" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter Card (Enhanced) -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="佐渡で食えっちゃ | 佐渡島グルメマップ" />
     <meta
       name="twitter:description"
       content="佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ"
     />
-    <meta name="twitter:image" content="./title_row2.png" />
+    <meta name="twitter:image" content="https://sado-kueccha.com/assets/title_row2.png" />
+    <meta name="twitter:image:alt" content="佐渡で食えっちゃ - 佐渡島グルメマップアプリ" />
+    <meta name="twitter:creator" content="@sado_kueccha" />
+    <meta name="twitter:site" content="@sado_kueccha" />
 
-    <!-- Performance Optimization -->
-    <link rel="preconnect" href="https://maps.googleapis.com" />
-    <link rel="preconnect" href="https://maps.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://docs.google.com" />
+    <!-- Performance Optimization (Enhanced) -->
+    <link rel="preload" href="/src/main.tsx" as="script" crossorigin />
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="preload" href="/src/index.css" as="style" />
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Security Headers -->
+    <!-- Theme Color (Improved support) -->
+    <meta name="theme-color" content="#d7003a" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#a50029" media="(prefers-color-scheme: dark)" />
+    <meta name="msapplication-navbutton-color" content="#d7003a" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Security Headers (Enhanced) -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
-    <!-- Note: CSP frame-ancestors should be set via HTTP headers, not meta tags -->
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
+    <!-- Note: CSP should be set via HTTP headers for better security -->
 
-    <!-- Structured Data for Local Business -->
+    <!-- Enhanced Structured Data for Better SEO -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "佐渡で食えっちゃ",
-        "description": "佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ",
-        "url": "https://sado-kueccha.com/",
-        "applicationCategory": "TravelApplication",
-        "operatingSystem": "Web Browser",
-        "about": {
-          "@type": "Place",
-          "name": "佐渡島",
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 38.0549,
-            "longitude": 138.3691
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "@id": "https://sado-kueccha.com/#webapp",
+            "name": "佐渡で食えっちゃ",
+            "description": "佐渡島の地元おすすめ飲食店、観光スポットを網羅した便利なマップアプリ",
+            "url": "https://sado-kueccha.com/",
+            "applicationCategory": "TravelApplication",
+            "applicationSubCategory": "FoodDelivery",
+            "operatingSystem": "Web Browser",
+            "browserRequirements": "Requires JavaScript. Requires HTML5.",
+            "permissions": "https://schema.org/ReadPermission",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "JPY"
+            },
+            "featureList": [
+              "地元おすすめ飲食店検索",
+              "観光スポット案内",
+              "駐車場・トイレ検索",
+              "リアルタイム営業情報"
+            ],
+            "about": {
+              "@type": "Place",
+              "name": "佐渡島",
+              "description": "新潟県の離島、豊かな自然と文化を持つ観光地",
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 38.0549,
+                "longitude": 138.3691
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "JP",
+                "addressRegion": "新潟県"
+              }
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://sado-kueccha.com/#organization",
+            "name": "佐渡で食えっちゃ",
+            "url": "https://sado-kueccha.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://sado-kueccha.com/assets/title_row2.png",
+              "width": 192,
+              "height": 192
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer service",
+              "availableLanguage": "Japanese"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://sado-kueccha.com/#website",
+            "url": "https://sado-kueccha.com/",
+            "name": "佐渡で食えっちゃ",
+            "description": "佐渡島グルメマップ - 地元おすすめ飲食店ガイド",
+            "publisher": {
+              "@id": "https://sado-kueccha.com/#organization"
+            },
+            "inLanguage": "ja-JP"
           }
-        }
+        ]
       }
     </script>
-  </head>
   <body>
-    <!-- Loading fallback for users with JavaScript disabled -->
+    <!-- Enhanced Loading fallback with better accessibility -->
     <noscript>
-      <div style="text-align: center; padding: 50px; font-family: sans-serif">
-        <h1>佐渡で食えっちゃ</h1>
-        <p>
-          このアプリケーションはJavaScriptが必要です。<br />ブラウザでJavaScriptを有効にしてください。
+      <div style="text-align: center; padding: 50px; font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif; line-height: 1.6; color: #333;">
+        <h1 style="color: #d7003a; margin-bottom: 20px; font-size: 2rem;">佐渡で食えっちゃ</h1>
+        <p style="font-size: 1.1rem; margin-bottom: 10px;">
+          このアプリケーションはJavaScriptが必要です。
         </p>
+        <p style="font-size: 1rem; color: #666;">
+          ブラウザでJavaScriptを有効にしてから、ページを再読み込みしてください。
+        </p>
+        <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #d7003a;">
+          <h2 style="font-size: 1.2rem; margin-bottom: 10px; color: #d7003a;">JavaScriptの有効化方法</h2>
+          <p style="font-size: 0.9rem; text-align: left;">
+            <strong>Chrome/Edge:</strong> 設定 → プライバシーとセキュリティ → サイトの設定 → JavaScript<br/>
+            <strong>Firefox:</strong> about:config → javascript.enabled を true に設定<br/>
+            <strong>Safari:</strong> 環境設定 → セキュリティ → JavaScript を有効にする
+          </p>
+        </div>
       </div>
     </noscript>
 
-    <div id="root" role="main" aria-label="佐渡島グルメマップアプリケーション"></div>
+    <!-- Main application container with enhanced accessibility -->
+    <div
+      id="root"
+      role="main"
+      aria-label="佐渡島グルメマップアプリケーション"
+      aria-live="polite"
+      aria-atomic="false"
+    ></div>
 
-    <!-- Main Application Script -->
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Loading indicator for better UX -->
+    <div id="initial-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+      <div style="text-align: center;">
+        <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #d7003a; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <p style="color: #666; font-family: sans-serif;">読み込み中...</p>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
 
-    <!-- Service Worker Registration は main.tsx で管理されています -->
+    <!-- Main Application Script with better error handling -->
+    <script type="module">
+      // Remove loading indicator when app loads
+      const removeLoader = () => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.style.opacity = '0';
+          loader.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => loader.remove(), 300);
+        }
+      };
 
-    <!-- Theme Color Support Detection -->
+      // Load main application
+      import('/src/main.tsx')
+        .then(removeLoader)
+        .catch((error) => {
+          console.error('Failed to load application:', error);
+          removeLoader();
+          // Show fallback content
+          document.getElementById('root').innerHTML = `
+            <div style="text-align: center; padding: 50px; font-family: sans-serif;">
+              <h1 style="color: #d7003a;">読み込みエラー</h1>
+              <p>アプリケーションの読み込みに失敗しました。</p>
+              <button onclick="location.reload()" style="background: #d7003a; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                再読み込み
+              </button>
+            </div>
+          `;
+        });
+    </script>
+
+    <!-- Service Worker Registration is managed in main.tsx -->
+
+    <!-- Enhanced feature detection and theme support -->
     <script>
-      // Add theme-color meta tag for supported browsers
-      if (
-        navigator.userAgent.includes("chrome") ||
-        navigator.userAgent.includes("edge") ||
-        (navigator.userAgent.includes("safari") && navigator.userAgent.includes("version"))
-      ) {
-        const themeColorMeta = document.createElement("meta");
-        themeColorMeta.name = "theme-color";
-        themeColorMeta.content = "#d7003a";
-        document.head.appendChild(themeColorMeta);
+      // Enhanced theme color support detection
+      const updateThemeColor = () => {
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const themeColor = isDarkMode ? '#a50029' : '#d7003a';
+
+        // Update existing theme-color meta tag
+        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (!themeColorMeta) {
+          themeColorMeta = document.createElement('meta');
+          themeColorMeta.name = 'theme-color';
+          document.head.appendChild(themeColorMeta);
+        }
+        themeColorMeta.content = themeColor;
+
+        // Update status bar color for iOS
+        let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (statusBarMeta) {
+          statusBarMeta.content = isDarkMode ? 'black-translucent' : 'default';
+        }
+      };
+
+      // Listen for theme changes
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
+      }
+
+      // Set initial theme
+      updateThemeColor();
+
+      // Enhance accessibility
+      document.addEventListener('DOMContentLoaded', () => {
+        // Add skip link for keyboard navigation
+        const skipLink = document.createElement('a');
+        skipLink.href = '#root';
+        skipLink.textContent = 'メインコンテンツにスキップ';
+        skipLink.style.cssText = `
+          position: absolute;
+          top: -40px;
+          left: 6px;
+          background: #000;
+          color: #fff;
+          padding: 8px;
+          text-decoration: none;
+          z-index: 10000;
+          border-radius: 4px;
+        `;
+        skipLink.addEventListener('focus', () => {
+          skipLink.style.top = '6px';
+        });
+        skipLink.addEventListener('blur', () => {
+          skipLink.style.top = '-40px';
+        });
+        document.body.insertBefore(skipLink, document.body.firstChild);
+      });
+
+      // Performance monitoring
+      if ('PerformanceObserver' in window) {
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.entryType === 'largest-contentful-paint') {
+              console.log('LCP:', entry.startTime);
+            }
+            if (entry.entryType === 'first-input') {
+              console.log('FID:', entry.processingStart - entry.startTime);
+            }
+          }
+        });
+
+        try {
+          observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
+        } catch (e) {
+          // Fallback for browsers that don't support these metrics
+          console.log('Performance monitoring not fully supported');
+        }
       }
     </script>
   </body>

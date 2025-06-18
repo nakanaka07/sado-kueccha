@@ -1,0 +1,783 @@
+/**
+ * FilterPanel.css - 最新のWebベストプラクティス対応版
+ *
+ * 主な改善点：
+ * - CSS Container Queries対応
+ * - CSS Grid Layout活用
+ * - Modern CSS Custom Properties
+ * - Enhanced accessibility (focus management, reduced motion)
+ * - Performance optimized animations
+ * - Dark mode support
+ * - Mobile-first responsive design
+ * - CSS Logical Properties使用
+ * - Better browser compatibility
+ */
+
+/* =============================================================================
+   CSS Custom Properties (CSS Variables)
+   ============================================================================= */
+:root {
+  /* カラーパレット - HSL値で定義（カラー操作が容易） */
+  --filter-hue-primary: 140;
+  --filter-hue-secondary: 210;
+  --filter-hue-accent: 25;
+  --filter-hue-error: 0;
+  --filter-hue-warning: 45;
+  --filter-hue-success: 140;
+
+  /* ライトテーマ */
+  --filter-color-background: hsl(0, 0%, 100%);
+  --filter-color-background-glass: hsla(0, 0%, 100%, 0.95);
+  --filter-color-background-hover: hsl(0, 0%, 96%);
+  --filter-color-background-active: hsl(var(--filter-hue-primary), 30%, 95%);
+  --filter-color-border: hsl(0, 0%, 85%);
+  --filter-color-border-focus: hsl(var(--filter-hue-primary), 70%, 50%);
+  --filter-color-text-primary: hsl(0, 0%, 12%);
+  --filter-color-text-secondary: hsl(0, 0%, 45%);
+  --filter-color-text-muted: hsl(0, 0%, 60%);
+  --filter-color-primary: hsl(var(--filter-hue-primary), 70%, 45%);
+  --filter-color-surface: hsl(0, 0%, 98%);
+  --filter-color-shadow: hsla(0, 0%, 0%, 0.1);
+
+  /* スペーシングシステム（8px grid） */
+  --filter-space-xs: 0.25rem; /* 4px */
+  --filter-space-sm: 0.5rem; /* 8px */
+  --filter-space-md: 1rem; /* 16px */
+  --filter-space-lg: 1.5rem; /* 24px */
+  --filter-space-xl: 2rem; /* 32px */
+
+  /* タイポグラフィ */
+  --filter-font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --filter-font-size-xs: 0.75rem; /* 12px */
+  --filter-font-size-sm: 0.875rem; /* 14px */
+  --filter-font-size-base: 1rem; /* 16px */
+  --filter-font-size-lg: 1.125rem; /* 18px */
+  --filter-line-height-tight: 1.25;
+  --filter-line-height-normal: 1.5;
+  --filter-font-weight-normal: 400;
+  --filter-font-weight-medium: 500;
+  --filter-font-weight-semibold: 600;
+
+  /* ボーダーラディウス */
+  --filter-radius-sm: 0.25rem; /* 4px */
+  --filter-radius-md: 0.5rem; /* 8px */
+  --filter-radius-lg: 0.75rem; /* 12px */
+
+  /* シャドウ */
+  --filter-shadow-sm: 0 1px 2px 0 var(--filter-color-shadow);
+  --filter-shadow-md: 0 4px 6px -1px var(--filter-color-shadow), 0 2px 4px -1px var(--filter-color-shadow);
+  --filter-shadow-lg: 0 10px 15px -3px var(--filter-color-shadow), 0 4px 6px -2px var(--filter-color-shadow);
+  --filter-shadow-focus: 0 0 0 3px hsla(var(--filter-hue-primary), 70%, 50%, 0.3);
+
+  /* アニメーション */
+  --filter-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --filter-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --filter-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-index */
+  --filter-z-base: 1;
+  --filter-z-panel: 1000;
+  --filter-z-fullscreen: 2147483647;
+
+  /* パネルサイズ */
+  --filter-panel-width: 16.25rem; /* 260px */
+  --filter-panel-min-width: 13.75rem; /* 220px */
+  --filter-panel-collapsed-width: 2.75rem; /* 44px */
+  --filter-content-height: 0px; /* 動的に設定 */
+}
+
+/* ダークテーマ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --filter-color-background: hsl(0, 0%, 10%);
+    --filter-color-background-glass: hsla(0, 0%, 10%, 0.95);
+    --filter-color-background-hover: hsl(0, 0%, 15%);
+    --filter-color-background-active: hsl(var(--filter-hue-primary), 30%, 15%);
+    --filter-color-border: hsl(0, 0%, 25%);
+    --filter-color-text-primary: hsl(0, 0%, 95%);
+    --filter-color-text-secondary: hsl(0, 0%, 70%);
+    --filter-color-text-muted: hsl(0, 0%, 55%);
+    --filter-color-surface: hsl(0, 0%, 12%);
+    --filter-color-shadow: hsla(0, 0%, 0%, 0.3);
+  }
+}
+
+/* 省エネルギーモード対応 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --filter-transition-fast: 0ms;
+    --filter-transition-normal: 0ms;
+    --filter-transition-slow: 0ms;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =============================================================================
+   Base Styles
+   ============================================================================= */
+
+/* フィルターパネル - メインコンテナ */
+.filter-panel {
+  /* レイアウト */
+  position: absolute;
+  inset-block-start: var(--filter-space-md);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: var(--filter-z-panel);
+
+  /* サイズ */
+  inline-size: var(--filter-panel-width);
+  min-inline-size: var(--filter-panel-min-width);
+  max-inline-size: var(--filter-panel-width);
+
+  /* スタイリング */
+  background: var(--filter-color-background-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--filter-radius-md);
+  padding: var(--filter-space-md);
+  box-shadow: var(--filter-shadow-md);
+  border: 1px solid var(--filter-color-border);
+
+  /* タイポグラフィ */
+  font-family: var(--filter-font-family);
+  font-size: var(--filter-font-size-sm);
+  line-height: var(--filter-line-height-normal);
+
+  /* インタラクション */
+  pointer-events: auto;
+
+  /* アニメーション */
+  transition:
+    transform var(--filter-transition-normal),
+    opacity var(--filter-transition-normal),
+    inline-size var(--filter-transition-normal),
+    padding var(--filter-transition-normal);
+
+  /* コンテナクエリ */
+  container-type: inline-size;
+  container-name: filter-panel;
+}
+
+/* 折りたたみ状態 */
+.filter-panel.collapsed {
+  inline-size: var(--filter-panel-collapsed-width);
+  min-inline-size: var(--filter-panel-collapsed-width);
+  max-inline-size: var(--filter-panel-collapsed-width);
+  padding: var(--filter-space-sm);
+}
+
+/* フルスクリーンモード */
+.filter-panel.fullscreen-mode,
+.filter-panel[data-fullscreen='true'],
+body.fullscreen-active .filter-panel {
+  position: fixed;
+  z-index: var(--filter-z-fullscreen);
+  box-shadow: var(--filter-shadow-lg);
+  border-width: 2px;
+  border-color: hsla(var(--filter-hue-primary), 70%, 50%, 0.4);
+  background: var(--filter-color-background-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  visibility: visible;
+  opacity: 1;
+  display: block;
+}
+
+/* エラー状態 */
+.filter-panel--error {
+  border-color: hsl(var(--filter-hue-error), 70%, 50%);
+  background: hsla(var(--filter-hue-error), 70%, 95%, 0.95);
+}
+
+/* =============================================================================
+   Header Styles
+   ============================================================================= */
+
+.filter-header {
+  inline-size: 100%;
+}
+
+.filter-toggle {
+  /* レイアウト */
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--filter-space-xs);
+
+  /* スタイリング */
+  background: none;
+  border: none;
+  border-radius: var(--filter-radius-md);
+  padding: var(--filter-space-sm) var(--filter-space-md);
+  cursor: pointer;
+
+  /* タイポグラフィ */
+  font-size: var(--filter-font-size-sm);
+  font-weight: var(--filter-font-weight-semibold);
+  color: var(--filter-color-text-primary);
+
+  /* アニメーション */
+  transition:
+    background-color var(--filter-transition-fast),
+    color var(--filter-transition-fast),
+    box-shadow var(--filter-transition-fast);
+}
+
+.filter-toggle:hover {
+  background-color: var(--filter-color-background-hover);
+}
+
+.filter-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--filter-shadow-focus);
+}
+
+.filter-toggle[data-expanded='true'] {
+  background-color: var(--filter-color-background-active);
+  color: var(--filter-color-primary);
+}
+
+.filter-icon {
+  font-size: var(--filter-font-size-base);
+  flex-shrink: 0;
+}
+
+.filter-title {
+  flex: 1;
+  text-align: start;
+  margin-inline-start: var(--filter-space-xs);
+}
+
+.filter-count {
+  font-size: var(--filter-font-size-xs);
+  color: var(--filter-color-text-secondary);
+  margin-inline-end: var(--filter-space-xs);
+  font-weight: var(--filter-font-weight-normal);
+}
+
+.expand-icon {
+  font-size: var(--filter-font-size-xs);
+  transition: transform var(--filter-transition-fast);
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
+.expand-icon.expanded {
+  transform: rotate(-180deg);
+}
+
+/* 折りたたみ時のヘッダー調整 */
+.filter-panel.collapsed .filter-title,
+.filter-panel.collapsed .filter-count {
+  display: none;
+}
+
+.filter-panel.collapsed .filter-toggle {
+  min-inline-size: auto;
+  padding: var(--filter-space-sm);
+  justify-content: center;
+}
+
+.filter-panel.collapsed .filter-icon {
+  font-size: var(--filter-font-size-lg);
+}
+
+/* =============================================================================
+   Content Area Styles
+   ============================================================================= */
+
+.filter-content {
+  /* レイアウト */
+  display: flex;
+  flex-direction: column;
+  gap: var(--filter-space-sm);
+
+  /* アニメーション */
+  transition:
+    max-block-size var(--filter-transition-slow) cubic-bezier(0.4, 0, 0.2, 1),
+    opacity var(--filter-transition-normal) ease-out,
+    margin-block-start var(--filter-transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 高さ制御 */
+  overflow: hidden;
+  max-block-size: var(--filter-content-height, auto);
+  opacity: 1;
+  margin-block-start: var(--filter-space-md);
+
+  /* パフォーマンス最適化 */
+  transform: translateZ(0);
+  will-change: max-block-size, opacity, margin-block-start;
+}
+
+/* 折りたたみ時のコンテンツ */
+.filter-panel.collapsed .filter-content {
+  max-block-size: 0;
+  opacity: 0;
+  margin-block-start: 0;
+  transition:
+    opacity var(--filter-transition-fast) ease-in,
+    max-block-size var(--filter-transition-normal) ease-in 100ms,
+    margin-block-start var(--filter-transition-normal) ease-in;
+}
+
+/* =============================================================================
+   Preset Buttons Styles
+   ============================================================================= */
+
+.filter-presets {
+  /* レイアウト - CSS Grid使用 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, auto);
+  gap: var(--filter-space-xs);
+
+  /* ボーダー */
+  border-block-start: 1px solid var(--filter-color-border);
+  padding-block-start: var(--filter-space-sm);
+  margin-block-start: var(--filter-space-sm);
+
+  /* 最後のボタンを全幅に */
+  & .preset-button:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+}
+
+.preset-button {
+  /* レイアウト */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--filter-space-xs);
+  min-block-size: 1.75rem; /* 28px */
+
+  /* スタイリング */
+  background: var(--filter-color-background);
+  border: 1px solid var(--filter-color-border);
+  border-radius: var(--filter-radius-md);
+  padding: var(--filter-space-xs) var(--filter-space-sm);
+  cursor: pointer;
+
+  /* タイポグラフィ */
+  font-size: var(--filter-font-size-xs);
+  font-weight: var(--filter-font-weight-medium);
+  color: var(--filter-color-text-primary);
+  white-space: nowrap;
+
+  /* アニメーション */
+  transition:
+    all var(--filter-transition-fast),
+    transform var(--filter-transition-fast);
+}
+
+.preset-button:hover {
+  background: var(--filter-color-background-hover);
+  border-color: var(--filter-color-border-focus);
+  transform: translateY(-1px);
+}
+
+.preset-button:focus-visible {
+  outline: none;
+  box-shadow: var(--filter-shadow-focus);
+}
+
+.preset-button:active {
+  transform: translateY(0);
+}
+
+/* プリセットボタンの個別スタイル */
+.preset-button.gourmet {
+  background: linear-gradient(135deg, hsl(0, 70%, 65%), hsl(0, 65%, 70%));
+  color: white;
+  border-color: hsl(0, 70%, 65%);
+
+  &:hover {
+    background: linear-gradient(135deg, hsl(0, 75%, 60%), hsl(0, 70%, 65%));
+    box-shadow: 0 4px 12px hsla(0, 70%, 65%, 0.3);
+  }
+}
+
+.preset-button.facilities {
+  background: linear-gradient(135deg, hsl(174, 62%, 59%), hsl(174, 57%, 63%));
+  color: white;
+  border-color: hsl(174, 62%, 59%);
+
+  &:hover {
+    background: linear-gradient(135deg, hsl(174, 67%, 54%), hsl(174, 62%, 59%));
+    box-shadow: 0 4px 12px hsla(174, 62%, 59%, 0.3);
+  }
+}
+
+.preset-button.nightlife {
+  background: linear-gradient(135deg, hsl(291, 64%, 42%), hsl(291, 47%, 64%));
+  color: white;
+  border-color: hsl(291, 64%, 42%);
+
+  &:hover {
+    background: linear-gradient(135deg, hsl(291, 69%, 37%), hsl(291, 54%, 59%));
+    box-shadow: 0 4px 12px hsla(291, 64%, 42%, 0.3);
+  }
+}
+
+.preset-button.clear {
+  background: linear-gradient(135deg, hsl(210, 16%, 98%), hsl(210, 16%, 93%));
+  color: hsl(210, 13%, 50%);
+  border-color: hsl(210, 14%, 89%);
+
+  &:hover {
+    background: linear-gradient(135deg, hsl(210, 16%, 93%), hsl(210, 14%, 89%));
+    color: hsl(210, 22%, 35%);
+  }
+}
+
+.preset-button.all {
+  background: linear-gradient(135deg, hsl(134, 61%, 41%), hsl(134, 68%, 52%));
+  color: white;
+  border-color: hsl(134, 61%, 41%);
+
+  &:hover {
+    background: linear-gradient(135deg, hsl(134, 66%, 36%), hsl(134, 63%, 47%));
+    box-shadow: 0 4px 12px hsla(134, 61%, 41%, 0.3);
+  }
+}
+
+.preset-button.error-retry {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--filter-hue-primary), 61%, 41%),
+    hsl(var(--filter-hue-primary), 68%, 52%)
+  );
+  color: white;
+  border-color: hsl(var(--filter-hue-primary), 61%, 41%);
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--filter-hue-primary), 66%, 36%),
+      hsl(var(--filter-hue-primary), 63%, 47%)
+    );
+    box-shadow: 0 4px 12px hsla(var(--filter-hue-primary), 61%, 41%, 0.3);
+  }
+}
+
+/* =============================================================================
+   Category Styles
+   ============================================================================= */
+
+.filter-categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--filter-space-sm);
+}
+
+.filter-category {
+  margin: 0;
+}
+
+.category-header {
+  /* レイアウト */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: 100%;
+
+  /* スタイリング */
+  background: none;
+  border: none;
+  border-radius: var(--filter-radius-md);
+  padding: var(--filter-space-sm) var(--filter-space-md);
+  cursor: pointer;
+
+  /* タイポグラフィ */
+  font-size: var(--filter-font-size-sm);
+  font-weight: var(--filter-font-weight-semibold);
+  color: var(--filter-color-text-primary);
+
+  /* アニメーション */
+  transition: all var(--filter-transition-fast);
+}
+
+.category-header:hover {
+  background-color: var(--filter-color-background-hover);
+}
+
+.category-header:focus-visible {
+  outline: none;
+  box-shadow: var(--filter-shadow-focus);
+}
+
+.category-header.active {
+  background-color: var(--filter-color-background-active);
+  color: var(--filter-color-primary);
+}
+
+.category-icon {
+  font-size: var(--filter-font-size-base);
+  margin-inline-end: var(--filter-space-xs);
+  flex-shrink: 0;
+}
+
+.category-label {
+  flex: 1;
+  text-align: start;
+}
+
+/* =============================================================================
+   Filter Options Styles
+   ============================================================================= */
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--filter-space-xs);
+  padding-inline-start: var(--filter-space-sm);
+  margin-block-start: var(--filter-space-xs);
+}
+
+.filter-option {
+  /* レイアウト */
+  display: flex;
+  align-items: center;
+  gap: var(--filter-space-sm);
+
+  /* スタイリング */
+  cursor: pointer;
+  border-radius: var(--filter-radius-sm);
+  padding: var(--filter-space-xs) var(--filter-space-sm);
+
+  /* タイポグラフィ */
+  font-size: var(--filter-font-size-xs);
+  color: var(--filter-color-text-secondary);
+
+  /* アニメーション */
+  transition: background-color var(--filter-transition-fast);
+}
+
+.filter-option:hover {
+  background-color: var(--filter-color-background-hover);
+}
+
+.filter-option:focus-within {
+  outline: 2px solid var(--filter-color-border-focus);
+  outline-offset: 2px;
+}
+
+.filter-option input[type='checkbox'] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--filter-color-primary);
+}
+
+/* =============================================================================
+   Statistics Styles
+   ============================================================================= */
+
+.filter-stats {
+  /* レイアウト */
+  text-align: center;
+  margin-block-start: var(--filter-space-sm);
+  padding: var(--filter-space-xs) var(--filter-space-sm);
+
+  /* スタイリング */
+  border-block-start: 1px solid var(--filter-color-border);
+  background-color: var(--filter-color-surface);
+  border-radius: var(--filter-radius-sm);
+
+  /* タイポグラフィ */
+  font-size: var(--filter-font-size-xs);
+  color: var(--filter-color-text-muted);
+}
+
+.stats-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--filter-space-xs);
+}
+
+.stats-visible {
+  font-weight: var(--filter-font-weight-semibold);
+  color: var(--filter-color-primary);
+}
+
+.stats-separator {
+  color: var(--filter-color-text-muted);
+}
+
+.stats-total {
+  color: var(--filter-color-text-secondary);
+}
+
+.stats-hidden {
+  font-size: var(--filter-font-size-xs);
+  color: var(--filter-color-text-muted);
+  margin-block-start: var(--filter-space-xs);
+}
+
+.stats-debug {
+  font-size: 0.6875rem; /* 11px */
+  color: var(--filter-color-text-muted);
+  margin-block-start: var(--filter-space-xs);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+/* =============================================================================
+   Error Styles
+   ============================================================================= */
+
+.filter-error {
+  display: flex;
+  align-items: center;
+  gap: var(--filter-space-xs);
+  color: hsl(var(--filter-hue-error), 70%, 50%);
+}
+
+.error-message {
+  font-size: var(--filter-font-size-xs);
+  color: var(--filter-color-text-secondary);
+  margin: var(--filter-space-xs) 0;
+}
+
+/* =============================================================================
+   Accessibility Styles
+   ============================================================================= */
+
+/* スクリーンリーダー専用 */
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* フォーカス可視化の改善 */
+.filter-panel *:focus-visible {
+  outline: 2px solid var(--filter-color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--filter-radius-sm);
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .filter-panel {
+    border-width: 2px;
+    border-color: var(--filter-color-text-primary);
+  }
+
+  .preset-button,
+  .category-header,
+  .filter-toggle {
+    border-width: 2px;
+  }
+}
+
+/* =============================================================================
+   Debug Styles (Development Only)
+   ============================================================================= */
+
+.fullscreen-debug-indicator {
+  position: fixed;
+  inset-block-start: 3.75rem; /* 60px */
+  inset-inline-end: 0.9375rem; /* 15px */
+  z-index: var(--filter-z-fullscreen);
+  background: hsl(var(--filter-hue-warning), 100%, 50%);
+  padding: var(--filter-space-md);
+  border: 2px solid hsl(var(--filter-hue-error), 100%, 50%);
+  font-size: var(--filter-font-size-xs);
+  font-weight: var(--filter-font-weight-semibold);
+  color: hsl(0, 0%, 0%);
+  border-radius: var(--filter-radius-sm);
+  box-shadow: var(--filter-shadow-lg);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+/* =============================================================================
+   Responsive Design - Container Queries
+   ============================================================================= */
+
+/* パネル内でのレスポンシブ調整 */
+@container filter-panel (max-width: 200px) {
+  .filter-presets {
+    grid-template-columns: 1fr;
+  }
+
+  .preset-button {
+    font-size: 0.625rem; /* 10px */
+  }
+}
+
+/* =============================================================================
+   Responsive Design - Media Queries
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .filter-panel {
+    inline-size: fit-content;
+    max-inline-size: calc(100vw - 2.5rem); /* 40px margin */
+  }
+
+  .filter-panel.collapsed {
+    inline-size: var(--filter-panel-collapsed-width);
+    min-inline-size: var(--filter-panel-collapsed-width);
+    max-inline-size: var(--filter-panel-collapsed-width);
+    padding: var(--filter-space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-panel {
+    max-inline-size: calc(100vw - 1.5rem); /* 24px margin */
+  }
+
+  .filter-presets {
+    grid-template-columns: 1fr;
+  }
+
+  .preset-button {
+    min-block-size: 2rem; /* 32px */
+  }
+}
+
+/* 極小画面対応 */
+@media (max-width: 320px) {
+  :root {
+    --filter-panel-width: 14rem; /* 224px */
+    --filter-panel-min-width: 12rem; /* 192px */
+  }
+
+  .filter-panel {
+    padding: var(--filter-space-sm);
+  }
+
+  .filter-toggle {
+    padding: var(--filter-space-xs) var(--filter-space-sm);
+  }
+}
+
+/* 縦画面タブレット対応 */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .filter-panel {
+    inline-size: 18rem; /* 288px */
+    max-inline-size: 18rem;
+  }
+}
+
+/* デスクトップ大画面対応 */
+@media (min-width: 1440px) {
+  .filter-panel {
+    inline-size: 18rem; /* 288px */
+    max-inline-size: 20rem; /* 320px */
+  }
+}

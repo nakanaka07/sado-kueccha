@@ -1,37 +1,76 @@
 import { AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SADO_ISLAND } from "../constants";
-import { cacheService } from "../services/cache";
-import type { ClusterablePOI, POI } from "../types/poi";
-import { ASSETS } from "../utils/assets";
-import { GeoUtils } from "../utils/geo";
+import { SADO_ISLAND } from "../../constants";
+import { cacheService } from "../../services/cache";
+import type { ClusterablePOI, POI } from "../../types/poi";
+import { ASSETS } from "../../utils/assets";
+import { GeoUtils } from "../../utils/geo";
 import "./GoogleMarkerCluster.css";
-import { RecommendMarker } from "./RecommendMarker";
+import RecommendMarker from "./RecommendMarker";
 
-let clusterSequence = 0;
+// 型定義の強化
+interface MarkerStyle {
+  readonly background: string;
+  readonly borderColor: string;
+  readonly glyphColor: string;
+  readonly glyph?: string;
+}
 
-// 設定を責任ごとに分割
+interface MarkerConfig {
+  readonly keywords: readonly string[];
+  readonly icon: string | null;
+  readonly style: MarkerStyle;
+}
+
+interface ClusterConfig {
+  readonly min: number;
+  readonly background: string;
+  readonly borderColor: string;
+  readonly scale: number;
+}
+
+interface AnimationConfig {
+  readonly duration: number;
+  readonly easing: string;
+}
+
+interface ClusteringConfig {
+  readonly overlapThresholdPx: number;
+  readonly animation: AnimationConfig;
+}
+
+// 型安全なクラスタリング状態管理
+interface ClusteringState {
+  enabled: boolean;
+  animatingClusters: Set<string>;
+}
+
+// 設定を型安全に管理
 const ZOOM_CONFIG = {
   FULL_ICON: 16,
   COMPACT_ICON: 13,
+  SMALL_ICON: 10,
   DISABLE_CLUSTERING: SADO_ISLAND.ZOOM.DISABLE_CLUSTERING,
-  HIGH_THRESHOLD: SADO_ISLAND.ZOOM.HIGH_THRESHOLD,
+  HIGH_THRESHOLD: SADO_ISLAND.ZOOM.PERFORMANCE_MODE_THRESHOLD,
 } as const;
 
 const MARKER_LIMITS = {
-  HIGH_ZOOM: SADO_ISLAND.MARKER_LIMITS.HIGH_ZOOM,
-  NORMAL_ZOOM: SADO_ISLAND.MARKER_LIMITS.NORMAL_ZOOM,
+  HIGH_ZOOM: SADO_ISLAND.PERFORMANCE.MARKER_LIMITS.HIGH_ZOOM,
+  NORMAL_ZOOM: SADO_ISLAND.PERFORMANCE.MARKER_LIMITS.MEDIUM_ZOOM,
+  LOW_ZOOM: SADO_ISLAND.PERFORMANCE.MARKER_LIMITS.LOW_ZOOM,
 } as const;
 
 const PERFORMANCE_CONFIG = {
   DEBOUNCE_DELAY: 100,
   RENDER_INTERVAL: 16,
+  BATCH_SIZE: 50,
+  MAX_VIEWPORT_MARKERS: 1000,
 } as const;
 
-// マーカー設定を統合
-const MARKER_CONFIGS = {
+// マーカー設定を型安全に統合
+const MARKER_CONFIGS: Record<"toilet" | "parking" | "normal", MarkerConfig> = {
   toilet: {
-    keywords: ["トイレ", "toilet", "お手洗い", "化粧室"],
+    keywords: ["トイレ", "toilet", "お手洗い", "化粧室", "WC"],
     icon: ASSETS.ICONS.MARKERS.TOILETTE,
     style: {
       background: "#8B4513",
@@ -41,7 +80,7 @@ const MARKER_CONFIGS = {
     },
   },
   parking: {
-    keywords: ["駐車", "parking", "パーキング"],
+    keywords: ["駐車", "parking", "パーキング", "駐車場"],
     icon: ASSETS.ICONS.MARKERS.PARKING,
     style: {
       background: "#2E8B57",
@@ -61,22 +100,23 @@ const MARKER_CONFIGS = {
   },
 } as const;
 
-const CLUSTER_CONFIGS = [
-  { min: 10, background: "#E53E3E", borderColor: "#C53030", scale: 1.5 },
-  { min: 6, background: "#FF8C00", borderColor: "#E67300", scale: 1.3 },
+const CLUSTER_CONFIGS: readonly ClusterConfig[] = [
+  { min: 20, background: "#C53030", borderColor: "#9B2C2C", scale: 1.8 },
+  { min: 10, background: "#E53E3E", borderColor: "#C53030", scale: 1.6 },
+  { min: 6, background: "#FF8C00", borderColor: "#E67300", scale: 1.4 },
   { min: 2, background: "#FF6B35", borderColor: "#CC5429", scale: 1.2 },
 ] as const;
 
 // クラスタリング制御の拡張設定
-const CLUSTERING_CONFIG = {
-  // 重なり判定の閾値（ピクセル単位）- より緩く設定
-  OVERLAP_THRESHOLD_PX: 60,
-  // アニメーション設定
-  ANIMATION: {
-    DURATION: 500,
-    EASING: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+const CLUSTERING_CONFIG: ClusteringConfig = {
+  overlapThresholdPx: 45, // より精密な判定
+  animation: {
+    duration: 400,
+    easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
   },
 } as const;
+
+let clusterSequence = 0;
 
 // マーカー重なり判定（画面座標ベース）
 const areMarkersOverlapping = (
@@ -106,7 +146,7 @@ const areMarkersOverlapping = (
 
   const distance = Math.sqrt(Math.pow(pixel1.x - pixel2.x, 2) + Math.pow(pixel1.y - pixel2.y, 2));
 
-  return distance < CLUSTERING_CONFIG.OVERLAP_THRESHOLD_PX;
+  return distance < CLUSTERING_CONFIG.overlapThresholdPx;
 };
 
 // 重なりチェック用の関数
@@ -146,11 +186,6 @@ const simpleHash = (str: string): string => {
     .slice(0, 8);
 };
 
-const generateHashFromArray = (items: string[]): string => {
-  const sortedStr = items.sort().join(",");
-  return simpleHash(sortedStr);
-};
-
 const isInViewport = (poi: ClusterablePOI, bounds: google.maps.LatLngBounds | null): boolean => {
   if (!bounds) return true;
 
@@ -179,24 +214,57 @@ const partitionPOIsByViewport = (
   return { inViewport, outOfViewport };
 };
 
+// Optimized debounce hook with cleanup
 function useDebounce<T>(value: T, delay: number = PERFORMANCE_CONFIG.DEBOUNCE_DELAY): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
     timerRef.current = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
   }, [value, delay]);
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
   return debouncedValue;
 }
+
+// Performance optimized utilities
+const performanceUtils = {
+  hashCache: new Map<string, string>(),
+
+  generateHashFromArray: (items: string[]): string => {
+    const sortedStr = items.sort().join(",");
+    if (performanceUtils.hashCache.has(sortedStr)) {
+      const cached = performanceUtils.hashCache.get(sortedStr);
+      return cached ?? simpleHash(sortedStr);
+    }
+    const hash = simpleHash(sortedStr);
+    performanceUtils.hashCache.set(sortedStr, hash);
+    return hash;
+  },
+
+  clearCache: (): void => {
+    performanceUtils.hashCache.clear();
+  },
+};
 
 // スマートオフセット関数（画面座標ベース）
 const applySmartOffsets = (pois: POI[], map: google.maps.Map): POI[] => {
@@ -278,7 +346,7 @@ interface MarkerComponentProps {
 
 // Helper functions for clustering
 const generateCacheKey = (pois: POI[], zoomLevel: number, clusteringEnabled: boolean): string => {
-  const poisIdHash = generateHashFromArray(pois.map((p) => p.id));
+  const poisIdHash = performanceUtils.generateHashFromArray(pois.map((p) => p.id));
   const clusteringFlag = clusteringEnabled ? "clustered" : "individual";
   return `cluster-${pois.length.toString()}-${Math.round(zoomLevel * 10).toString()}-${poisIdHash}-${clusteringFlag}`;
 };
@@ -301,12 +369,15 @@ const createClusterPOI = (cluster: POI[], basePoi: POI): ClusterablePOI => {
 
   return {
     ...basePoi,
-    id: uniqueId,
+    id: uniqueId as POI["id"], // 型安全なキャスト
     name: `${cluster.length.toString()}件の施設`,
     position: { lat: centerLat, lng: centerLng },
-    description: cluster.map((p) => p.name).join(", "),
     clusterSize: cluster.length,
     originalPois: cluster,
+    details: {
+      description: cluster.map((p) => p.name).join(", "),
+      ...basePoi.details,
+    },
   };
 };
 
@@ -398,7 +469,7 @@ const clusterPOIs = (
     // POIをClusterablePOIに変換
     const clusterablePois: ClusterablePOI[] = poisWithOffsets.map((poi: POI) => ({ ...poi }));
 
-    cacheService.setWithLimit(cacheKey, clusterablePois);
+    cacheService.set(cacheKey, clusterablePois);
     return clusterablePois;
   }
 
@@ -505,7 +576,7 @@ const clusterPOIs = (
   }));
   const finalResult = [...recommendedAsClusterable, ...clustersWithOffsets];
 
-  cacheService.setWithLimit(cacheKey, finalResult);
+  cacheService.set(cacheKey, finalResult);
   return finalResult;
 };
 
@@ -615,16 +686,10 @@ const MarkerComponent = memo(
 
     // おすすめマーカーの場合は専用コンポーネントを使用
     if (!isCluster && poi.sourceSheet === "recommended") {
-      const handleRecommendClick = onMarkerClick
-        ? (clickedPoi: POI) => {
-            onMarkerClick(clickedPoi);
-          }
-        : undefined;
-
       return (
         <RecommendMarker
           poi={poi}
-          onClick={handleRecommendClick}
+          {...(onMarkerClick && { onClick: onMarkerClick })}
           showLabel={currentZoom !== undefined && currentZoom >= ZOOM_CONFIG.COMPACT_ICON}
         />
       );
@@ -635,7 +700,7 @@ const MarkerComponent = memo(
 
     const title =
       isCluster && clusterSize
-        ? `${clusterSize.toString()}件の施設が集まっています - クリックしてズーム\n含まれる施設: ${poi.description || "データなし"}`
+        ? `${clusterSize.toString()}件の施設が集まっています - クリックしてズーム\n含まれる施設: ${poi.details?.description ?? "データなし"}`
         : poi.name;
 
     // アニメーションクラス - クラスターズーム時は特別なアニメーション
@@ -652,8 +717,10 @@ const MarkerComponent = memo(
         <AdvancedMarker position={poi.position} onClick={handleClick} title={title}>
           <img
             src={pinConfig.customIconUrl}
-            alt={title}
+            alt={`${poi.name}のマーカー`}
+            title={title}
             className={`custom-marker-icon ${iconSizeClass} ${animationClass}`}
+            aria-label={`${poi.name} - クリックして詳細を表示`}
           />
         </AdvancedMarker>
       );
@@ -664,7 +731,13 @@ const MarkerComponent = memo(
 
     return (
       <AdvancedMarker position={poi.position} onClick={handleClick} title={title}>
-        {animationClass ? <div className={animationClass}>{pinElement}</div> : pinElement}
+        {animationClass ? (
+          <div className={animationClass} role="presentation">
+            {pinElement}
+          </div>
+        ) : (
+          pinElement
+        )}
       </AdvancedMarker>
     );
   },
@@ -883,3 +956,21 @@ export const GoogleMarkerCluster = memo(
 );
 
 GoogleMarkerCluster.displayName = "GoogleMarkerCluster";
+
+// エクスポート用の型定義
+export type { ClusteringState, GoogleMarkerClusterProps, MarkerComponentProps };
+
+// パフォーマンスユーティリティのエクスポート
+export const GoogleMarkerClusterUtils = {
+  performanceUtils,
+  ZOOM_CONFIG,
+  MARKER_LIMITS,
+  PERFORMANCE_CONFIG,
+  clearCache: () => {
+    performanceUtils.clearCache();
+    cacheService.clear();
+  },
+} as const;
+
+// デフォルトエクスポート
+export default GoogleMarkerCluster;

@@ -1,0 +1,189 @@
+/* ======================================
+   Google Maps Component Styles
+   現代的なCSS設計原則に基づく実装
+   ====================================== */
+
+/* CSS カスタムプロパティ（CSS変数）によるデザインシステム */
+:root {
+  /* カラーシステム */
+  --map-border-color: hsl(213, 20%, 88%);
+  --map-shadow-color: hsl(0, 0%, 0%, 0.1);
+  --map-shadow-hover: hsl(0, 0%, 0%, 0.15);
+  --map-loading-color: hsl(213, 16%, 32%);
+  --map-error-color: hsl(0, 68%, 59%);
+  --map-bg-overlay: hsl(0, 0%, 100%, 0.95);
+
+  /* スペーシングシステム */
+  --map-border-radius: 0.5rem;
+  --map-border-width: 1px;
+  --map-padding: 1rem;
+
+  /* タイポグラフィ */
+  --map-font-size-base: 1rem;
+  --map-font-weight-medium: 500;
+  --map-line-height-base: 1.5;
+
+  /* シャドウシステム */
+  --map-shadow-sm: 0 1px 2px 0 var(--map-shadow-color);
+  --map-shadow-md: 0 4px 6px -1px var(--map-shadow-color), 0 2px 4px -1px var(--map-shadow-color);
+
+  /* アニメーション */
+  --map-transition-base: all 0.2s ease-in-out;
+  --map-transition-shadow: box-shadow 0.15s ease-in-out;
+}
+
+/* Google Maps メインコンテナ - モダンなボックスモデル */
+.map-container {
+  /* レイアウト */
+  width: 100%;
+  height: 100%; /* 400px から 100% に変更 */
+
+  /* 視覚的スタイリング */
+  border-radius: var(--map-border-radius);
+  border: var(--map-border-width) solid var(--map-border-color);
+  box-shadow: var(--map-shadow-sm);
+  overflow: hidden;
+
+  /* アクセシビリティ */
+  position: relative;
+  isolation: isolate; /* 新しいスタッキングコンテキストを作成 */
+
+  /* インタラクション */
+  transition: var(--map-transition-shadow);
+}
+
+/* ホバー状態のインタラクション改善 */
+.map-container:hover {
+  box-shadow: var(--map-shadow-md);
+}
+
+/* フォーカス可能な要素のアクセシビリティ改善 */
+.map-container:focus-within {
+  outline: 2px solid hsl(211, 100%, 50%);
+  outline-offset: 2px;
+}
+
+/* 状態表示共通スタイル - Flexboxレイアウト最適化 */
+.map-state-display {
+  /* フルサイズレイアウト */
+  width: 100%;
+  height: 100%;
+
+  /* センタリング（モダンなFlexbox） */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* タイポグラフィ */
+  font-size: var(--map-font-size-base);
+  font-weight: var(--map-font-weight-medium);
+  line-height: var(--map-line-height-base);
+  text-align: center;
+
+  /* 背景とレイヤリング */
+  background-color: var(--map-bg-overlay);
+  backdrop-filter: blur(4px); /* モダンブラウザ向けエフェクト */
+
+  /* パディング（論理プロパティ使用） */
+  padding-inline: var(--map-padding);
+  padding-block: var(--map-padding);
+}
+
+/* ローディング状態 - セマンティックカラー */
+.map-loading {
+  color: var(--map-loading-color);
+
+  /* ローディングアニメーション（オプション） */
+  position: relative;
+}
+
+/* ローディングアニメーション効果（CSS-onlyソリューション） */
+.map-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: -0.75rem;
+  margin-left: 2rem;
+  border: 2px solid var(--map-loading-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: map-loading-spin 1s linear infinite;
+}
+
+/* ローディングスピンアニメーション */
+@keyframes map-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* エラー状態 - アクセシブルなエラー表示 */
+.map-error {
+  color: var(--map-error-color);
+
+  /* エラーアイコン（純CSS） */
+  position: relative;
+}
+
+.map-error::before {
+  content: '⚠️';
+  display: inline-block;
+  margin-inline-end: 0.5rem;
+  font-size: 1.2em;
+}
+
+/* ダークモード対応（プリファレンス対応） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --map-border-color: hsl(213, 20%, 25%);
+    --map-shadow-color: hsl(0, 0%, 0%, 0.3);
+    --map-loading-color: hsl(213, 16%, 75%);
+    --map-error-color: hsl(0, 68%, 70%);
+    --map-bg-overlay: hsl(0, 0%, 10%, 0.95);
+  }
+}
+
+/* 縮小モーション設定対応（アクセシビリティ） */
+@media (prefers-reduced-motion: reduce) {
+  .map-container,
+  .map-loading::after {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* レスポンシブデザイン - コンテナクエリ対応準備 */
+@media (max-width: 768px) {
+  .map-container {
+    height: 300px; /* モバイルでは高さを調整 */
+    border-radius: calc(var(--map-border-radius) * 0.75);
+  }
+
+  .map-state-display {
+    font-size: 0.875rem;
+    padding-inline: calc(var(--map-padding) * 0.75);
+  }
+}
+
+/* 高解像度ディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .map-container {
+    /* 高解像度でのボーダー調整 */
+    border-width: 0.5px;
+  }
+}
+
+/* プリント媒体対応 */
+@media print {
+  .map-container {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .map-loading::after {
+    display: none;
+  }
+}

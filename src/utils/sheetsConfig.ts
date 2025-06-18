@@ -1,4 +1,4 @@
-import type { SheetsConfig } from "../types/sheets";
+import type { SheetId, SheetsConfig } from "../types/sheets";
 
 /**
  * 環境変数の型安全な取得
@@ -6,15 +6,22 @@ import type { SheetsConfig } from "../types/sheets";
  * @param defaultValue デフォルト値
  * @returns 環境変数の値
  */
-const getEnvValue = (value: string | undefined, defaultValue = ""): string => {
-  return value || defaultValue;
+const getEnvValue = (value: string | undefined, defaultValue: string): SheetId => {
+  return createSheetId(value || defaultValue);
 };
 
 /**
- * デフォルトのシート設定
+ * Creates a branded SheetId from a string
+ */
+function createSheetId(id: string): SheetId {
+  return id as SheetId;
+}
+
+/**
+ * デフォルトのシート設定（文字列）
  * 型定義と一致するデフォルト値を提供
  */
-const DEFAULT_SHEETS_CONFIG: SheetsConfig = {
+const DEFAULT_SHEETS_CONFIG = {
   recommended: "recommended",
   toilets: "toilet",
   parking: "parking",
@@ -22,7 +29,7 @@ const DEFAULT_SHEETS_CONFIG: SheetsConfig = {
   kanaiSawada: "kanai_sawada",
   akadomariHamochi: "akadomari_hamochi",
   snacks: "snacks",
-};
+} as const;
 
 /**
  * 環境変数からシート設定を取得
