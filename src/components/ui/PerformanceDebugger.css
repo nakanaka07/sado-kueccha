@@ -1,0 +1,247 @@
+/**
+ * パフォーマンスデバッガー用CSS
+ * @version 1.0.0
+ * @since 2025-01-27
+ */
+
+/* デバッガートグルボタン */
+.performance-debugger-toggle {
+  position: fixed;
+  z-index: 10000;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.performance-debugger-toggle:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.performance-debugger-toggle--top-left {
+  top: 10px;
+  left: 10px;
+}
+
+.performance-debugger-toggle--top-right {
+  top: 10px;
+  right: 10px;
+}
+
+.performance-debugger-toggle--bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+
+.performance-debugger-toggle--bottom-right {
+  bottom: 10px;
+  right: 10px;
+}
+
+/* メインデバッガーパネル */
+.performance-debugger {
+  position: fixed;
+  z-index: 10001;
+  min-width: 200px;
+  max-width: 300px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.performance-debugger--top-left {
+  top: 10px;
+  left: 10px;
+}
+
+.performance-debugger--top-right {
+  top: 10px;
+  right: 10px;
+}
+
+.performance-debugger--bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+
+.performance-debugger--bottom-right {
+  bottom: 10px;
+  right: 10px;
+}
+
+/* ヘッダー */
+.performance-debugger__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px 8px 0 0;
+}
+
+.performance-debugger__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.performance-debugger__close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.performance-debugger__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* コンテンツ */
+.performance-debugger__content {
+  padding: 12px;
+}
+
+.performance-debugger__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.metric__label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+}
+
+.metric__value {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 11px;
+  text-align: right;
+  min-width: 50px;
+}
+
+.metric__value--warning {
+  color: #ff9800;
+}
+
+.metric__value--error {
+  color: #f44336;
+}
+
+/* 情報セクション */
+.performance-debugger__info {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.performance-debugger__info small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .performance-debugger {
+    min-width: 180px;
+    max-width: 250px;
+    font-size: 11px;
+  }
+
+  .performance-debugger-toggle {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .performance-debugger-toggle,
+  .performance-debugger__close {
+    transition: none;
+  }
+
+  .performance-debugger-toggle:hover {
+    transform: none;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: light) {
+  .performance-debugger {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #333;
+  }
+
+  .performance-debugger__header {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .performance-debugger__title {
+    color: #333;
+  }
+
+  .performance-debugger__close {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .performance-debugger__close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+
+  .metric__label {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .performance-debugger__info {
+    border-top-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .performance-debugger__info small {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .performance-debugger-toggle {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+  }
+
+  .performance-debugger-toggle:hover {
+    background: rgba(255, 255, 255, 1);
+  }
+}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
-import type { FilterState } from "../types/filter";
+import type { FilterState } from "../types";
+import { isDevelopment } from "../utils/env";
 
 interface FullscreenPanelOptions {
   filterState: FilterState;
@@ -121,7 +122,9 @@ export const useFullscreenPanel = (
         }),
       );
     } catch (error) {
-      console.warn("フルスクリーンパネルの更新中にエラーが発生しました:", error);
+      if (isDevelopment()) {
+        console.warn("フルスクリーンパネルの更新中にエラーが発生しました:", error);
+      }
     } finally {
       isProcessingRef.current = false;
     }
@@ -178,7 +181,9 @@ export const useFullscreenPanel = (
       panelElementRef.current = null;
       originalParentRef.current = null;
     } catch (error) {
-      console.warn("フルスクリーンパネルの削除中にエラーが発生しました:", error);
+      if (isDevelopment()) {
+        console.warn("フルスクリーンパネルの削除中にエラーが発生しました:", error);
+      }
     } finally {
       isProcessingRef.current = false;
     }

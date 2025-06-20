@@ -15,37 +15,85 @@ interface RecommendMarkerProps {
 /**
  * おすすめマーカーコンポーネント
  * パフォーマンス最適化とアクセシビリティを考慮した実装
+ *
+ * @description
+ * - Intersection Observer によるアニメーション最適化
+ * - requestAnimationFrame による滑らかなアニメーション
+ * - will-change プロパティによるGPU加速
+ * - アクセシビリティ完全対応
  */
 const RecommendMarker: FC<RecommendMarkerProps> = memo(
   ({ poi, onClick, isHighlighted = false, showLabel = false }) => {
     const [shouldBounce, setShouldBounce] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const animationFrameRef = useRef<number | undefined>(undefined);
     const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const isAnimatingRef = useRef(false);
+    const markerRef = useRef<HTMLDivElement>(null);
 
-    // アニメーション制御の最適化
+    // Intersection Observer によるビューポート監視
+    useEffect(() => {
+      const markerElement = markerRef.current;
+      if (!markerElement) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries;
+          if (entry) {
+            setIsVisible(entry.isIntersecting);
+            // ビューポートに入った時のみアニメーションを有効化
+            if (entry.isIntersecting && !isAnimatingRef.current) {
+              // 少し遅延してからアニメーションを開始
+              setTimeout(() => {
+                if (entry.isIntersecting) {
+                  triggerBounceAnimation();
+                }
+              }, Math.random() * 500); // ランダム遅延でマーカーが一斉にアニメーションするのを防ぐ
+            }
+          }
+        },
+        {
+          threshold: 0.1,
+          rootMargin: "50px",
+        },
+      );
+
+      observer.observe(markerElement);
+
+      return () => {
+        observer.disconnect();
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // アニメーション制御の最適化（GPU加速対応）
     const triggerBounceAnimation = useCallback(() => {
-      if (isAnimatingRef.current) return;
+      if (isAnimatingRef.current || !isVisible) return;
 
       isAnimatingRef.current = true;
       setShouldBounce(true);
+
+      // will-change プロパティを動的に設定
+      if (markerRef.current) {
+        markerRef.current.style.willChange = "transform, opacity";
+      }
 
       animationFrameRef.current = requestAnimationFrame(() => {
         timeoutRef.current = setTimeout(() => {
           setShouldBounce(false);
           isAnimatingRef.current = false;
+
+          // アニメーション完了後に will-change を削除
+          if (markerRef.current) {
+            markerRef.current.style.willChange = "auto";
+          }
         }, 600);
       });
-    }, []);
+    }, [isVisible]);
 
-    // マウント時のアニメーション（IntersectionObserver使用を検討）
+    // マウント時のアニメーション（Intersection Observer依存に変更）
     useEffect(() => {
-      const mountTimer = setTimeout(() => {
-        triggerBounceAnimation();
-      }, 100);
-
       return () => {
-        clearTimeout(mountTimer);
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
@@ -53,7 +101,7 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
           clearTimeout(timeoutRef.current);
         }
       };
-    }, [triggerBounceAnimation]);
+    }, []);
 
     // クリックハンドラーの最適化
     const handleClick = useCallback(() => {
@@ -74,6 +122,7 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
     return (
       <AdvancedMarker position={poi.position} onClick={handleClick} zIndex={1000}>
         <div
+          ref={markerRef}
           className={markerClasses}
           role="button"
           tabIndex={0}

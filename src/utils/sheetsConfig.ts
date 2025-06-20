@@ -1,4 +1,4 @@
-import type { SheetId, SheetsConfig } from "../types/sheets";
+import type { SheetId, SheetsConfig } from "../types";
 
 /**
  * 環境変数の型安全な取得

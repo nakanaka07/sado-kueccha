@@ -1,13 +1,21 @@
 {
+  // 🎯 基本エディタ設定
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": false,
   "prettier.requireConfig": true,
+
+  // ⚡ 自動保存・修正設定
+  "files.autoSave": "onFocusChange",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit",
-    "source.removeUnusedImports": "explicit"
+    "source.removeUnusedImports": "explicit",
+    "source.addMissingImports": "explicit"
   },
-  // Vitest 拡張機能設定
+
+  // 🧪 Vitest 設定強化
   "vitest.configFiles": ["vitest.config.ts"],
   "vitest.workspaceConfig": "",
   "vitest.rootConfig": "./vitest.config.ts",
@@ -15,6 +23,9 @@
   "vitest.enable": true,
   "vitest.showFailMessages": true,
   "vitest.disableWorkspaceWarning": true,
+  "vitest.experimentalOptimized": true,
+
+  // 🔧 ESLint 設定
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -23,21 +34,47 @@
   ],
   "eslint.workingDirectories": ["."],
   "eslint.useFlatConfig": true,
+  "eslint.codeAction.showDocumentation": {
+    "enable": true
+  },
+
+  // 📝 TypeScript 設定強化
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
   "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+  "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+  "typescript.inlayHints.parameterTypes.enabled": true,
+  "typescript.suggest.completeFunctionCalls": true,
+
+  // ⚛️ React 開発支援
   "emmet.includeLanguages": {
     "typescript": "typescriptreact",
     "javascript": "javascriptreact"
   },
+  "react.snippets.enabled": true,
+
+  // 🎨 ファイル関連設定
   "files.associations": {
-    "*.css": "css"
+    "*.css": "css",
+    "*.tsx": "typescriptreact"
   },
-  "editor.rulers": [100],
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
+
+  // 📏 エディタ表示設定
+  "editor.rulers": [80, 100],
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 100,
+  "editor.minimap.enabled": false,
+  "editor.lineNumbers": "on",
+  "editor.showFoldingControls": "always",
+
+  // 🔍 検索・除外設定最適化
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
@@ -49,7 +86,8 @@
     "**/.cache": true,
     "**/.swc": true,
     "**/build": true,
-    "**/.turbo": true
+    "**/.turbo": true,
+    "**/tsconfig.tsbuildinfo": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -70,8 +108,11 @@
     "**/.cache/**": true,
     "**/.swc/**": true,
     "**/build/**": true,
-    "**/.turbo/**": true
+    "**/.turbo/**": true,
+    "**/tsconfig.tsbuildinfo": true
   },
+
+  // 🎯 言語別フォーマット設定
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
@@ -101,46 +142,82 @@
     "editor.wordWrap": "on",
     "editor.rulers": [80]
   },
-  "react.snippets.enabled": true,
+
+  // 🔧 JavaScript/TypeScript 設定
   "javascript.suggest.includeCompletions": true,
   "typescript.suggest.includeCompletions": true,
+  "javascript.suggest.completeFunctionCalls": true,
+
+  // 🎨 CSS設定
   "css.validate": true,
   "scss.validate": true,
   "less.validate": true,
-  // 2025年最新の開発体験向上設定
-  "editor.inlayHints.enabled": "on",
-  "typescript.inlayHints.parameterNames.enabled": "all",
-  "typescript.inlayHints.variableTypes.enabled": true,
-  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
-  // Git関連の設定強化
-  "git.autofetch": true,
-  "git.enableSmartCommit": true,
-  "git.confirmSync": false,
-  // パフォーマンス最適化
-  "extensions.experimental.affinity": {
-    "asvetliakov.vscode-neovim": 1
-  },
-  // Disable accessibility checkers that cause false positives
-  "axe.disableForWorkspace": true,
-  "axe-accessibility.disableValidation": true,
-  "microsoft-edge-tools.webhint.enabled": false,
-  "webhint.enable": false,
-  // Code Improvement Support Settings
+
+  // 📈 パフォーマンス最適化設定
   "editor.quickSuggestions": {
     "comments": "on",
     "strings": "on",
     "other": "on"
   },
   "editor.suggest.snippetsPreventQuickSuggestions": false,
-  "code-spell-checker.words": [
+  "editor.inlayHints.enabled": "on",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+
+  // 🔗 Git 設定強化
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.allowForcePush": false,
+
+  // 🛠️ 開発体験向上
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.closeOnFileDelete": true,
+
+  // 📊 問題・診断設定
+  "problems.decorations.enabled": true,
+  "problems.showCurrentInStatus": true,
+
+  // 🎯 拡張機能固有設定
+  "extensions.experimental.affinity": {
+    "esbenp.prettier-vscode": 1,
+    "dbaeumer.vscode-eslint": 1,
+    "ms-vscode.vscode-typescript-next": 1
+  },
+
+  // 🚫 不要な検証無効化
+  "axe.disableForWorkspace": true,
+  "axe-accessibility.disableValidation": true,
+  "microsoft-edge-tools.webhint.enabled": false,
+  "webhint.enable": false,
+
+  // 📖 スペルチェック設定
+  "cSpell.words": [
     "cleanup",
     "refactor",
     "modernize",
     "standardize",
-    "optimize"
+    "optimize",
+    "googlemaps",
+    "markerclusterer",
+    "vitest",
+    "pnpm",
+    "tsconfig",
+    "vite",
+    "sado",
+    "kueccha"
   ],
+
+  // 🎨 UI カスタマイズ
   "workbench.colorCustomizations": {
     "statusBar.background": "#1f4788",
-    "statusBar.foreground": "#ffffff"
-  }
+    "statusBar.foreground": "#ffffff",
+    "editorRuler.foreground": "#333333"
+  },
+
+  // 🔧 終端設定
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
 }

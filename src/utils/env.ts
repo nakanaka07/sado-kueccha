@@ -72,10 +72,12 @@ export const debugLog = (_message: string, ..._args: unknown[]): void => {
 };
 
 /**
- * ⚠️ 警告ログ
+ * ⚠️ 警告ログ (開発環境のみ)
  */
 export const warnLog = (message: string, ...args: unknown[]): void => {
-  console.warn(`⚠️ [WARN] ${message}`, ...args);
+  if (isDevelopment()) {
+    console.warn(`⚠️ [WARN] ${message}`, ...args);
+  }
 };
 
 /**

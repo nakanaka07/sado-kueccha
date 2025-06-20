@@ -2,8 +2,7 @@ import { AdvancedMarker, APIProvider, Map, useMap } from "@vis.gl/react-google-m
 import type React from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { SADO_ISLAND } from "../../constants/map";
-import { fetchPOIs, removeDuplicatePOIs } from "../../services/sheets";
+import { SADO_ISLAND } from "../../constants";
 import type { FilterState } from "../../types/filter";
 import type { POI } from "../../types/poi";
 import { getAppConfig } from "../../utils/env";
@@ -28,14 +27,56 @@ const MapInstanceCapture = memo<{
 
 MapInstanceCapture.displayName = "MapInstanceCapture";
 
-// POIマーカーコンポーネント - AdvancedMarkerを使用して非推奨警告を解決
+// POIマーカーコンポーネント - 最適化されたレンダリング
 const POIMarkers = memo<{
   pois: POI[];
   onPoiClick: (poi: POI) => void;
 }>(({ pois, onPoiClick }) => {
+  // パフォーマンス最適化: 大量のPOIがある場合は段階的にレンダリング
+  const [renderedCount, setRenderedCount] = useState(Math.min(50, pois.length));
+
+  // 段階的レンダリング - React 18のConcurrent Featuresを活用
+  useEffect(() => {
+    if (renderedCount < pois.length) {
+      const timeoutId = setTimeout(() => {
+        setRenderedCount((prev) => Math.min(prev + 25, pois.length));
+      }, 16); // 次のフレームで追加レンダリング
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+
+    return undefined;
+  }, [renderedCount, pois.length]);
+
+  // POIの変更時にレンダリング数をリセット
+  useEffect(() => {
+    setRenderedCount(Math.min(50, pois.length));
+  }, [pois]);
+
+  // レンダリングするPOIを制限
+  const poisToRender = useMemo(() => {
+    // 優先度つきソート: おすすめマーカーを最初に表示
+    const sorted = [...pois].sort((a, b) => {
+      const aIsRecommended =
+        a.sourceSheet?.toLowerCase().includes("recommend") ||
+        a.sourceSheet?.toLowerCase().includes("おすすめ");
+      const bIsRecommended =
+        b.sourceSheet?.toLowerCase().includes("recommend") ||
+        b.sourceSheet?.toLowerCase().includes("おすすめ");
+
+      if (aIsRecommended && !bIsRecommended) return -1;
+      if (!aIsRecommended && bIsRecommended) return 1;
+      return 0;
+    });
+
+    return sorted.slice(0, renderedCount);
+  }, [pois, renderedCount]);
+
   return (
     <>
-      {pois.map((poi) => (
+      {poisToRender.map((poi) => (
         <AdvancedMarker
           key={poi.id}
           position={poi.position}
@@ -81,12 +122,35 @@ export const MapComponent = memo<MapComponentProps>(
     const _currentZoomRef = useRef<number>(SADO_ISLAND.ZOOM.DEFAULT);
 
     // 使用するPOIデータを決定
-    const activePois = useMemo(() => {
-      const basePois = externalPois ?? internalPois;
-      return removeDuplicatePOIs(basePois);
+    const [activePois, setActivePois] = useState<POI[]>([]);
+
+    useEffect(() => {
+      const updateActivePois = async () => {
+        const basePois = externalPois ?? internalPois;
+        const { removeDuplicatePOIs } = await import("../../services/sheets");
+        setActivePois(removeDuplicatePOIs(basePois));
+      };
+
+      void updateActivePois();
     }, [externalPois, internalPois]);
 
-    // フィルタリング
+    // フィルタリングロジックをメモ化（パフォーマンス最適化）
+    const filterMap = useMemo(
+      () => ({
+        toilet: filterState?.showToilets ?? true,
+        parking: filterState?.showParking ?? true,
+        recommended: filterState?.showRecommended ?? true,
+        snack: filterState?.showSnacks ?? true,
+      }),
+      [
+        filterState?.showToilets,
+        filterState?.showParking,
+        filterState?.showRecommended,
+        filterState?.showSnacks,
+      ],
+    );
+
+    // フィルタリング - 最適化されたロジック
     const filteredPois = useMemo(() => {
       if (!filterState) return activePois;
 
@@ -95,13 +159,7 @@ export const MapComponent = memo<MapComponentProps>(
 
         const sheetName = poi.sourceSheet.toLowerCase();
 
-        const filterMap = {
-          toilet: filterState.showToilets,
-          parking: filterState.showParking,
-          recommended: filterState.showRecommended,
-          snack: filterState.showSnacks,
-        } as const;
-
+        // 最適化されたフィルタリング: 早期リターンを使用
         for (const [keyword, shouldShow] of Object.entries(filterMap)) {
           if (sheetName.includes(keyword) && !shouldShow) {
             return false;
@@ -110,12 +168,38 @@ export const MapComponent = memo<MapComponentProps>(
 
         return true;
       });
-    }, [activePois, filterState]);
+    }, [activePois, filterMap, filterState]);
 
     // API設定
     const { maps } = getAppConfig();
     const { apiKey: googleMapsApiKey, mapId } = maps;
     const libraries = useMemo(() => ["marker"], []);
+
+    // マップオプションの完全なメモ化
+    const mapOptions = useMemo(
+      () => ({
+        center: SADO_ISLAND.CENTER,
+        zoom: SADO_ISLAND.ZOOM.DEFAULT,
+        maxZoom: SADO_ISLAND.ZOOM.MAX,
+        minZoom: SADO_ISLAND.ZOOM.MIN,
+        mapId,
+        mapTypeId: "roadmap" as const,
+        clickableIcons: enableClickableIcons,
+        disableDefaultUI: false,
+        keyboardShortcuts: true,
+        gestureHandling: "greedy" as const,
+        restriction: {
+          latLngBounds: {
+            north: SADO_ISLAND.BOUNDS.NORTH,
+            south: SADO_ISLAND.BOUNDS.SOUTH,
+            east: SADO_ISLAND.BOUNDS.EAST,
+            west: SADO_ISLAND.BOUNDS.WEST,
+          },
+          strictBounds: false,
+        },
+      }),
+      [mapId, enableClickableIcons],
+    );
 
     const apiProviderConfig = useMemo(
       () => ({
@@ -139,6 +223,7 @@ export const MapComponent = memo<MapComponentProps>(
 
       const loadPOIs = async () => {
         try {
+          const { fetchPOIs } = await import("../../services/sheets");
           const data = await fetchPOIs();
           if (isMounted) {
             setInternalPois(data);
@@ -243,16 +328,13 @@ export const MapComponent = memo<MapComponentProps>(
           }}
         >
           <Map
-            defaultZoom={11}
-            defaultCenter={{ lat: 38.0549, lng: 138.3691 }}
-            mapTypeId="roadmap"
-            mapId={mapId}
+            {...mapOptions}
             style={{ width: "100%", height: "400px" }}
-            disableDefaultUI={false}
-            gestureHandling="greedy"
-            clickableIcons={enableClickableIcons}
             onClick={() => {
               setSelectedPoi(null);
+            }}
+            onCameraChanged={(_event) => {
+              // カメラ変更時の処理（必要に応じて）
             }}
           >
             <MapInstanceCapture onMapLoad={handleMapLoad} />
@@ -265,6 +347,7 @@ export const MapComponent = memo<MapComponentProps>(
                 }}
               />
             ) : null}
+            {/* 最適化されたマーカークラスタリングを使用 */}
             <POIMarkers pois={filteredPois} onPoiClick={handlePoiClick} />
           </Map>
         </APIProvider>

@@ -4,7 +4,7 @@
  */
 
 import { DISTANCE_THRESHOLDS, ZOOM_CONSTANTS } from "../constants";
-import type { Coordinates, PositionObject } from "../types/common";
+import type { Coordinates, PositionObject } from "../types";
 
 /**
  * 地理計算の定数（高精度版）

@@ -2,20 +2,76 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "🌐 Launch Edge (開発サーバー)",
       "type": "msedge",
       "request": "launch",
-      "name": "Edge",
       "url": "https://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "userDataDir": false,
+      "runtimeArgs": [
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--allow-running-insecure-content"
+      ]
+    },
+    {
+      "name": "🔧 Launch Chrome (開発サーバー)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "userDataDir": false,
+      "runtimeArgs": [
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--allow-running-insecure-content"
+      ]
+    },
+    {
+      "name": "📱 Launch Edge (モバイルビュー)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "https://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "userDataDir": false,
+      "runtimeArgs": [
+        "--device-scale-factor=2",
+        "--force-device-scale-factor=2",
+        "--window-size=375,812"
+      ]
+    },
+    {
+      "name": "🧪 Attach to Edge (既存プロセス)",
+      "type": "msedge",
+      "request": "attach",
+      "port": 9222,
       "webRoot": "${workspaceFolder}",
       "sourceMaps": true
     },
     {
-      "type": "chrome",
+      "name": "🔍 Debug Tests",
+      "type": "node",
       "request": "launch",
-      "name": "Chrome",
-      "url": "https://localhost:5173",
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "--reporter=verbose"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "name": "🚀 Launch Preview Build",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:4173",
+      "webRoot": "${workspaceFolder}/dist",
+      "sourceMaps": true,
+      "preLaunchTask": "build",
+      "userDataDir": false
     }
   ]
 }

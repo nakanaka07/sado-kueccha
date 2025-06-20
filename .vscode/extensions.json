@@ -1,36 +1,52 @@
 {
   "recommendations": [
-    // 必須の開発ツール
+    // 🎯 必須の開発ツール (高優先度)
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "ms-vscode.vscode-typescript-next",
 
-    // React開発支援
+    // ⚛️ React開発支援
     "ms-vscode.vscode-react-next",
-    "bradlc.vscode-tailwindcss",
     "formulahendry.auto-rename-tag",
+    "bradlc.vscode-tailwindcss",
 
-    // 基本的な言語サポート
-    "ms-vscode.vscode-json",
-    "ms-vscode.vscode-css",
-    "ms-vscode.vscode-html",
-    "redhat.vscode-yaml",
+    // 🧪 テスト・デバッグ強化
+    "vitest.explorer",
+    "ms-vscode.vscode-js-debug",
 
-    // Git関連
-    "eamodio.gitlens",
-    "github.vscode-pull-request-github",
-
-    // 開発体験向上
+    // 📈 パフォーマンス・品質向上
     "usernamehw.errorlens",
     "yoavbls.pretty-ts-errors",
-    "christian-kohler.path-intellisense",
     "wix.vscode-import-cost",
+    "ms-vscode.vscode-edge-devtools",
 
-    // テスト関連
-    "vitest.explorer",
+    // 🔧 開発効率向上
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
 
-    // その他の便利ツール
+    // 🔗 Git・コラボレーション
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "github.copilot",
+    "github.copilot-chat",
+
+    // 🛠️ 追加開発支援
     "streetsidesoftware.code-spell-checker",
-    "ms-vscode.vscode-css-peek"
+    "ms-vscode.vscode-css-peek",
+    "ms-vscode.hexeditor",
+    "gruntfuggly.todo-tree",
+
+    // 🎨 UI/UX開発支援
+    "ms-vscode.vscode-css",
+    "ms-vscode.vscode-html",
+    "ritwickdey.liveserver"
+  ],
+  "unwantedRecommendations": [
+    // パフォーマンスを低下させる可能性のある拡張機能
+    "ms-vscode.vscode-pylance",
+    "ms-python.python",
+    "ms-vscode.cpptools",
+    "ms-vscode.vscode-java"
   ]
 }

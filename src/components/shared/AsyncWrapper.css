@@ -1,0 +1,205 @@
+/* AsyncWrapper.css - 非同期処理の共通化コンポーネントのスタイル */
+
+.async-wrapper {
+  width: 100%;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ローディング状態 */
+.async-wrapper--loading {
+  padding: 2rem;
+}
+
+/* エラー状態 */
+.async-wrapper--error {
+  padding: 2rem;
+}
+
+.async-wrapper__error {
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.async-wrapper__error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.async-wrapper__error-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #dc3545;
+}
+
+.async-wrapper__error-message {
+  margin: 0 0 1.5rem;
+  color: #666;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+.async-wrapper__retry {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.async-wrapper__retry:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.async-wrapper__retry:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.async-wrapper__retry:active {
+  transform: translateY(0);
+  background-color: #004085;
+}
+
+/* 空状態 */
+.async-wrapper--empty {
+  padding: 3rem 2rem;
+}
+
+.async-wrapper__empty {
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.async-wrapper__empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.async-wrapper__empty-message {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* 成功状態 */
+.async-wrapper--success {
+  width: 100%;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .async-wrapper--loading,
+  .async-wrapper--error {
+    padding: 1.5rem 1rem;
+  }
+
+  .async-wrapper--empty {
+    padding: 2rem 1rem;
+  }
+
+  .async-wrapper__error-icon,
+  .async-wrapper__empty-icon {
+    font-size: 2.5rem;
+  }
+
+  .async-wrapper__error-title {
+    font-size: 1.125rem;
+  }
+
+  .async-wrapper__error-message,
+  .async-wrapper__empty-message {
+    font-size: 0.875rem;
+  }
+
+  .async-wrapper__retry {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .async-wrapper--loading,
+  .async-wrapper--error,
+  .async-wrapper--empty {
+    padding: 1rem 0.5rem;
+  }
+
+  .async-wrapper__error,
+  .async-wrapper__empty {
+    max-width: 100%;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .async-wrapper__error-title {
+    color: #000;
+  }
+
+  .async-wrapper__error-message,
+  .async-wrapper__empty-message {
+    color: #000;
+  }
+
+  .async-wrapper__retry {
+    background-color: #000;
+    border: 2px solid #000;
+  }
+
+  .async-wrapper__retry:hover,
+  .async-wrapper__retry:focus {
+    background-color: #333;
+    border-color: #333;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .async-wrapper__error-title {
+    color: #ff6b6b;
+  }
+
+  .async-wrapper__error-message,
+  .async-wrapper__empty-message {
+    color: #a0aec0;
+  }
+
+  .async-wrapper__retry {
+    background-color: #4299e1;
+  }
+
+  .async-wrapper__retry:hover {
+    background-color: #3182ce;
+  }
+
+  .async-wrapper__retry:active {
+    background-color: #2c5aa0;
+  }
+}
+
+/* モーション削減対応 */
+@media (prefers-reduced-motion: reduce) {
+  .async-wrapper__retry {
+    transition: none;
+    transform: none;
+  }
+
+  .async-wrapper__retry:hover,
+  .async-wrapper__retry:active {
+    transform: none;
+  }
+}

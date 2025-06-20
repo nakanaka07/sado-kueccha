@@ -3,7 +3,7 @@
  * 最新のベストプラクティスに基づいたアセット管理
  */
 
-import type { AssetUrl, BaseAssets } from "../types/assets";
+import type { AssetUrl, BaseAssets } from "../types";
 import { getAppConfig } from "./env";
 
 /**

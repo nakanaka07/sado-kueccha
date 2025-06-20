@@ -229,3 +229,110 @@ export interface AccessibilityConfig {
   /** スクリーンリーダー対応 */
   readonly screenReaderEnabled?: boolean;
 }
+
+/**
+ * アプリケーション設定関連の型
+ */
+export interface AppConfig {
+  readonly googleMapsApiKey: string;
+  readonly googleSheetsApiKey: string;
+  readonly spreadsheetId: string;
+  readonly refreshInterval?: number;
+  readonly debug?: boolean;
+  readonly features?: {
+    readonly clustering?: boolean;
+    readonly geolocation?: boolean;
+    readonly caching?: boolean;
+    readonly analytics?: boolean;
+  };
+}
+
+/**
+ * エラーバウンダリの状態管理
+ */
+export interface ErrorBoundaryState {
+  readonly hasError: boolean;
+  readonly error?: Error;
+  readonly errorInfo?: {
+    readonly componentStack: string;
+    readonly errorBoundary?: string;
+  };
+  readonly retryCount: number;
+  readonly timestamp: TimestampMs;
+}
+
+/**
+ * アプリケーション全体の状態管理用型
+ */
+export interface AppState {
+  readonly initialized: boolean;
+  readonly loading: boolean;
+  readonly error?: Error;
+  readonly user?: {
+    readonly id: string;
+    readonly preferences: Record<string, unknown>;
+  };
+  readonly session?: {
+    readonly id: string;
+    readonly startTime: TimestampMs;
+    readonly lastActivity: TimestampMs;
+  };
+}
+
+/**
+ * パフォーマンス監視用の型
+ */
+export interface PerformanceMetrics {
+  readonly renderTime: number;
+  readonly loadTime: number;
+  readonly memoryUsage?: number;
+  readonly bundleSize?: number;
+  readonly cacheHitRate?: number;
+}
+
+/**
+ * API応答の共通型
+ */
+export interface ApiResponse<T = unknown> {
+  readonly success: boolean;
+  readonly data?: T;
+  readonly error?: {
+    readonly code: string;
+    readonly message: string;
+    readonly details?: unknown;
+  };
+  readonly metadata?: {
+    readonly requestId: string;
+    readonly timestamp: TimestampMs;
+    readonly version: string;
+  };
+}
+
+/**
+ * イベント処理用の型
+ */
+export interface CustomEvent<T = unknown> {
+  readonly type: string;
+  readonly payload: T;
+  readonly timestamp: TimestampMs;
+  readonly source?: string;
+  readonly preventDefault?: () => void;
+  readonly stopPropagation?: () => void;
+}
+
+/**
+ * ログレベルの定義
+ */
+export type LogLevel = "debug" | "info" | "warn" | "error";
+
+/**
+ * ログエントリの型
+ */
+export interface LogEntry {
+  readonly level: LogLevel;
+  readonly message: string;
+  readonly timestamp: TimestampMs;
+  readonly context?: Record<string, unknown>;
+  readonly error?: Error;
+  readonly source?: string;
+}

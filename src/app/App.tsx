@@ -1,6 +1,11 @@
 import type { FC, ReactElement } from "react";
 import { Suspense, lazy, useEffect } from "react";
-import { ErrorBoundary, LoadingScreen, MapLoadingOverlay } from "../components/ui";
+import {
+  ErrorBoundary,
+  LoadingScreen,
+  MapLoadingOverlay,
+  PerformanceDebugger,
+} from "../components/ui";
 import { useAppState } from "../hooks/useAppState";
 import { getAppConfig } from "../utils/env";
 
@@ -12,9 +17,10 @@ const FilterPanel = lazy(() =>
   import("../components/filter/FilterPanel").then((module) => ({ default: module.FilterPanel })),
 );
 
-const MapComponent = lazy(() =>
-  import("../components/map").then((module) => ({ default: module.MapComponent })),
-);
+const MapComponent = lazy(async () => {
+  const module = await import("../components/map");
+  return { default: module.MapComponent };
+});
 
 /**
  * @fileoverview メインアプリケーションコンポーネント
@@ -228,6 +234,9 @@ const App: FC = (): ReactElement => {
             </Suspense>
           </Suspense>
         </main>
+
+        {/* パフォーマンス監視デバッガー（開発環境のみ） */}
+        <PerformanceDebugger position="bottom-right" />
       </div>
     </ErrorBoundary>
   );

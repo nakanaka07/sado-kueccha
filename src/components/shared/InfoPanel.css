@@ -1,0 +1,229 @@
+/* InfoPanel.css - 汎用情報表示パネルのスタイル */
+
+.info-panel {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* サイズバリエーション */
+.info-panel--small {
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.info-panel--medium {
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.info-panel--large {
+  min-width: 400px;
+  max-width: 700px;
+}
+
+/* ポジションバリエーション */
+.info-panel--center {
+  position: relative;
+  margin: 0 auto;
+}
+
+.info-panel--top {
+  position: relative;
+  margin: 1rem auto 0;
+}
+
+.info-panel--bottom {
+  position: relative;
+  margin: 0 auto 1rem;
+}
+
+.info-panel--left {
+  position: relative;
+  margin-right: auto;
+}
+
+.info-panel--right {
+  position: relative;
+  margin-left: auto;
+}
+
+/* ヘッダー */
+.info-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  min-height: 3rem;
+}
+
+.info-panel__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.info-panel--small .info-panel__title {
+  font-size: 1rem;
+}
+
+.info-panel--large .info-panel__title {
+  font-size: 1.25rem;
+}
+
+/* クローズボタン */
+.info-panel__close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.info-panel__close:hover,
+.info-panel__close:focus {
+  background-color: #e9ecef;
+  color: #333;
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
+}
+
+.info-panel__close:active {
+  background-color: #dee2e6;
+}
+
+/* コンテンツ */
+.info-panel__content {
+  padding: 1.25rem;
+  color: #333;
+  line-height: 1.6;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.info-panel--small .info-panel__content {
+  padding: 1rem;
+}
+
+.info-panel--large .info-panel__content {
+  padding: 1.5rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .info-panel {
+    margin: 0 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .info-panel--small,
+  .info-panel--medium,
+  .info-panel--large {
+    min-width: auto;
+    max-width: calc(100% - 2rem);
+  }
+
+  .info-panel__header {
+    padding: 0.75rem 1rem;
+  }
+
+  .info-panel__content {
+    padding: 1rem;
+    max-height: 60vh;
+  }
+
+  .info-panel__title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .info-panel {
+    margin: 0 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .info-panel__header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .info-panel__content {
+    padding: 0.75rem;
+    max-height: 50vh;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .info-panel {
+    border: 2px solid #000;
+    box-shadow: none;
+  }
+
+  .info-panel__header {
+    background-color: #f0f0f0;
+    border-bottom: 2px solid #000;
+  }
+
+  .info-panel__close:focus {
+    outline: 3px solid #000;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .info-panel {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .info-panel__header {
+    background-color: #1a202c;
+    border-bottom-color: #4a5568;
+  }
+
+  .info-panel__title {
+    color: #e2e8f0;
+  }
+
+  .info-panel__close {
+    color: #a0aec0;
+  }
+
+  .info-panel__close:hover,
+  .info-panel__close:focus {
+    background-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .info-panel__content {
+    color: #e2e8f0;
+  }
+}
+
+/* モーション削減対応 */
+@media (prefers-reduced-motion: reduce) {
+  .info-panel__close {
+    transition: none;
+  }
+}

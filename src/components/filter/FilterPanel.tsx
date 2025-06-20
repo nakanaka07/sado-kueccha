@@ -1,6 +1,5 @@
 import type React from "react";
 import {
-  Component,
   memo,
   startTransition,
   useCallback,
@@ -9,16 +8,16 @@ import {
   useMemo,
   useRef,
   useState,
-  type ErrorInfo,
-  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { useFullscreenPanel } from "../../hooks/useFullscreenPanel";
+import { useFullscreenPanel } from "../../hooks";
 import { useFullscreenState } from "../../hooks/useFullscreenState";
-import type { FilterOption, FilterPreset, FilterState, FilterStats } from "../../types/filter";
+import type { FilterPreset, FilterState, FilterStats } from "../../types/filter";
 import { DEFAULT_FILTER_STATE, FILTER_CATEGORIES, PRESET_CONFIGS } from "../../types/filter";
 import type { POI } from "../../types/poi";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
 import "./FilterPanel.css";
+import { VirtualizedFilterOptions } from "./VirtualizedFilterOptions";
 
 /**
  * FilterPanel Component - 最新のWebベストプラクティス対応版
@@ -45,55 +44,8 @@ interface FilterPanelProps {
   className?: string;
 }
 
-// エラーバウンダリの型定義
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error | null;
-}
-
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  FallbackComponent: React.ComponentType<{ error: Error; resetError: () => void }>;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
-}
-
-// エラーバウンダリコンポーネント
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("FilterPanel Error:", error, errorInfo);
-    this.props.onError?.(error, errorInfo);
-  }
-
-  override render() {
-    if (this.state.hasError && this.state.error) {
-      const { FallbackComponent } = this.props;
-      return (
-        <FallbackComponent
-          error={this.state.error}
-          resetError={() => {
-            this.setState({ hasError: false, error: null });
-          }}
-        />
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
 // エラーフォールバックコンポーネント
-const FilterPanelErrorFallback: React.FC<{ error: Error; resetError: () => void }> = ({
-  resetError,
-}) => (
+const FilterPanelErrorFallback: React.FC = () => (
   <div className="filter-panel filter-panel--error" role="alert">
     <div className="filter-header">
       <div className="filter-error">
@@ -105,13 +57,6 @@ const FilterPanelErrorFallback: React.FC<{ error: Error; resetError: () => void 
     </div>
     <div className="filter-content">
       <p className="error-message">フィルターの読み込みに失敗しました</p>
-      <button
-        className="preset-button error-retry"
-        onClick={resetError}
-        aria-label="フィルターパネルを再読み込み"
-      >
-        🔄 再試行
-      </button>
     </div>
   </div>
 );
@@ -141,24 +86,29 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
     // Refs
     const contentRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
-    const announcementRef = useRef<HTMLDivElement>(null);
-
-    // カスタムフック
+    const announcementRef = useRef<HTMLDivElement>(null); // カスタムフック
     const { isFullscreen, fullscreenContainer } = useFullscreenState();
 
-    // 統計情報の計算（メモ化 + React 18 Concurrent Features でパフォーマンス最適化）
-    // deferredValuesを使用して重い計算処理を遅延実行
+    // 統計情報の計算（最適化されたメインスレッド処理）
     const stats = useMemo((): FilterStats => {
       const startTime = performance.now();
 
-      // deferredValuesを使用して、UIの応答性を保ちながら計算
-      const visibleCount = deferredPois.filter(() => {
-        return (
-          deferredFilterState.showRecommended ||
-          deferredFilterState.showRyotsuAikawa ||
-          deferredFilterState.showKanaiSawada ||
-          deferredFilterState.showAkadomariHamochi
-        );
+      const filterMap = {
+        toilet: deferredFilterState.showToilets,
+        parking: deferredFilterState.showParking,
+        recommended: deferredFilterState.showRecommended,
+        snack: deferredFilterState.showSnacks,
+      };
+
+      const visibleCount = deferredPois.filter((poi) => {
+        if (!poi.sourceSheet) return true;
+        const sheetName = poi.sourceSheet.toLowerCase();
+        for (const [keyword, shouldShow] of Object.entries(filterMap)) {
+          if (sheetName.includes(keyword) && !shouldShow) {
+            return false;
+          }
+        }
+        return true;
       }).length;
 
       const endTime = performance.now();
@@ -172,7 +122,7 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
         lastUpdated: Date.now(),
         performance: {
           filterTime: endTime - startTime,
-          renderTime: 0, // 実際の描画時間は別途計測
+          renderTime: 0,
         },
       };
     }, [deferredPois, deferredFilterState]);
@@ -348,13 +298,17 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
           {FILTER_CATEGORIES.map((category) => (
             <div key={category.id} className="filter-category">
               <button
-                className={`category-header ${activeCategories.includes(category.id) ? "active" : ""}`}
+                className={`category-header ${
+                  activeCategories.includes(category.id) ? "active" : ""
+                }`}
                 onClick={() => {
                   toggleCategory(category.id);
                 }}
                 aria-expanded={activeCategories.includes(category.id)}
                 aria-controls={`category-${category.id}`}
-                aria-label={`${category.label}カテゴリを${activeCategories.includes(category.id) ? "折りたたむ" : "展開する"}`}
+                aria-label={`${category.label}カテゴリを${
+                  activeCategories.includes(category.id) ? "折りたたむ" : "展開する"
+                }`}
                 onFocus={() => {
                   setFocusedElementId(`category-${category.id}`);
                 }}
@@ -365,7 +319,9 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
                 </span>
                 <span className="category-label">{category.label}</span>
                 <span
-                  className={`expand-icon ${activeCategories.includes(category.id) ? "expanded" : ""}`}
+                  className={`expand-icon ${
+                    activeCategories.includes(category.id) ? "expanded" : ""
+                  }`}
                   aria-hidden="true"
                 >
                   ▼
@@ -379,27 +335,17 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
                   role="group"
                   aria-label={`${category.label}のフィルターオプション`}
                 >
-                  {category.options.map((option: FilterOption) => (
-                    <label
-                      key={option.key}
-                      className="filter-option"
-                      onFocus={() => {
-                        setFocusedElementId(`option-${option.key}`);
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filterState[option.key]}
-                        onChange={() => {
-                          handleFilterToggle(option.key);
-                        }}
-                        aria-describedby={`desc-${option.key}`}
-                        data-testid={`filter-${option.key}`}
-                      />
-                      <span aria-hidden="true">{option.icon}</span>
-                      <span id={`desc-${option.key}`}>{option.description}</span>
-                    </label>
-                  ))}
+                  <VirtualizedFilterOptions
+                    options={[...category.options]}
+                    selectedOptions={Object.keys(filterState).filter(
+                      (key) => filterState[key as keyof FilterState],
+                    )}
+                    onOptionChange={(optionKey, selected) => {
+                      if (selected !== filterState[optionKey as keyof FilterState]) {
+                        handleFilterToggle(optionKey as keyof FilterState);
+                      }
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -413,7 +359,9 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
     const renderPanelContent = () => (
       <section
         ref={panelRef}
-        className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${isFullscreen ? "fullscreen-mode" : ""} ${className}`}
+        className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${
+          isFullscreen ? "fullscreen-mode" : ""
+        } ${className}`}
         data-fullscreen={isFullscreen}
         data-testid="filter-panel"
         aria-label="フィルターパネル"
@@ -506,11 +454,10 @@ FilterPanelComponent.displayName = "FilterPanel";
 // エラーバウンダリ付きのエクスポート
 export const FilterPanel: React.FC<FilterPanelProps> = (props) => (
   <ErrorBoundary
-    FallbackComponent={FilterPanelErrorFallback}
-    onError={(error: Error, errorInfo: ErrorInfo) => {
-      console.error("FilterPanel Error:", error, errorInfo);
-      // 本番環境では適切なエラー報告サービスに送信
-    }}
+    fallback={<FilterPanelErrorFallback />}
+    enableErrorReporting={false}
+    maxRetryCount={2}
+    autoRetryDelay={1000}
   >
     <FilterPanelComponent {...props} />
   </ErrorBoundary>

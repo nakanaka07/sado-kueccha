@@ -1,5 +1,8 @@
 /* 佐渡で食えっちゃ - 統一スタイルシート */
 
+/* パフォーマンス最適化スタイル */
+@import './styles/performance-optimization.css';
+
 /* ==========================================================================
    CSS Layers - 読み込み順序の制御
    ========================================================================== */
@@ -33,8 +36,8 @@
 @layer tokens {
   :root {
     /* フォントファミリー */
-    --font-family-primary:
-      'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', 'Meiryo', system-ui, sans-serif;
+    --font-family-primary: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', 'Meiryo',
+      system-ui, sans-serif;
     --font-family-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 
     /* z-index階層管理（より体系的に） */
@@ -330,9 +333,7 @@
   }
 
   .map-loading-content {
-    transition:
-      transform var(--transition-slow),
-      opacity var(--transition-slow);
+    transition: transform var(--transition-slow), opacity var(--transition-slow);
   }
 
   .loading-title-image,
@@ -348,9 +349,7 @@
   }
 
   .map-loading-title-image {
-    transition:
-      transform var(--transition-slow),
-      opacity var(--transition-slow);
+    transition: transform var(--transition-slow), opacity var(--transition-slow);
   }
 
   .map-loading-overlay {
@@ -953,9 +952,7 @@
 
   /* Hover effects - 最新のCSS機能を活用 */
   .hover-lift {
-    transition:
-      transform var(--transition-fast),
-      box-shadow var(--transition-fast);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   }
   .hover-lift:hover {
     transform: translateY(-2px);

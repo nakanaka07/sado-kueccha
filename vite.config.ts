@@ -4,6 +4,7 @@ import path from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import type { ConfigEnv, UserConfig } from "vite";
 import { defineConfig, loadEnv } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 /// <reference types="vitest" />
 
@@ -52,7 +53,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       },
     },
     // HTTPS設定（証明書がある場合のみ追加）
-    ...(httpsConfig && { https: httpsConfig }),
+    ...(httpsConfig && httpsConfig !== true && { https: httpsConfig }),
+    ...(httpsConfig === true && { https: {} }),
   };
 
   return {
@@ -67,6 +69,38 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           devTarget: "es2022",
           // SWC最適化オプション
           tsDecorators: true,
+        }),
+        VitePWA({
+          registerType: "autoUpdate",
+          includeAssets: ["favicon.ico", "assets/*.png", "robots.txt"],
+          manifest: false, // 既存のmanifest.jsonを使用
+          workbox: {
+            globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+            runtimeCaching: [
+              {
+                urlPattern: /^https:\/\/docs\.google\.com\//,
+                handler: "NetworkFirst",
+                options: {
+                  cacheName: "google-sheets-cache",
+                  expiration: {
+                    maxEntries: 10,
+                    maxAgeSeconds: 60 * 60 * 24, // 24時間
+                  },
+                },
+              },
+              {
+                urlPattern: /\.(png|jpg|jpeg|svg|gif)$/,
+                handler: "CacheFirst",
+                options: {
+                  cacheName: "images-cache",
+                  expiration: {
+                    maxEntries: 100,
+                    maxAgeSeconds: 60 * 60 * 24 * 30, // 30日
+                  },
+                },
+              },
+            ],
+          },
         }),
       ];
 
@@ -203,9 +237,9 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         "react-dom",
         "react/jsx-runtime",
         "@vis.gl/react-google-maps",
-        "google-spreadsheet",
         "@googlemaps/markerclusterer",
-        "gapi-script",
+        "googleapis",
+        "japanese-holidays",
       ],
       exclude: ["@vitejs/plugin-react-swc"],
       esbuildOptions: {
@@ -232,10 +266,15 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
 
     // === プリビュー設定 ===
     preview: {
-      port: 4173,
+      port: 5173,
       host: "localhost",
       strictPort: false,
       open: false,
+      https: {
+        // 自己署名証明書を使用
+        key: undefined,
+        cert: undefined,
+      },
     },
 
     // === テスト設定 ===
@@ -335,17 +374,28 @@ function getHttpsConfig(isProduction: boolean) {
   try {
     // 証明書ファイルの存在確認
     if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
-      console.log("🔓 HTTPS証明書が見つかりません。HTTPで起動します。");
-      return undefined;
+      console.log("🔓 HTTPS証明書が見つかりません。");
+      console.log(`  証明書パス: ${certPath}`);
+      console.log(`  キーパス: ${keyPath}`);
+      console.log("  自己署名証明書を使用します。");
+      return true;
     }
 
-    return {
+    console.log("🔒 HTTPS証明書を読み込んでいます...");
+    console.log(`  証明書: ${certPath}`);
+    console.log(`  キー: ${keyPath}`);
+
+    const config = {
       key: fs.readFileSync(keyPath),
       cert: fs.readFileSync(certPath),
     };
+
+    console.log("✅ HTTPS証明書の読み込みが完了しました。");
+    return config;
   } catch (error) {
     console.warn("🔓 HTTPS証明書の読み込みに失敗しました:", error);
-    return undefined;
+    console.log("  自己署名証明書を使用します。");
+    return true;
   }
 }
 

@@ -2,10 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "🧹 Code Cleanup",
+      "label": "📦 pnpm install",
       "type": "shell",
       "command": "pnpm",
-      "args": ["run", "lint:fix"],
+      "args": ["install"],
       "group": "build",
       "presentation": {
         "echo": true,
@@ -13,26 +13,122 @@
         "focus": false,
         "panel": "shared"
       },
-      "problemMatcher": ["$eslint-stylish"]
+      "problemMatcher": []
     },
     {
-      "label": "⚡ Code Optimization Check",
+      "label": "🚀 dev server",
       "type": "shell",
       "command": "pnpm",
-      "args": ["run", "build"],
+      "args": ["dev"],
       "group": "build",
+      "isBackground": true,
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
         "panel": "shared"
-      }
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "ready in"
+          }
+        }
+      ]
     },
     {
-      "label": "🔧 Type Check (Refactoring Support)",
+      "label": "🏗️ build",
       "type": "shell",
       "command": "pnpm",
-      "args": ["run", "type-check"],
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "👁️ preview",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["preview"],
+      "group": "build",
+      "dependsOn": "🏗️ build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧪 test",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧪 test:run",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["test:run"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📊 test:coverage",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["test:coverage"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔍 type-check",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["type-check"],
       "group": "build",
       "presentation": {
         "echo": true,
@@ -43,14 +139,60 @@
       "problemMatcher": ["$tsc"]
     },
     {
-      "label": "🚀 Full Code Improvement",
-      "dependsOrder": "sequence",
-      "dependsOn": [
-        "🧹 Code Cleanup",
-        "🔧 Type Check (Refactoring Support)",
-        "⚡ Code Optimization Check"
-      ],
-      "group": "build"
+      "label": "🧹 lint",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["lint"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "🔧 lint:fix",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["lint:fix"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "🧽 clean",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["clean"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 ci",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["ci"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$tsc", "$eslint-stylish"]
     }
   ]
 }

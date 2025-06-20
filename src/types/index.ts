@@ -4,10 +4,11 @@
  * 最新のTypeScript 5.x に対応した型安全な実装
  */
 
-import type { TimestampMs } from "./common";
-
 // 共通型（基盤となるユーティリティ型）
 export type {
+  ApiResponse,
+  AppConfig,
+  AppState,
   AsyncState,
   AsyncStatus,
   BaseConfig,
@@ -15,14 +16,19 @@ export type {
   CacheEntry,
   CacheMetadata,
   Coordinates,
+  CustomEvent,
   DeepPartial,
   DeepReadonly,
   EntityId,
   EnvironmentConfig,
+  ErrorBoundaryState,
   ExtendedCacheEntry,
   ExtendedCoordinates,
+  LogEntry,
+  LogLevel,
   Maybe,
   NonNullable,
+  PerformanceMetrics,
   PositionObject,
   Predicate,
   Result,
@@ -36,13 +42,12 @@ export type {
 export type {
   BusinessHoursInfo,
   BusinessHoursPeriod,
-  ClusterablePOI,
   ClusterPOIId,
+  ClusterablePOI,
   ContactInfo,
   DailyBusinessHours,
   DistrictId,
   GenreId,
-  ParsedHours,
   POI,
   POICluster,
   POIContextValue,
@@ -54,6 +59,7 @@ export type {
   POISearchResult,
   POIUpdateHistory,
   POIValidationResult,
+  ParsedHours,
   StatusConfig,
   StatusType,
   WeeklyBusinessHours,
@@ -137,117 +143,11 @@ export type {
   SheetMetadata,
   SheetOperationResult,
   SheetSchema,
+  SheetTransformConfig,
   SheetsConfig,
   SheetsContextValue,
-  SheetTransformConfig,
   SpreadsheetId,
 } from "./sheets";
-
-// アプリケーション設定関連の型
-export interface AppConfig {
-  readonly googleMapsApiKey: string;
-  readonly googleSheetsApiKey: string;
-  readonly spreadsheetId: string;
-  readonly refreshInterval?: number;
-  readonly debug?: boolean;
-  readonly features?: {
-    readonly clustering?: boolean;
-    readonly geolocation?: boolean;
-    readonly caching?: boolean;
-    readonly analytics?: boolean;
-  };
-}
-
-/**
- * エラーバウンダリの状態管理
- */
-export interface ErrorBoundaryState {
-  readonly hasError: boolean;
-  readonly error?: Error;
-  readonly errorInfo?: {
-    readonly componentStack: string;
-    readonly errorBoundary?: string;
-  };
-  readonly retryCount: number;
-  readonly timestamp: TimestampMs;
-}
-
-/**
- * アプリケーション全体の状態管理用型
- */
-export interface AppState {
-  readonly initialized: boolean;
-  readonly loading: boolean;
-  readonly error?: Error;
-  readonly user?: {
-    readonly id: string;
-    readonly preferences: Record<string, unknown>;
-  };
-  readonly session?: {
-    readonly id: string;
-    readonly startTime: TimestampMs;
-    readonly lastActivity: TimestampMs;
-  };
-}
-
-/**
- * パフォーマンス監視用の型
- */
-export interface PerformanceMetrics {
-  readonly renderTime: number;
-  readonly loadTime: number;
-  readonly memoryUsage?: number;
-  readonly networkRequests: number;
-  readonly errorCount: number;
-  readonly timestamp: TimestampMs;
-}
-
-/**
- * ログレベルの定義
- */
-export type LogLevel = "debug" | "info" | "warn" | "error";
-
-/**
- * ログエントリの型
- */
-export interface LogEntry {
-  readonly level: LogLevel;
-  readonly message: string;
-  readonly timestamp: TimestampMs;
-  readonly context?: Record<string, unknown>;
-  readonly error?: Error;
-  readonly source?: string;
-}
-
-/**
- * API レスポンスの共通形式
- */
-export interface ApiResponse<T = unknown> {
-  readonly success: boolean;
-  readonly data?: T;
-  readonly error?: {
-    readonly code: string;
-    readonly message: string;
-    readonly details?: unknown;
-  };
-  readonly metadata?: {
-    readonly requestId: string;
-    readonly timestamp: TimestampMs;
-    readonly version: string;
-  };
-}
-
-/**
- * イベント処理用の型
- */
-export interface CustomEvent<T = unknown> {
-  readonly type: string;
-  readonly payload: T;
-  readonly timestamp: TimestampMs;
-  readonly source?: string;
-  readonly preventDefault?: () => void;
-  readonly stopPropagation?: () => void;
-}
 
 // 型ガード関数のエクスポート
 export { isAssetUrl } from "./assets";

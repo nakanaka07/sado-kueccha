@@ -4,8 +4,9 @@
  */
 
 import { useMemo } from "react";
-import type { StatusConfig, StatusType } from "../types/poi";
+import type { StatusConfig, StatusType } from "../types";
 import { formatBusinessHours, STATUS_CONFIG } from "../utils/businessHours";
+import { isDevelopment } from "../utils/env";
 
 interface UseBusinessHoursOptions {
   readonly businessHours: Record<string, string>;
@@ -33,7 +34,11 @@ export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): Bu
     try {
       return formatBusinessHours(businessHours);
     } catch (error) {
-      console.warn("営業時間の解析中にエラーが発生しました:", error);
+      if (import.meta.env.DEV) {
+        if (isDevelopment()) {
+          console.warn("営業時間の解析中にエラーが発生しました:", error);
+        }
+      }
       return {
         isOpen: false,
         currentStatus: "営業時間不明",
@@ -45,7 +50,9 @@ export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): Bu
   }, [businessHours]);
 
   // ステータス設定の取得
-  const statusConfig = useMemo(() => STATUS_CONFIG[hoursInfo.statusType], [hoursInfo.statusType]);
+  const statusConfig = useMemo(() => {
+    return STATUS_CONFIG[hoursInfo.statusType];
+  }, [hoursInfo.statusType]);
 
   // 営業時間データの信頼度計算
   const confidence = useMemo(() => {

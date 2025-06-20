@@ -3,8 +3,7 @@
  * 最新のTypeScriptベストプラクティスに基づいた型安全性確保
  */
 
-import type { LatLngLiteral } from "../types/google-maps";
-import type { POI, POICluster } from "../types/poi";
+import type { LatLngLiteral, POI, POICluster } from "../types";
 
 /**
  * 📍 型ガード: 有効な地理座標の検証（高精度版）

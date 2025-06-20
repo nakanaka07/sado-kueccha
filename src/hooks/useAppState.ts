@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { preloadManager } from "../services/preload";
 import type { FilterState, POI } from "../types";
-import { DEFAULT_FILTER_STATE } from "../types/filter";
+import { DEFAULT_FILTER_STATE } from "../types";
 import { isDevelopment } from "../utils/env";
 
 // 読み込み状態の型定義
@@ -38,8 +38,10 @@ const initialLoadingState: LoadingState = {
 function loadingReducer(state: LoadingState, action: LoadingAction): LoadingState {
   // 開発環境でのアクション監視
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.log("[AppState] Action dispatched:", action.type, action);
+    if (isDevelopment()) {
+      // eslint-disable-next-line no-console
+      console.log("[AppState] Action dispatched:", action.type, action);
+    }
   }
 
   switch (action.type) {
@@ -129,8 +131,10 @@ export const useAppState = (): UseAppStateReturn => {
         retryCountRef.current = 0; // 成功時にリトライカウンターをリセット
 
         if (isDevelopment()) {
-          // eslint-disable-next-line no-console
-          console.log("[AppState] プリロード完了");
+          if (isDevelopment()) {
+            // eslint-disable-next-line no-console
+            console.log("[AppState] プリロード完了");
+          }
         }
       }
     } catch (error) {
@@ -158,8 +162,10 @@ export const useAppState = (): UseAppStateReturn => {
       dispatch({ type: "POIS_LOADING_START" });
 
       if (isDevelopment()) {
-        // eslint-disable-next-line no-console
-        console.log("[AppState] POI読み込み開始");
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.log("[AppState] POI読み込み開始");
+        }
       }
 
       // デバッグ: 一時的に実際のfetchPOIsをバイパスして、短い遅延のみで成功させる
@@ -167,8 +173,10 @@ export const useAppState = (): UseAppStateReturn => {
 
       try {
         if (isDevelopment()) {
-          // eslint-disable-next-line no-console
-          console.log("[AppState] デバッグモード: 実際のfetchPOIsをスキップして模擬データで完了");
+          if (isDevelopment()) {
+            // eslint-disable-next-line no-console
+            console.log("[AppState] デバッグモード: 実際のfetchPOIsをスキップして模擬データで完了");
+          }
         }
 
         // 短い遅延で模擬データを返す
@@ -332,11 +340,10 @@ export const useAppState = (): UseAppStateReturn => {
       const logPerformanceStats = () => {
         // パフォーマンス統計（開発環境のみ簡易表示）
         if (process.env.NODE_ENV === "development") {
-          const preloadStats = preloadManager.getPreloadStats();
-          // 初期状態（成功率0）や高い成功率の場合はログを出力しない
-          if (preloadStats.successRate > 0 && preloadStats.successRate < 0.8) {
-            // eslint-disable-next-line no-console
-            console.log("[AppState] プリロード成功率低下:", preloadStats.successRate);
+          const preloadStats = preloadManager.getStats();
+          // シンプルなログ出力
+          if (isDevelopment()) {
+            console.warn("[AppState] プリロード統計:", preloadStats);
           }
         }
       };

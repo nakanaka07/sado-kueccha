@@ -8,12 +8,14 @@ const App = lazy(() => import("./app/App"));
 // クリティカル CSS を優先読み込み
 import "./critical.css";
 
-import { getAppConfig, isDevelopment, isProduction, validateAppConfig } from "./utils/env";
+import { isDevelopment, isProduction, validateAppConfig } from "./utils/env";
 
 // 非クリティカル CSS の遅延読み込み（パフォーマンス最適化）
 const loadNonCriticalStyles = (): void => {
   void import("./index.css").catch((error: unknown) => {
-    console.warn("⚠️ Non-critical styles loading failed:", error);
+    if (isDevelopment()) {
+      console.warn("⚠️ Non-critical styles loading failed:", error);
+    }
   });
 };
 
@@ -51,10 +53,12 @@ const validateEnvironment = (): void => {
   try {
     validateAppConfig();
   } catch (error) {
-    console.warn("⚠️ Environment validation error:", error);
-    console.warn(
-      "アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。",
-    );
+    if (isDevelopment()) {
+      console.warn("⚠️ Environment validation error:", error);
+      console.warn(
+        "アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。",
+      );
+    }
 
     if (isProduction()) {
       console.error("❌ Production environment validation failed", error);
@@ -105,7 +109,7 @@ if (isDevelopment()) {
   performance.mark("vitals-measurement-start");
 }
 
-// 🌐 Service Worker登録処理 (本番環境のみ)
+// 🌐 Service Worker登録処理 (Vite PWA Plugin経由)
 const registerServiceWorker = async (): Promise<void> => {
   // 開発環境またはService Worker非対応ブラウザではスキップ
   if (isDevelopment() || !("serviceWorker" in navigator)) {
@@ -113,28 +117,30 @@ const registerServiceWorker = async (): Promise<void> => {
   }
 
   try {
-    const { app } = getAppConfig();
-    const { baseUrl } = app;
-    const swPath = `${baseUrl}sw.js`.replace(/\/+/g, "/");
+    // Vite PWA Plugin が生成する Service Worker を使用
+    const { registerSW } = await import("virtual:pwa-register");
 
-    const registration = await navigator.serviceWorker.register(swPath, {
-      scope: baseUrl,
+    const updateSW = registerSW({
+      onNeedRefresh() {
+        // 新しいコンテンツが利用可能
+        if (isDevelopment()) {
+          console.warn("🔄 New content available, please refresh the page");
+        }
+      },
+      onOfflineReady() {
+        // アプリがオフライン対応完了
+        if (isDevelopment()) {
+          console.warn("✅ App ready to work offline");
+        }
+      },
     });
 
-    // Service Worker更新チェック
-    registration.addEventListener("updatefound", () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            // 新しいコンテンツが利用可能
-            console.warn("🔄 New content available, please refresh the page");
-          }
-        });
-      }
-    });
+    // 将来的な手動更新機能用に保持
+    void updateSW;
   } catch (error) {
-    console.warn("❌ SW registration failed:", error);
+    if (isDevelopment()) {
+      console.warn("❌ SW registration failed:", error);
+    }
   }
 };
 
@@ -150,7 +156,8 @@ const initWebVitals = (): void => {
     new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const lcp = entries[entries.length - 1];
-      if (lcp?.startTime !== undefined && lcp.startTime > 2500) {
+      // LCP計測のみ実行、ログ出力は開発環境のみ
+      if (isDevelopment() && lcp?.startTime !== undefined && lcp.startTime > 2500) {
         console.warn("📊 LCP遅延:", Math.round(lcp.startTime));
       }
     }).observe({ type: "largest-contentful-paint", buffered: true });
@@ -167,7 +174,8 @@ const initWebVitals = (): void => {
           clsValue += layoutShift.value;
         }
       }
-      if (clsValue > 0.1) {
+      // CLS計測のみ実行、ログ出力は開発環境のみ
+      if (isDevelopment() && clsValue > 0.1) {
         console.warn("📊 CLS閾値超過:", Math.round(clsValue * 1000) / 1000);
       }
     }).observe({ type: "layout-shift", buffered: true });
@@ -180,7 +188,8 @@ const initWebVitals = (): void => {
         };
         if (typeof eventTiming.processingStart === "number") {
           const fid = eventTiming.processingStart - entry.startTime;
-          if (fid > 100) {
+          // FID計測のみ実行、ログ出力は開発環境のみ
+          if (isDevelopment() && fid > 100) {
             console.warn("📊 FID遅延:", Math.round(fid));
           }
         }
@@ -188,7 +197,9 @@ const initWebVitals = (): void => {
     }).observe({ type: "first-input", buffered: true });
   } catch (error) {
     // Performance Observer非対応ブラウザでは無視
-    console.warn("⚠️ Performance Observer not supported:", error);
+    if (isDevelopment()) {
+      console.warn("⚠️ Performance Observer not supported:", error);
+    }
   }
 };
 
@@ -217,7 +228,9 @@ const initializeApp = (): void => {
     // Step 5: 最適化されたデータプリロードを並行して開始（ノンブロッキング）
     void import("./services/preload").then(({ preloadManager }) => {
       preloadManager.startOptimizedPreload().catch((error: unknown) => {
-        console.warn("⚠️ プリロード失敗:", error);
+        if (isDevelopment()) {
+          console.warn("⚠️ プリロード失敗:", error);
+        }
       });
     });
 

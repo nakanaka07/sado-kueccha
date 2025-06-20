@@ -1,47 +1,12 @@
 /**
- * 🏗️ 定数定義のメインエントリーポイント - 2025年最新実装
+ * 📦 統合設定のエクスポート - Phase 2最適化版
  *
- * @description
- * - 統一されたエクスポート管理
- * - Tree-shaking最適化対応
- * - 型安全な再エクスポート
- * - パフォーマンス最適化
- *
- * @version 2.0.0
- * @since 2025-01-01
+ * @description 実際に使用される設定のみをエクスポート
+ * @version 2.0.0 - 構造最適化
  */
 
-// === 地図・地理関連 ===
-export * from "./geo";
-export * from "./map";
-
-// === データ管理 ===
-export * from "./api";
-export * from "./cache";
-
-// === UI・UX ===
-export * from "./filter";
-export * from "./ui";
-
-// === 型安全な再エクスポート（個別指定）===
-
-// 地図関連
-export type {} from "./map";
-
-// キャッシュ関連
-export type {} from "./cache";
-
-// API関連
-export type {} from "./api";
-
-// 地理計算関連
-export type {} from "./geo";
-
-// フィルター関連
-export type {} from "./filter";
-
-// UI関連
-export type {} from "./ui";
+// 統合設定ファイルからすべてエクスポート
+export * from "./config";
 
 /**
  * 🎯 使用頻度の高い定数の集約エクスポート

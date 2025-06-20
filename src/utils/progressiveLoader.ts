@@ -7,9 +7,10 @@
  * - Smart Caching: インテリジェントなキャッシュ戦略
  */
 
-import { CACHE_CONFIG } from "../constants/cache";
+import { CACHE_CONFIG } from "../constants";
 import { cacheService } from "../services/cache";
-import type { POI } from "../types/poi";
+import type { POI } from "../types";
+import { isDevelopment } from "./env";
 
 export interface ProgressiveLoadingState {
   phase: "initial" | "critical" | "secondary" | "complete";
@@ -102,7 +103,11 @@ export class ProgressiveDataLoader {
 
       return criticalPOIs;
     } catch (error) {
-      console.warn("Critical data loading failed, falling back to cache:", error);
+      if (import.meta.env.DEV) {
+        if (isDevelopment()) {
+          console.warn("Critical data loading failed, falling back to cache:", error);
+        }
+      }
       return [];
     }
   }
@@ -146,14 +151,22 @@ export class ProgressiveDataLoader {
             }
           }
         } catch (error) {
-          console.warn(`Failed to load ${sheetName}:`, error);
+          if (import.meta.env.DEV) {
+            if (isDevelopment()) {
+              console.warn(`Failed to load ${sheetName}:`, error);
+            }
+          }
         }
       }
 
       cacheService.set(cacheKey, secondaryPOIs, CACHE_CONFIG.TTL.SHEETS);
       return secondaryPOIs;
     } catch (error) {
-      console.warn("Secondary data loading failed:", error);
+      if (import.meta.env.DEV) {
+        if (isDevelopment()) {
+          console.warn("Secondary data loading failed:", error);
+        }
+      }
       return [];
     }
   }
