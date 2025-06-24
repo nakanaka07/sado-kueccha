@@ -91,6 +91,13 @@ Desktop.ini
 .secrets
 secrets.json
 config/secrets.yml
+api-keys.json
+credentials.json
+
+# ⚠️ バックアップファイル（機密情報含む可能性）
+*.env.backup
+*.env.bak
+.env.*backup
 
 # === 証明書・セキュリティファイル ===
 .local/

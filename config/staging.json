@@ -1,0 +1,38 @@
+{
+  "name": "staging",
+  "description": "ステージング環境設定",
+  "vite": {
+    "server": {
+      "port": 8080,
+      "https": true,
+      "strictPort": true
+    },
+    "build": {
+      "sourcemap": true,
+      "minify": "esbuild",
+      "reportCompressedSize": true,
+      "chunkSizeWarningLimit": 800
+    }
+  },
+  "api": {
+    "baseUrl": "https://staging-api.sado-kueccha.com",
+    "timeout": 15000,
+    "retries": 2
+  },
+  "features": {
+    "devTools": true,
+    "bundleAnalyzer": true,
+    "pwa": true,
+    "errorOverlay": true,
+    "hotReload": false
+  },
+  "logging": {
+    "level": "info",
+    "enableConsole": true,
+    "enableNetwork": true
+  },
+  "performance": {
+    "optimizationLevel": "balanced",
+    "enableProfiling": true
+  }
+}

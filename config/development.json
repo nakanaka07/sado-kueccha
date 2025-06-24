@@ -1,0 +1,47 @@
+{
+  "name": "development",
+  "description": "開発環境設定",
+  "vite": {
+    "server": {
+      "port": 5173,
+      "host": "localhost",
+      "https": false,
+      "hmr": {
+        "port": 24678,
+        "overlay": true
+      },
+      "strictPort": false,
+      "open": true
+    },
+    "build": {
+      "sourcemap": true,
+      "minify": false,
+      "reportCompressedSize": false,
+      "chunkSizeWarningLimit": 2000
+    },
+    "optimizeDeps": {
+      "force": false
+    }
+  },
+  "api": {
+    "baseUrl": "http://localhost:8080",
+    "timeout": 30000,
+    "retries": 3
+  },
+  "features": {
+    "devTools": true,
+    "bundleAnalyzer": false,
+    "pwa": false,
+    "errorOverlay": true,
+    "hotReload": true
+  },
+  "logging": {
+    "level": "debug",
+    "enableConsole": true,
+    "enableNetwork": true
+  },
+  "performance": {
+    "optimizationLevel": "minimal",
+    "enableProfiling": true
+  }
+}

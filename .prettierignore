@@ -51,6 +51,13 @@ jsconfig*.json
 .DS_Store
 Thumbs.db
 
+# 自動生成ファイル
+**/generated/**
+**/__generated__/**
+
+# HTMLファイル（複雑な構造のためPrettierを除外）
+*.html
+
 # Prettierの自己参照防止
 .prettierrc*
 prettier.config*

@@ -4,6 +4,9 @@
  * 最新のTypeScript 5.x に対応した型安全な実装
  */
 
+// 環境変数型定義をグローバルに適用（最初にインポート）
+import './env.js';
+
 // 共通型（基盤となるユーティリティ型）
 export type {
   ApiResponse,
@@ -36,7 +39,7 @@ export type {
   TypeGuard,
   Validator,
   VersionString,
-} from "./common";
+} from './common';
 
 // POI関連の型（地図上の興味地点）
 export type {
@@ -63,7 +66,7 @@ export type {
   StatusConfig,
   StatusType,
   WeeklyBusinessHours,
-} from "./poi";
+} from './poi';
 
 // Google Maps関連の型（地図機能）
 export type {
@@ -96,7 +99,7 @@ export type {
   MarkerEventHandler,
   MarkerId,
   MarkerManager,
-} from "./google-maps";
+} from './google-maps';
 
 // フィルター関連の型（表示制御）
 export type {
@@ -112,7 +115,7 @@ export type {
   FilterStateUpdate,
   FilterStats,
   PresetConfig,
-} from "./filter";
+} from './filter';
 
 // アセット関連の型（リソース管理）
 export type {
@@ -128,7 +131,7 @@ export type {
   NumberedAssets,
   TitleAssetKey,
   TitleAssets,
-} from "./assets";
+} from './assets';
 
 // Google Sheets関連の型（データソース）
 export type {
@@ -147,16 +150,25 @@ export type {
   SheetsConfig,
   SheetsContextValue,
   SpreadsheetId,
-} from "./sheets";
+} from './sheets';
 
 // 型ガード関数のエクスポート
-export { isAssetUrl } from "./assets";
-export { isCoordinates, isPositionObject } from "./common";
-export { isFilterCategory, isFilterKey, isFilterPreset } from "./filter";
-export { isLatLngLiteral, isMapBounds } from "./google-maps";
-export { isPOI, isPOICluster, isStatusType } from "./poi";
-export { isCellRange, isSheetId, isSpreadsheetId, isValidSheetsConfig } from "./sheets";
+export { isAssetUrl } from './assets';
+export { isCoordinates, isPositionObject } from './common';
+export { isFilterCategory, isFilterKey, isFilterPreset } from './filter';
+export { isLatLngLiteral, isMapBounds } from './google-maps';
+export { isPOI, isPOICluster, isStatusType } from './poi';
+export {
+  isCellRange,
+  isSheetId,
+  isSpreadsheetId,
+  isValidSheetsConfig,
+} from './sheets';
 
 // 定数のエクスポート
-export { DEFAULT_FILTER_STATE, FILTER_CATEGORIES, PRESET_CONFIGS } from "./filter";
-export { DEFAULT_SHEET_CONFIG } from "./sheets";
+export {
+  DEFAULT_FILTER_STATE,
+  FILTER_CATEGORIES,
+  PRESET_CONFIGS,
+} from './filter';
+export { DEFAULT_SHEET_CONFIG } from './sheets';

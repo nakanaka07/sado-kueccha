@@ -2,9 +2,9 @@
  * シンプルなキャッシュサービス
  * LRU（Least Recently Used）アルゴリズムによる基本的なキャッシング機能を提供
  */
-import { CACHE_CONFIG } from "../constants";
-import type { TimestampMs } from "../types";
-import { isDevelopment } from "../utils/env";
+import { CACHE_CONFIG } from '../constants';
+import type { TimestampMs } from '../types';
+import { isDevelopment } from '../utils/env';
 
 /**
  * タイムスタンプ作成ヘルパー
@@ -26,7 +26,7 @@ interface SimpleCacheEntry {
  * シンプルなキャッシュサービス
  */
 class CacheService {
-  private cache = new Map<string, SimpleCacheEntry>();
+  private readonly cache = new Map<string, SimpleCacheEntry>();
   private readonly maxSize: number;
 
   constructor() {
@@ -48,7 +48,7 @@ class CacheService {
 
     // アクセス時刻を更新
     entry.lastAccessed = createTimestamp();
-    
+
     if (validator && !validator(entry.data)) {
       this.cache.delete(key);
       return null;
@@ -111,7 +111,7 @@ class CacheService {
    * LRU に基づいて最も古いエントリを削除
    */
   private evictLRU(): void {
-    let oldestKey = "";
+    let oldestKey = '';
     let oldestTime = createTimestamp();
 
     for (const [key, entry] of this.cache.entries()) {
@@ -131,7 +131,7 @@ class CacheService {
    */
   getStats() {
     if (!isDevelopment()) return null;
-    
+
     return {
       size: this.cache.size,
       maxSize: this.maxSize,

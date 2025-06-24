@@ -1,0 +1,69 @@
+{
+  "name": "production",
+  "description": "本番環境設定",
+  "vite": {
+    "server": {
+      "port": 80,
+      "https": true,
+      "strictPort": true,
+      "open": false
+    },
+    "build": {
+      "sourcemap": false,
+      "minify": "terser",
+      "reportCompressedSize": true,
+      "chunkSizeWarningLimit": 500,
+      "rollupOptions": {
+        "output": {
+          "manualChunks": {
+            "vendor": ["react", "react-dom"],
+            "maps": ["@vis.gl/react-google-maps", "@googlemaps/markerclusterer"]
+          }
+        }
+      }
+    },
+    "optimizeDeps": {
+      "include": ["react", "react-dom"]
+    }
+  },
+  "api": {
+    "baseUrl": "https://api.sado-kueccha.com",
+    "timeout": 10000,
+    "retries": 1
+  },
+  "features": {
+    "devTools": false,
+    "bundleAnalyzer": false,
+    "pwa": true,
+    "errorOverlay": false,
+    "hotReload": false
+  },
+  "logging": {
+    "level": "error",
+    "enableConsole": false,
+    "enableNetwork": false
+  },
+  "performance": {
+    "optimizationLevel": "aggressive",
+    "enableProfiling": false
+  },
+  "security": {
+    "csp": {
+      "enabled": true,
+      "directives": {
+        "default-src": ["'self'"],
+        "script-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://maps.googleapis.com"
+        ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+        "img-src": ["'self'", "data:", "https:"]
+      }
+    }
+  }
+}

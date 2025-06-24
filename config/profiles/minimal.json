@@ -1,0 +1,32 @@
+{
+  "name": "minimal",
+  "description": "最小構成プロファイル - 高速起動・軽量動作",
+  "performance": {
+    "bundleSize": {
+      "maxChunkSize": 2048000,
+      "maxAssetSize": 1024000
+    },
+    "buildTime": {
+      "maxBuildTime": 30
+    },
+    "runtime": {
+      "initialLoadTime": 2000,
+      "cacheHitRate": 90
+    }
+  },
+  "features": {
+    "enablePWA": false,
+    "enableBundleAnalyzer": false,
+    "enableDevTools": false,
+    "enableSourceMaps": false
+  },
+  "plugins": {
+    "essential": ["@vitejs/plugin-react-swc"],
+    "disabled": ["vite-plugin-pwa", "rollup-plugin-visualizer"]
+  },
+  "build": {
+    "minify": "esbuild",
+    "treeshake": true,
+    "splitChunks": false
+  }
+}

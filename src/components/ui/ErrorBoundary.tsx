@@ -1,9 +1,14 @@
-import type { ErrorInfo, ReactNode } from "react";
-import React from "react";
-import "./ErrorBoundary.css";
+import type { ErrorInfo, ReactNode } from 'react';
+import React from 'react';
+import './ErrorBoundary.css';
 
 // エラーの種類を分類するための型定義
-export type ErrorType = "network" | "javascript" | "rendering" | "async" | "unknown";
+export type ErrorType =
+  | 'network'
+  | 'javascript'
+  | 'rendering'
+  | 'async'
+  | 'unknown';
 
 // エラー情報を構造化するためのインターフェース
 export interface StructuredError {
@@ -37,49 +42,49 @@ interface ErrorBoundaryState {
 // エラー分類のユーティリティ関数
 const classifyError = (error: Error): ErrorType => {
   const message = error.message.toLowerCase();
-  const stack = error.stack?.toLowerCase() || "";
+  const stack = error.stack?.toLowerCase() || '';
 
   // ネットワークエラーの検出
   if (
-    message.includes("network") ||
-    message.includes("fetch") ||
-    message.includes("timeout") ||
-    message.includes("cors") ||
-    error.name === "NetworkError"
+    message.includes('network') ||
+    message.includes('fetch') ||
+    message.includes('timeout') ||
+    message.includes('cors') ||
+    error.name === 'NetworkError'
   ) {
-    return "network";
+    return 'network';
   }
 
   // 非同期エラーの検出
   if (
-    message.includes("promise") ||
-    message.includes("async") ||
-    stack.includes("async") ||
-    error.name === "UnhandledPromiseRejectionWarning"
+    message.includes('promise') ||
+    message.includes('async') ||
+    stack.includes('async') ||
+    error.name === 'UnhandledPromiseRejectionWarning'
   ) {
-    return "async";
+    return 'async';
   }
 
   // レンダリングエラーの検出
   if (
-    message.includes("render") ||
-    message.includes("component") ||
-    stack.includes("render") ||
-    stack.includes("reconciler")
+    message.includes('render') ||
+    message.includes('component') ||
+    stack.includes('render') ||
+    stack.includes('reconciler')
   ) {
-    return "rendering";
+    return 'rendering';
   }
 
   // JavaScriptエラー
   if (
-    error.name === "TypeError" ||
-    error.name === "ReferenceError" ||
-    error.name === "SyntaxError"
+    error.name === 'TypeError' ||
+    error.name === 'ReferenceError' ||
+    error.name === 'SyntaxError'
   ) {
-    return "javascript";
+    return 'javascript';
   }
 
-  return "unknown";
+  return 'unknown';
 };
 
 // セッションIDを生成（セッション単位でエラーを追跡）
@@ -89,11 +94,11 @@ const generateSessionId = (): string => {
 
 // セッションIDをセッションストレージから取得または新規作成
 const getOrCreateSessionId = (): string => {
-  const stored = sessionStorage.getItem("error_boundary_session_id");
+  const stored = sessionStorage.getItem('error_boundary_session_id');
   if (stored) return stored;
 
   const newSessionId = generateSessionId();
-  sessionStorage.setItem("error_boundary_session_id", newSessionId);
+  sessionStorage.setItem('error_boundary_session_id', newSessionId);
   return newSessionId;
 };
 
@@ -117,15 +122,18 @@ const structureError = (error: Error): StructuredError => {
 };
 
 // エラー報告サービス（実装例）
-const reportErrorToService = (structuredError: StructuredError, errorInfo: ErrorInfo): void => {
+const reportErrorToService = (
+  structuredError: StructuredError,
+  errorInfo: ErrorInfo
+): void => {
   try {
     // ここに実際のエラー報告ロジックを実装
     // 例: Sentry, LogRocket, カスタムAPIエンドポイント等
-    console.error("🚨 Error Report:", structuredError);
-    console.error("Error Info:", errorInfo);
+    console.error('🚨 Error Report:', structuredError);
+    console.error('Error Info:', errorInfo);
 
     // 本番環境での実装例
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === 'production') {
       // fetch('/api/errors', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
@@ -133,7 +141,7 @@ const reportErrorToService = (structuredError: StructuredError, errorInfo: Error
       // }).catch(console.error);
     }
   } catch (reportingError) {
-    console.error("Error reporting failed:", reportingError);
+    console.error('Error reporting failed:', reportingError);
   }
 };
 
@@ -159,7 +167,10 @@ const reportErrorToService = (structuredError: StructuredError, errorInfo: Error
  * </ErrorBoundary>
  * ```
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   private retryTimeoutId: NodeJS.Timeout | null = null;
 
   constructor(props: ErrorBoundaryProps) {
@@ -185,7 +196,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     const structuredError = structureError(error);
 
     // エラーログの出力
-    console.error("ErrorBoundary caught an error:", structuredError, errorInfo);
+    console.error('ErrorBoundary caught an error:', structuredError, errorInfo);
 
     // カスタムエラーハンドラーがあれば実行
     this.props.onError?.(structuredError, errorInfo);
@@ -208,7 +219,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   /**
    * 自動リトライ機能
    */
-  private attemptAutoRetry = (): void => {
+  private readonly attemptAutoRetry = (): void => {
     const { maxRetryCount = 3, autoRetryDelay = 2000 } = this.props;
     const { retryCount } = this.state;
 
@@ -216,7 +227,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       this.setState({ isRetrying: true });
 
       this.retryTimeoutId = setTimeout(() => {
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
           hasError: false,
           error: null,
           retryCount: prevState.retryCount + 1,
@@ -227,7 +238,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }; /**
    * エラー状態をリセットする
    */
-  private resetError = (): void => {
+  private readonly resetError = (): void => {
     if (this.retryTimeoutId) {
       clearTimeout(this.retryTimeoutId);
     }
@@ -242,20 +253,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   /**
    * ページを再読み込みしてエラー状態をクリア
    */
-  private reloadPage = (): void => {
+  private readonly reloadPage = (): void => {
     window.location.reload();
   };
 
   /**
    * エラー種別のラベルを取得
    */
-  private getErrorTypeLabel = (type: ErrorType): string => {
+  private readonly getErrorTypeLabel = (type: ErrorType): string => {
     const labels: Record<ErrorType, string> = {
-      network: "ネットワークエラー",
-      javascript: "JavaScriptエラー",
-      rendering: "レンダリングエラー",
-      async: "非同期処理エラー",
-      unknown: "不明なエラー",
+      network: 'ネットワークエラー',
+      javascript: 'JavaScriptエラー',
+      rendering: 'レンダリングエラー',
+      async: '非同期処理エラー',
+      unknown: '不明なエラー',
     };
     return labels[type];
   };
@@ -267,7 +278,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (hasError && error) {
       // カスタムフォールバックが提供されている場合はそれを使用
       if (fallback) {
-        if (typeof fallback === "function") {
+        if (typeof fallback === 'function') {
           return fallback(error);
         }
         return fallback;
@@ -301,22 +312,27 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         >
           <div className="error-content">
             <h2 id="error-title">申し訳ございません。エラーが発生しました。</h2>
-            <p id="error-description">ページを再読み込みしてもう一度お試しください。</p>
+            <p id="error-description">
+              ページを再読み込みしてもう一度お試しください。
+            </p>
 
             {/* エラー種別の表示 */}
-            <div className="error-type" aria-label={`エラー種別: ${error.type}`}>
+            <div
+              className="error-type"
+              aria-label={`エラー種別: ${error.type}`}
+            >
               <span className={`error-badge error-badge--${error.type}`}>
                 {this.getErrorTypeLabel(error.type)}
               </span>
             </div>
 
             {/* エラー詳細（開発環境のみ） */}
-            {process.env.NODE_ENV === "development" && error.stack ? (
+            {process.env.NODE_ENV === 'development' && error.stack ? (
               <details className="error-details">
                 <summary>エラー詳細</summary>
                 <pre className="error-stack">
                   {error.message}
-                  {error.stack ? `\n${error.stack}` : ""}
+                  {error.stack ? `\n${error.stack}` : ''}
                 </pre>
               </details>
             ) : null}

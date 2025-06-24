@@ -17,6 +17,25 @@
 - Node.js 20.0.0 以上
 - pnpm 10.0.0 以上
 
+### 🔧 環境変数設定
+
+1. **環境変数ファイルの準備**
+
+   ```bash
+   # .env.local ファイルを作成（実際のAPIキー用）
+   cp .env.example .env.local
+   ```
+
+2. **API キーの設定**
+   - Google Cloud Console で Google Maps API、Google Sheets API キーを取得
+   - EmailJS でアカウント作成・設定情報を取得
+   - `.env.local` に実際の値を設定
+
+3. **セキュリティ注意事項**
+   - 🚨 `.env.local` は絶対に Git にコミットしないでください
+   - 🔒 API キーは定期的にローテーションしてください
+   - 📋 詳細は `docs/SECURITY.md` を参照してください
+
 ### インストール・起動
 
 ```bash

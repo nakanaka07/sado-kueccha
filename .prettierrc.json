@@ -58,7 +58,7 @@
     {
       "files": ["package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
       "options": {
-        "printWidth": 1000,
+        "printWidth": 200,
         "tabWidth": 2
       }
     }

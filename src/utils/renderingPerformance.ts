@@ -12,7 +12,7 @@
  * @since 2025-01-27
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 interface PerformanceMetrics {
   fps: number;
@@ -36,13 +36,13 @@ interface PerformanceConfig {
 }
 
 class RenderingPerformanceMonitor {
-  private config: PerformanceConfig;
-  private metrics: PerformanceMetrics[] = [];
+  private readonly config: PerformanceConfig;
+  private readonly metrics: PerformanceMetrics[] = [];
   private lastFrameTime = 0;
   private frameCount = 0;
   private animationFrameId: number | null = null;
   private isMonitoring = false;
-  private observers: Array<(metrics: PerformanceMetrics) => void> = [];
+  private readonly observers: Array<(metrics: PerformanceMetrics) => void> = [];
 
   constructor(config: Partial<PerformanceConfig> = {}) {
     this.config = {
@@ -78,6 +78,8 @@ class RenderingPerformanceMonitor {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    // メモリリーク防止のため全監視者をクリア
+    this.observers.length = 0;
   }
 
   /**
@@ -113,16 +115,20 @@ class RenderingPerformanceMonitor {
   getStats() {
     if (this.metrics.length === 0) return null;
 
-    const fps = this.metrics.map((m) => m.fps);
-    const frameTimes = this.metrics.map((m) => m.frameTime);
+    const fps = this.metrics.map(m => m.fps);
+    const frameTimes = this.metrics.map(m => m.frameTime);
 
     return {
       averageFps: fps.reduce((a, b) => a + b, 0) / fps.length,
       minFps: Math.min(...fps),
       maxFps: Math.max(...fps),
-      averageFrameTime: frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length,
+      averageFrameTime:
+        frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length,
       maxFrameTime: Math.max(...frameTimes),
-      totalRenderCount: this.metrics.reduce((total, m) => total + m.renderCount, 0),
+      totalRenderCount: this.metrics.reduce(
+        (total, m) => total + m.renderCount,
+        0
+      ),
     };
   }
 
@@ -137,7 +143,7 @@ class RenderingPerformanceMonitor {
 
     if (current.fps < this.config.thresholds.lowFps) {
       warnings.push(
-        `低FPS検出: ${current.fps.toFixed(1)}fps (推奨: ${this.config.thresholds.lowFps}fps以上)`,
+        `低FPS検出: ${current.fps.toFixed(1)}fps (推奨: ${this.config.thresholds.lowFps}fps以上)`
       );
     }
 
@@ -145,14 +151,22 @@ class RenderingPerformanceMonitor {
       warnings.push(
         `高フレーム時間: ${current.frameTime.toFixed(2)}ms (推奨: ${
           this.config.thresholds.highFrameTime
-        }ms以下)`,
+        }ms以下)`
       );
     }
 
-    if (current.memoryUsage && current.memoryUsage > this.config.thresholds.highMemoryUsage) {
+    if (
+      current.memoryUsage &&
+      current.memoryUsage > this.config.thresholds.highMemoryUsage
+    ) {
       const memoryMB = (current.memoryUsage / (1024 * 1024)).toFixed(1);
-      const thresholdMB = (this.config.thresholds.highMemoryUsage / (1024 * 1024)).toFixed(1);
-      warnings.push(`高メモリ使用量: ${memoryMB}MB (推奨: ${thresholdMB}MB以下)`);
+      const thresholdMB = (
+        this.config.thresholds.highMemoryUsage /
+        (1024 * 1024)
+      ).toFixed(1);
+      warnings.push(
+        `高メモリ使用量: ${memoryMB}MB (推奨: ${thresholdMB}MB以下)`
+      );
     }
 
     return warnings;
@@ -168,18 +182,24 @@ class RenderingPerformanceMonitor {
     const suggestions: string[] = [];
 
     if (stats.averageFps < 50) {
-      suggestions.push("マーカーのクラスタリングを有効にしてレンダリング負荷を軽減");
-      suggestions.push("仮想化スクロールを使用して大量リストの性能を改善");
+      suggestions.push(
+        'マーカーのクラスタリングを有効にしてレンダリング負荷を軽減'
+      );
+      suggestions.push('仮想化スクロールを使用して大量リストの性能を改善');
     }
 
     if (stats.maxFrameTime > 20) {
-      suggestions.push("アニメーションでwill-changeプロパティを使用してGPU加速を有効化");
-      suggestions.push("重い処理をrequestIdleCallbackで分割実行");
+      suggestions.push(
+        'アニメーションでwill-changeプロパティを使用してGPU加速を有効化'
+      );
+      suggestions.push('重い処理をrequestIdleCallbackで分割実行');
     }
 
     if (stats.totalRenderCount > 1000) {
-      suggestions.push("React.memoとuseMemoでコンポーネントの再レンダリングを抑制");
-      suggestions.push("インクリメンタルレンダリングで初期表示を高速化");
+      suggestions.push(
+        'React.memoとuseMemoでコンポーネントの再レンダリングを抑制'
+      );
+      suggestions.push('インクリメンタルレンダリングで初期表示を高速化');
     }
 
     return suggestions;
@@ -199,9 +219,12 @@ class RenderingPerformanceMonitor {
 
       // メモリ使用量取得（対応ブラウザのみ）
       let memoryUsage: number | undefined;
-      if ("memory" in performance) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        memoryUsage = (performance as any).memory?.usedJSHeapSize as number;
+      if ('memory' in performance && performance.memory) {
+        // TypeScript用の型安全なアクセス
+        const memory = performance.memory as {
+          usedJSHeapSize?: number;
+        };
+        memoryUsage = memory.usedJSHeapSize;
       }
 
       const metrics: PerformanceMetrics = {
@@ -219,7 +242,7 @@ class RenderingPerformanceMonitor {
       }
 
       // 監視者に通知
-      this.observers.forEach((observer) => {
+      this.observers.forEach(observer => {
         observer(metrics);
       });
 
@@ -228,9 +251,14 @@ class RenderingPerformanceMonitor {
       this.lastFrameTime = now;
     }
 
-    // 次のフレーム
+    // 次のフレーム（エラーハンドリング付き）
     this.animationFrameId = requestAnimationFrame(() => {
-      this.measureFPS();
+      try {
+        this.measureFPS();
+      } catch (error) {
+        console.error('🚨 FPS測定エラー:', error);
+        this.stop(); // エラー時は監視を停止
+      }
     });
   }
 }
@@ -250,7 +278,7 @@ export const useRenderingPerformance = () => {
   useEffect(() => {
     performanceMonitor.start();
 
-    const unsubscribe = performanceMonitor.subscribe((newMetrics) => {
+    const unsubscribe = performanceMonitor.subscribe(newMetrics => {
       setMetrics(newMetrics);
       setWarnings(performanceMonitor.checkPerformanceWarnings());
     });

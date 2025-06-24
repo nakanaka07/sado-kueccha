@@ -5,8 +5,8 @@
  * @version 2.0.0 - 構造最適化
  */
 
-import { isDevelopment } from "../utils/env";
-import { cacheService } from "./cache";
+import { isDevelopment } from '../utils/env';
+import { cacheService } from './cache';
 
 /**
  * プリロード結果の基本情報
@@ -32,7 +32,7 @@ export interface GoogleMapsLoadState {
  * シンプルなプリロードマネージャー
  */
 class SimplePreloadManager {
-  private googleMapsState: GoogleMapsLoadState = {
+  private readonly googleMapsState: GoogleMapsLoadState = {
     isLoaded: false,
     isLoading: false,
   };
@@ -45,7 +45,10 @@ class SimplePreloadManager {
 
     try {
       // 並列でプリロードを実行
-      await Promise.allSettled([this.preloadCriticalAssets(), this.preloadCriticalData()]);
+      await Promise.allSettled([
+        this.preloadCriticalAssets(),
+        this.preloadCriticalData(),
+      ]);
 
       const duration = performance.now() - startTime;
 
@@ -54,7 +57,7 @@ class SimplePreloadManager {
       }
     } catch (error) {
       if (isDevelopment()) {
-        console.warn("⚠️ プリロード失敗:", error);
+        console.warn('⚠️ プリロード失敗:', error);
       }
     }
   }
@@ -64,12 +67,12 @@ class SimplePreloadManager {
    */
   private async preloadCriticalAssets(): Promise<void> {
     const criticalImages = [
-      "/assets/title_row1.png",
-      "/assets/title_row2.png",
-      "/assets/current_location.png",
+      '/assets/title_row1.png',
+      '/assets/title_row2.png',
+      '/assets/current_location.png',
     ];
 
-    const promises = criticalImages.map(async (src) => {
+    const promises = criticalImages.map(async src => {
       try {
         const img = new Image();
         await new Promise<void>((resolve, reject) => {
@@ -97,27 +100,27 @@ class SimplePreloadManager {
   private async preloadCriticalData(): Promise<void> {
     try {
       // キャッシュされたデータがあるかチェック
-      const cachedData = cacheService.get("critical-pois");
+      const cachedData = cacheService.get('critical-pois');
       if (cachedData) {
         if (isDevelopment()) {
-          console.warn("✅ キャッシュからデータ読み込み完了");
+          console.warn('✅ キャッシュからデータ読み込み完了');
         }
         return;
       }
 
       // バックグラウンドでシートサービスを読み込み
-      const { sheetsService } = await import("./sheets");
+      const { sheetsService } = await import('./sheets');
       const criticalPOIs = await sheetsService.fetchPOIsOptimized();
 
       // キャッシュに保存
-      cacheService.set("critical-pois", criticalPOIs, 7200000); // 2時間
+      cacheService.set('critical-pois', criticalPOIs, 7200000); // 2時間
 
       if (isDevelopment()) {
         console.warn(`✅ 重要POIデータ読み込み完了: ${criticalPOIs.length}件`);
       }
     } catch (error) {
       if (isDevelopment()) {
-        console.warn("重要データの読み込み失敗:", error);
+        console.warn('重要データの読み込み失敗:', error);
       }
     }
   }

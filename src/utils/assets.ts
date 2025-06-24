@@ -3,13 +3,18 @@
  * 最新のベストプラクティスに基づいたアセット管理
  */
 
-import type { AssetUrl, BaseAssets } from "../types";
-import { getAppConfig } from "./env";
+import type { AssetUrl, BaseAssets } from '../types';
+import { getAppConfig } from './env';
 
 /**
  * アセット解決キャッシュ（パフォーマンス最適化）
  */
 const assetPathCache = new Map<string, string>();
+
+/**
+ * キャッシュサイズ制限（メモリリーク防止）
+ */
+const CACHE_MAX_SIZE = 100;
 
 /**
  * セキュアなアセットパス解決関数
@@ -19,8 +24,8 @@ const assetPathCache = new Map<string, string>();
  */
 export const resolveAssetPath = (path: string): AssetUrl => {
   // 入力検証とサニタイゼーション
-  if (!path || typeof path !== "string") {
-    return "" as AssetUrl;
+  if (!path || typeof path !== 'string') {
+    return '' as AssetUrl;
   }
 
   // キャッシュ確認（パフォーマンス向上）
@@ -32,33 +37,46 @@ export const resolveAssetPath = (path: string): AssetUrl => {
   // XSS攻撃防止のためのサニタイゼーション
   const sanitizedPath = sanitizeAssetPath(path);
   if (!sanitizedPath) {
-    return "" as AssetUrl;
+    return '' as AssetUrl;
   }
+  try {
+    const { app } = getAppConfig();
+    const { basePath } = app;
 
-  const { app } = getAppConfig();
-  const { basePath } = app;
+    // 既に完全パスの場合はそのまま返す（HTTPSのみ許可）
+    if (isAbsoluteUrl(sanitizedPath)) {
+      const resolvedPath = sanitizedPath;
+      assetPathCache.set(path, resolvedPath);
+      return resolvedPath as AssetUrl;
+    }
 
-  // 既に完全パスの場合はそのまま返す（HTTPSのみ許可）
-  if (isAbsoluteUrl(sanitizedPath)) {
-    const resolvedPath = sanitizedPath;
+    // publicフォルダ内のアセットの場合
+    // クロスプラットフォーム対応（Windows/Unix両方のパス区切り文字に対応）
+    const normalizedPath = sanitizedPath.startsWith('/assets/')
+      ? sanitizedPath
+      : `/assets/${sanitizedPath.split(/[/\\]/).pop() || sanitizedPath}`;
+
+    // ベースパスが設定されている場合は追加
+    const resolvedPath =
+      basePath.length > 0 && basePath !== '/'
+        ? `${basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}${normalizedPath}`
+        : normalizedPath;
+
+    // キャッシュサイズ制限（メモリリーク防止）
+    if (assetPathCache.size >= CACHE_MAX_SIZE) {
+      const firstKey = assetPathCache.keys().next().value;
+      if (firstKey) {
+        assetPathCache.delete(firstKey);
+      }
+    }
+
+    // キャッシュに保存
     assetPathCache.set(path, resolvedPath);
     return resolvedPath as AssetUrl;
+  } catch {
+    // エラーハンドリング: 設定取得に失敗した場合のフォールバック
+    return sanitizedPath as AssetUrl;
   }
-
-  // publicフォルダ内のアセットの場合
-  // クロスプラットフォーム対応（Windows/Unix両方のパス区切り文字に対応）
-  const normalizedPath = sanitizedPath.startsWith("/assets/")
-    ? sanitizedPath
-    : `/assets/${sanitizedPath.split(/[/\\]/).pop() || sanitizedPath}`;
-
-  // ベースパスが設定されている場合は追加
-  const resolvedPath = basePath
-    ? `${basePath.endsWith("/") ? basePath.slice(0, -1) : basePath}${normalizedPath}`
-    : normalizedPath;
-
-  // キャッシュに保存
-  assetPathCache.set(path, resolvedPath);
-  return resolvedPath as AssetUrl;
 };
 
 /**
@@ -69,11 +87,11 @@ export const resolveAssetPath = (path: string): AssetUrl => {
 function sanitizeAssetPath(path: string): string {
   // 危険な文字を除去
   const dangerousChars = /[<>"'&]/g;
-  const sanitized = path.replace(dangerousChars, "");
+  const sanitized = path.replace(dangerousChars, '');
 
   // パストラバーサル攻撃を防ぐ
-  if (sanitized.includes("../") || sanitized.includes("..\\")) {
-    return "";
+  if (sanitized.includes('../') || sanitized.includes('..\\')) {
+    return '';
   }
 
   return sanitized;
@@ -85,7 +103,7 @@ function sanitizeAssetPath(path: string): string {
  * @returns HTTPSの絶対URLの場合true
  */
 function isAbsoluteUrl(url: string): boolean {
-  return url.startsWith("https://") || url.startsWith("//");
+  return url.startsWith('https://') || url.startsWith('//');
 }
 
 /**
@@ -119,7 +137,9 @@ const transformAssetPaths = (() => {
           3: resolveAssetPath(obj.ICONS.AREA_MAP[3]),
         },
         MARKERS: {
-          CURRENT_LOCATION: resolveAssetPath(obj.ICONS.MARKERS.CURRENT_LOCATION),
+          CURRENT_LOCATION: resolveAssetPath(
+            obj.ICONS.MARKERS.CURRENT_LOCATION
+          ),
           FACING_NORTH: resolveAssetPath(obj.ICONS.MARKERS.FACING_NORTH),
           PARKING: resolveAssetPath(obj.ICONS.MARKERS.PARKING),
           RECOMMEND: resolveAssetPath(obj.ICONS.MARKERS.RECOMMEND),
@@ -143,31 +163,31 @@ const transformAssetPaths = (() => {
 const baseAssetDefinition = {
   ICONS: {
     ANO: {
-      1: "ano_icon01.png",
-      2: "ano_icon02.png",
-      3: "ano_icon03.png",
+      1: 'ano_icon01.png',
+      2: 'ano_icon02.png',
+      3: 'ano_icon03.png',
     },
     SHI: {
-      1: "shi_icon01.png",
-      2: "shi_icon02.png",
-      3: "shi_icon03.png",
+      1: 'shi_icon01.png',
+      2: 'shi_icon02.png',
+      3: 'shi_icon03.png',
     },
     AREA_MAP: {
-      1: "area_icon_map01.png",
-      2: "area_icon_map02.png",
-      3: "area_icon_map03.png",
+      1: 'area_icon_map01.png',
+      2: 'area_icon_map02.png',
+      3: 'area_icon_map03.png',
     },
     MARKERS: {
-      CURRENT_LOCATION: "current_location.png",
-      FACING_NORTH: "facing_north.png",
-      PARKING: "parking.png",
-      RECOMMEND: "recommend.png",
-      TOILETTE: "toilette.png",
+      CURRENT_LOCATION: 'current_location.png',
+      FACING_NORTH: 'facing_north.png',
+      PARKING: 'parking.png',
+      RECOMMEND: 'recommend.png',
+      TOILETTE: 'toilette.png',
     },
   },
   TITLE: {
-    ROW1: "title_row1.png",
-    ROW2: "title_row2.png",
+    ROW1: 'title_row1.png',
+    ROW2: 'title_row2.png',
   },
 } as const;
 
@@ -204,7 +224,7 @@ export const getAssetCacheStats = (): { size: number; entries: string[] } => {
  */
 export const checkAssetExists = async (assetPath: string): Promise<boolean> => {
   try {
-    const response = await fetch(assetPath, { method: "HEAD" });
+    const response = await fetch(assetPath, { method: 'HEAD' });
     return response.ok;
   } catch {
     return false;

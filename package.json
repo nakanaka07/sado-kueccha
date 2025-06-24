@@ -3,7 +3,21 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "packageManager": "pnpm@10.12.1",
+  "packageManager": "pnpm@10.12.2",
+  "description": "佐渡島の観光地マップアプリケーション - React 19 + TypeScript + Vite",
+  "homepage": "https://github.com/username/sado-kueccha#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/sado-kueccha.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/sado-kueccha/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=10.0.0"
@@ -13,44 +27,74 @@
     "typescript",
     "vite",
     "maps",
-    "sado"
+    "sado",
+    "tourism",
+    "pwa",
+    "google-maps"
   ],
   "scripts": {
+    "// === 開発・ビルド ===": "",
     "dev": "vite",
     "build": "pnpm type-check && vite build",
     "preview": "vite preview",
+    "// === 品質チェック ===": "",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --flag unstable_config_lookup_from_file",
     "lint:fix": "eslint . --fix --flag unstable_config_lookup_from_file",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "// === テスト ===": "",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "ci": "pnpm type-check && pnpm lint && pnpm test:run",
-    "clean": "rimraf dist",
-    "prepare": "husky || true"
+    "test:ui": "vitest --ui",
+    "// === 統合チェック ===": "",
+    "validate": "pnpm type-check && pnpm format:check && pnpm lint && pnpm test:run",
+    "validate:full": "pnpm clean && pnpm install && pnpm validate && pnpm build",
+    "ci": "pnpm validate:full",
+    "// === プロジェクト管理 ===": "",
+    "clean": "rimraf dist coverage .vite node_modules/.tmp",
+    "clean:deps": "rimraf node_modules pnpm-lock.yaml && pnpm install",
+    "prepare": "husky || true",
+    "// === 分析・監査 ===": "",
+    "analyze": "npx vite-bundle-analyzer dist",
+    "security:audit": "pnpm audit --audit-level moderate",
+    "security:check": "pnpm outdated && pnpm audit",
+    "// === 依存関係管理 ===": "",
+    "deps:update": "pnpm update --latest",
+    "deps:check": "pnpm outdated",
+    "// === 環境別実行 ===": "",
+    "dev:minimal": "cross-env NODE_ENV=development VITE_PROFILE=minimal pnpm dev",
+    "dev:full": "cross-env NODE_ENV=development VITE_PROFILE=full pnpm dev",
+    "build:staging": "cross-env NODE_ENV=staging pnpm build",
+    "build:production": "cross-env NODE_ENV=production VITE_PROFILE=performance pnpm build",
+    "preview:staging": "cross-env NODE_ENV=staging pnpm preview",
+    "test:staging": "cross-env NODE_ENV=test pnpm test",
+    "postinstall": "pnpm security:audit"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.5.3",
-    "@vis.gl/react-google-maps": "^1.5.2",
-    "googleapis": "^149.0.0",
+    "@vis.gl/react-google-maps": "^1.5.3",
+    "googleapis": "^150.0.1",
     "japanese-holidays": "^1.0.10",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
+    "@eslint/js": "^9.29.0",
     "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/google.maps": "^3.58.1",
-    "@types/node": "^22.15.29",
-    "@types/react": "^19.1.6",
-    "@types/react-dom": "^19.1.5",
+    "@types/node": "^24.0.3",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react-swc": "^3.10.2",
-    "@vitest/coverage-v8": "^3.1.4",
-    "@vitest/ui": "^3.1.4",
-    "eslint": "^9.28.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
@@ -59,20 +103,46 @@
     "globals": "^16.2.0",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
-    "lint-staged": "^15.2.11",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "~5.8.3",
-    "typescript-eslint": "^8.33.0",
+    "typescript-eslint": "^8.34.1",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.0.0",
-    "vitest": "^3.1.4",
+    "vitest": "^3.2.4",
     "workbox-window": "^7.3.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix --flag unstable_config_lookup_from_file"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
     ]
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19"
+      }
+    },
+    "overrides": {
+      "semver": ">=7.5.4",
+      "brace-expansion@>=1.0.0 <=1.1.11": ">=1.1.12"
+    }
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/username"
+  }
 }
