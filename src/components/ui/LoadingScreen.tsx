@@ -1,6 +1,6 @@
-import type React from "react";
-import { memo, useEffect, useState } from "react";
-import { ASSETS } from "../../utils/assets";
+import type React from 'react';
+import { memo, useEffect, useState } from 'react';
+import { ASSETS } from '../../utils/assets';
 
 /**
  * ローディング画面のプロパティ
@@ -54,12 +54,12 @@ const useProgressiveLoading = (progressPercentage?: number) => {
  */
 export const LoadingScreen: React.FC<LoadingScreenProps> = memo(
   ({
-    title = "佐渡で食えっちゃ",
-    message = "佐渡島のおすすめ飲食店を準備中...",
-    progress = "アセットを読み込み中です",
+    title = '佐渡で食えっちゃ',
+    message = '佐渡島のおすすめ飲食店を準備中...',
+    progress = 'アセットを読み込み中です',
     progressPercentage,
-    ariaLabel = "アプリケーション読み込み中",
-    testId = "loading-screen",
+    ariaLabel = 'アプリケーション読み込み中',
+    testId = 'loading-screen',
   }) => {
     const displayProgress = useProgressiveLoading(progressPercentage);
 
@@ -89,7 +89,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = memo(
             aria-valuemax={100}
             style={
               {
-                "--progress-value": `${displayProgress}%`,
+                '--progress-value': `${displayProgress}%`,
               } as React.CSSProperties
             }
           />
@@ -100,18 +100,21 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = memo(
             <small className="loading-progress-text">
               {progress}
               {progressPercentage !== undefined && (
-                <span className="loading-percentage"> ({displayProgress}%)</span>
+                <span className="loading-percentage">
+                  {' '}
+                  ({displayProgress}%)
+                </span>
               )}
             </small>
           </div>
         </div>
       </div>
     );
-  },
+  }
 );
 
 // LoadingScreenコンポーネントの表示名を設定（React DevTools用）
-LoadingScreen.displayName = "LoadingScreen";
+LoadingScreen.displayName = 'LoadingScreen';
 
 /**
  * マップローディングオーバーレイのプロパティ
@@ -135,7 +138,11 @@ interface MapLoadingOverlayProps {
 /**
  * フェードアウトアニメーションを管理するカスタムフック
  */
-const useFadeOutAnimation = (fadeOut: boolean, onComplete?: () => void, duration = 600) => {
+const useFadeOutAnimation = (
+  fadeOut: boolean,
+  onComplete?: () => void,
+  duration = 600
+) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -169,24 +176,30 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = memo(
     fadeOut,
     poisLoading,
     onLoadingComplete,
-    ariaLabel = "地図読み込み中",
+    ariaLabel = '地図読み込み中',
     animationDuration = 600,
-    testId = "map-loading-overlay",
+    testId = 'map-loading-overlay',
   }) => {
-    const isVisible = useFadeOutAnimation(fadeOut, onLoadingComplete, animationDuration);
+    const isVisible = useFadeOutAnimation(
+      fadeOut,
+      onLoadingComplete,
+      animationDuration
+    );
 
     // アニメーション完了後は完全に非表示
     if (!isVisible) return null;
 
-    const currentMessage = poisLoading ? "お店のデータを読み込み中..." : "地図を準備中...";
+    const currentMessage = poisLoading
+      ? 'お店のデータを読み込み中...'
+      : '地図を準備中...';
 
     const currentProgress = poisLoading
-      ? "最新の店舗情報を取得しています"
-      : "マーカーを配置しています";
+      ? '最新の店舗情報を取得しています'
+      : 'マーカーを配置しています';
 
     return (
       <div
-        className={`map-loading-overlay ${fadeOut ? "fade-out" : ""}`}
+        className={`map-loading-overlay ${fadeOut ? 'fade-out' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
@@ -194,7 +207,7 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = memo(
         data-testid={testId}
         style={
           {
-            "--animation-duration": `${animationDuration}ms`,
+            '--animation-duration': `${animationDuration}ms`,
           } as React.CSSProperties
         }
       >
@@ -224,11 +237,15 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 // MapLoadingOverlayコンポーネントの表示名を設定
-MapLoadingOverlay.displayName = "MapLoadingOverlay";
+MapLoadingOverlay.displayName = 'MapLoadingOverlay';
 
 // 名前付きエクスポートでの再エクスポート（Tree Shaking最適化）
-export { LoadingScreen as default, type LoadingScreenProps, type MapLoadingOverlayProps };
+export {
+  LoadingScreen as default,
+  type LoadingScreenProps,
+  type MapLoadingOverlayProps,
+};

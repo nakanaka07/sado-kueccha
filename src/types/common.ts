@@ -7,9 +7,9 @@
 export type Brand<T, U> = T & { readonly __brand: U };
 
 // 基本的なID型の定義
-export type EntityId = Brand<string, "EntityId">;
-export type TimestampMs = Brand<number, "TimestampMs">;
-export type VersionString = Brand<string, "Version">;
+export type EntityId = Brand<string, 'EntityId'>;
+export type TimestampMs = Brand<number, 'TimestampMs'>;
+export type VersionString = Brand<string, 'Version'>;
 
 /**
  * 位置情報を持つオブジェクトの型
@@ -71,7 +71,7 @@ export interface CacheMetadata {
   /** データサイズ（バイト） */
   readonly size?: number;
   /** キャッシュの優先度 */
-  readonly priority?: "high" | "medium" | "low";
+  readonly priority?: 'high' | 'medium' | 'low';
 }
 
 /**
@@ -134,7 +134,7 @@ export type DeepReadonly<T> = {
 /**
  * 非同期操作の状態
  */
-export type AsyncStatus = "idle" | "loading" | "success" | "error";
+export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /**
  * 非同期操作の状態管理用型
@@ -150,22 +150,22 @@ export interface AsyncState<T = unknown, E = Error> {
 
 // 型ガード関数の実装例
 export const isCoordinates = (value: unknown): value is Coordinates => {
-  if (typeof value !== "object" || value === null) return false;
+  if (typeof value !== 'object' || value === null) return false;
 
   const candidate = value as Record<string, unknown>;
   return (
-    "lat" in candidate &&
-    "lng" in candidate &&
-    typeof candidate.lat === "number" &&
-    typeof candidate.lng === "number"
+    'lat' in candidate &&
+    'lng' in candidate &&
+    typeof candidate.lat === 'number' &&
+    typeof candidate.lng === 'number'
   );
 };
 
 export const isPositionObject = (value: unknown): value is PositionObject => {
-  if (typeof value !== "object" || value === null) return false;
+  if (typeof value !== 'object' || value === null) return false;
 
   const candidate = value as Record<string, unknown>;
-  return "position" in candidate && isCoordinates(candidate.position);
+  return 'position' in candidate && isCoordinates(candidate.position);
 };
 
 /**
@@ -182,7 +182,7 @@ export type BaseConfig = Record<string, unknown>;
  * 環境変数の型安全なアクセス用
  */
 export interface EnvironmentConfig extends Record<string, unknown> {
-  readonly NODE_ENV: "development" | "production" | "test";
+  readonly NODE_ENV: 'development' | 'production' | 'test';
   readonly API_BASE_URL?: string;
   readonly DEBUG?: boolean;
 }
@@ -208,13 +208,13 @@ export interface LoadingState {
  * プログレッシブローディングの段階
  */
 export type LoadingPhase =
-  | "initializing"
-  | "loading-assets"
-  | "loading-data"
-  | "processing"
-  | "finalizing"
-  | "complete"
-  | "error";
+  | 'initializing'
+  | 'loading-assets'
+  | 'loading-data'
+  | 'processing'
+  | 'finalizing'
+  | 'complete'
+  | 'error';
 
 /**
  * アクセシビリティ関連の設定
@@ -323,7 +323,7 @@ export interface CustomEvent<T = unknown> {
 /**
  * ログレベルの定義
  */
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 /**
  * ログエントリの型

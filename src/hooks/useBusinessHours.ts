@@ -3,10 +3,10 @@
  * BusinessHoursDisplayコンポーネント用の状態管理と最適化
  */
 
-import { useMemo } from "react";
-import type { StatusConfig, StatusType } from "../types";
-import { formatBusinessHours, STATUS_CONFIG } from "../utils/businessHours";
-import { isDevelopment } from "../utils/env";
+import { useMemo } from 'react';
+import type { StatusConfig, StatusType } from '../types';
+import { formatBusinessHours, STATUS_CONFIG } from '../utils/businessHours';
+import { isDevelopment } from '../utils/env';
 
 interface UseBusinessHoursOptions {
   readonly businessHours: Record<string, string>;
@@ -28,7 +28,9 @@ interface BusinessHoursState {
  * @param options - フックのオプション
  * @returns 営業時間の状態と操作関数
  */
-export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): BusinessHoursState {
+export function useBusinessHours({
+  businessHours,
+}: UseBusinessHoursOptions): BusinessHoursState {
   // 営業時間情報の計算（メモ化済み）
   const hoursInfo = useMemo(() => {
     try {
@@ -36,14 +38,14 @@ export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): Bu
     } catch (error) {
       if (import.meta.env.DEV) {
         if (isDevelopment()) {
-          console.warn("営業時間の解析中にエラーが発生しました:", error);
+          console.warn('営業時間の解析中にエラーが発生しました:', error);
         }
       }
       return {
         isOpen: false,
-        currentStatus: "営業時間不明",
-        statusType: "unknown" as const,
-        todayHours: "不明",
+        currentStatus: '営業時間不明',
+        statusType: 'unknown' as const,
+        todayHours: '不明',
         shouldShowTodayHours: false,
       };
     }
@@ -57,14 +59,14 @@ export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): Bu
   // 営業時間データの信頼度計算
   const confidence = useMemo(() => {
     const hasValidHours = Object.values(businessHours).some(
-      (hours) => hours && hours !== "不明" && hours !== "-",
+      hours => hours && hours !== '不明' && hours !== '-'
     );
 
     if (!hasValidHours) return 0;
 
     const totalDays = Object.keys(businessHours).length;
     const validDays = Object.values(businessHours).filter(
-      (hours) => hours && hours !== "不明" && hours !== "-",
+      hours => hours && hours !== '不明' && hours !== '-'
     ).length;
 
     return totalDays > 0 ? validDays / totalDays : 0;
@@ -95,19 +97,19 @@ export function useBusinessHours({ businessHours }: UseBusinessHoursOptions): Bu
 export function useBusinessHoursAccessibility(
   statusType: StatusType,
   isOpen: boolean,
-  statusConfig: StatusConfig,
+  statusConfig: StatusConfig
 ) {
   return useMemo(
     () => ({
       className: `status-badge ${statusType}`,
-      role: "status" as const,
-      "aria-live": "polite" as const,
-      "aria-label": statusConfig.ariaLabel,
-      "data-status": statusType,
-      "data-is-open": isOpen,
-      "data-testid": "business-hours-status-badge",
+      role: 'status' as const,
+      'aria-live': 'polite' as const,
+      'aria-label': statusConfig.ariaLabel,
+      'data-status': statusType,
+      'data-is-open': isOpen,
+      'data-testid': 'business-hours-status-badge',
     }),
-    [statusType, isOpen, statusConfig.ariaLabel],
+    [statusType, isOpen, statusConfig.ariaLabel]
   );
 }
 
@@ -117,7 +119,10 @@ export function useBusinessHoursAccessibility(
  * @param todayHours - 今日の営業時間
  * @returns 表示用JSX要素またはnull
  */
-export function useBusinessHoursTodayDisplay(shouldShow: boolean, todayHours: string) {
+export function useBusinessHoursTodayDisplay(
+  shouldShow: boolean,
+  todayHours: string
+) {
   return useMemo(() => {
     if (!shouldShow || !todayHours) {
       return null;
@@ -126,7 +131,7 @@ export function useBusinessHoursTodayDisplay(shouldShow: boolean, todayHours: st
     return {
       todayHours,
       ariaLabel: `本日の営業時間: ${todayHours}`,
-      testId: "business-hours-today",
+      testId: 'business-hours-today',
     };
   }, [shouldShow, todayHours]);
 }
@@ -136,7 +141,9 @@ export function useBusinessHoursTodayDisplay(shouldShow: boolean, todayHours: st
  * @param businessHours - 営業時間データ
  * @returns 検証結果
  */
-export function useBusinessHoursValidation(businessHours: Record<string, string>) {
+export function useBusinessHoursValidation(
+  businessHours: Record<string, string>
+) {
   return useMemo(() => {
     const validation = {
       isValid: true,
@@ -146,13 +153,13 @@ export function useBusinessHoursValidation(businessHours: Record<string, string>
     };
 
     const expectedDays = [
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-      "sunday",
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
     ];
     const providedDays = Object.keys(businessHours);
 
@@ -160,16 +167,16 @@ export function useBusinessHoursValidation(businessHours: Record<string, string>
     validation.completeness = providedDays.length / expectedDays.length;
 
     // 曜日の存在チェック
-    const missingDays = expectedDays.filter((day) => !providedDays.includes(day));
+    const missingDays = expectedDays.filter(day => !providedDays.includes(day));
     if (missingDays.length > 0) {
       validation.warnings.push(
-        `営業時間が設定されていない曜日があります: ${missingDays.join(", ")}`,
+        `営業時間が設定されていない曜日があります: ${missingDays.join(', ')}`
       );
     }
 
     // 無効なデータのチェック
     Object.entries(businessHours).forEach(([day, hours]) => {
-      if (!hours || hours.trim() === "") {
+      if (!hours || hours.trim() === '') {
         validation.warnings.push(`${day}の営業時間が空です`);
       }
     });
@@ -177,7 +184,7 @@ export function useBusinessHoursValidation(businessHours: Record<string, string>
     // 重大なエラーのチェック
     if (providedDays.length === 0) {
       validation.isValid = false;
-      validation.errors.push("営業時間データが提供されていません");
+      validation.errors.push('営業時間データが提供されていません');
     }
 
     return validation;

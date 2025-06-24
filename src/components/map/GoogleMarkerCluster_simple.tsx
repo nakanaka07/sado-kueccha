@@ -1,28 +1,40 @@
-import { AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
-import { memo, useCallback } from "react";
-import type { POI } from "../../types/poi";
-import { ASSETS } from "../../utils/assets";
-import "./GoogleMarkerCluster.css";
-import RecommendMarker from "./RecommendMarker";
+import { AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
+import { memo, useCallback } from 'react';
+import type { POI } from '../../types/poi';
+import { ASSETS } from '../../utils/assets';
+import './GoogleMarkerCluster.css';
+import RecommendMarker from './RecommendMarker';
 
 /**
  * 基本的なマーカー設定
  */
 const MARKER_CONFIGS = {
   toilet: {
-    keywords: ["トイレ", "toilet", "お手洗い"],
+    keywords: ['トイレ', 'toilet', 'お手洗い'],
     icon: ASSETS.ICONS.MARKERS.TOILETTE,
-    style: { background: "#8B4513", borderColor: "#654321", glyphColor: "white" },
+    style: {
+      background: '#8B4513',
+      borderColor: '#654321',
+      glyphColor: 'white',
+    },
   },
   parking: {
-    keywords: ["駐車", "parking", "パーキング"],
+    keywords: ['駐車', 'parking', 'パーキング'],
     icon: ASSETS.ICONS.MARKERS.PARKING,
-    style: { background: "#2E8B57", borderColor: "#1F5F3F", glyphColor: "white" },
+    style: {
+      background: '#2E8B57',
+      borderColor: '#1F5F3F',
+      glyphColor: 'white',
+    },
   },
   normal: {
     keywords: [],
     icon: null,
-    style: { background: "#4285F4", borderColor: "#1A73E8", glyphColor: "white" },
+    style: {
+      background: '#4285F4',
+      borderColor: '#1A73E8',
+      glyphColor: 'white',
+    },
   },
 } as const;
 
@@ -34,20 +46,24 @@ const getMarkerType = (poi: POI): keyof typeof MARKER_CONFIGS => {
   const genre = poi.genre.toLowerCase();
   const combined = `${name} ${genre}`;
 
-  if (MARKER_CONFIGS.toilet.keywords.some((keyword) => combined.includes(keyword))) {
-    return "toilet";
+  if (
+    MARKER_CONFIGS.toilet.keywords.some(keyword => combined.includes(keyword))
+  ) {
+    return 'toilet';
   }
-  if (MARKER_CONFIGS.parking.keywords.some((keyword) => combined.includes(keyword))) {
-    return "parking";
+  if (
+    MARKER_CONFIGS.parking.keywords.some(keyword => combined.includes(keyword))
+  ) {
+    return 'parking';
   }
-  return "normal";
+  return 'normal';
 };
 
 /**
  * おすすめPOIかどうかを判定
  */
 const isRecommendedPOI = (poi: POI): boolean => {
-  return poi.sourceSheet === "recommended" || poi.genre === "recommend";
+  return poi.sourceSheet === 'recommended' || poi.genre === 'recommend';
 };
 
 /**
@@ -68,7 +84,7 @@ const GoogleMarkerCluster = memo<GoogleMarkerClusterProps>(
       (poi: POI) => {
         onMarkerClick?.(poi);
       },
-      [onMarkerClick],
+      [onMarkerClick]
     );
 
     // 表示制御
@@ -87,8 +103,8 @@ const GoogleMarkerCluster = memo<GoogleMarkerClusterProps>(
       <>
         {/* 通常のマーカー */}
         {limitedPOIs
-          .filter((poi) => !isRecommendedPOI(poi))
-          .map((poi) => {
+          .filter(poi => !isRecommendedPOI(poi))
+          .map(poi => {
             const markerType = getMarkerType(poi);
             const config = MARKER_CONFIGS[markerType];
 
@@ -113,8 +129,8 @@ const GoogleMarkerCluster = memo<GoogleMarkerClusterProps>(
 
         {/* おすすめマーカー */}
         {limitedPOIs
-          .filter((poi) => isRecommendedPOI(poi))
-          .map((poi) => (
+          .filter(poi => isRecommendedPOI(poi))
+          .map(poi => (
             <RecommendMarker
               key={`recommend-${poi.id}`}
               poi={poi}
@@ -125,9 +141,9 @@ const GoogleMarkerCluster = memo<GoogleMarkerClusterProps>(
           ))}
       </>
     );
-  },
+  }
 );
 
-GoogleMarkerCluster.displayName = "GoogleMarkerCluster";
+GoogleMarkerCluster.displayName = 'GoogleMarkerCluster';
 
 export default GoogleMarkerCluster;

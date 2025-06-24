@@ -61,7 +61,7 @@ interface POI {
 }
 
 // ✅ 推奨
-type FilterState = "active" | "inactive" | "pending";
+type FilterState = 'active' | 'inactive' | 'pending';
 ```
 
 ### React コンポーネント

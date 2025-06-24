@@ -3,7 +3,7 @@
  * 最新のベストプラクティスに基づいた型安全な環境変数管理
  */
 
-import { getSheetsConfig } from "./sheetsConfig";
+import { getSheetsConfig } from './sheetsConfig';
 
 /**
  * 🔧 環境変数の型安全な取得
@@ -11,7 +11,10 @@ import { getSheetsConfig } from "./sheetsConfig";
  * @param defaultValue デフォルト値（オプション）
  * @returns 環境変数の値
  */
-export const getEnvValue = (value: string | undefined, defaultValue = ""): string => {
+export const getEnvValue = (
+  value: string | undefined,
+  defaultValue = ''
+): string => {
   return value || defaultValue;
 };
 
@@ -21,7 +24,10 @@ export const getEnvValue = (value: string | undefined, defaultValue = ""): strin
  * @param defaultValue デフォルト値
  * @returns 数値型の環境変数の値
  */
-export const getEnvNumber = (value: string | undefined, defaultValue: number): number => {
+export const getEnvNumber = (
+  value: string | undefined,
+  defaultValue: number
+): number => {
   const numValue = Number(value);
   return isNaN(numValue) ? defaultValue : numValue;
 };
@@ -32,9 +38,12 @@ export const getEnvNumber = (value: string | undefined, defaultValue: number): n
  * @param defaultValue デフォルト値
  * @returns ブール型の環境変数の値
  */
-export const getEnvBoolean = (value: string | undefined, defaultValue: boolean): boolean => {
-  if (value === undefined || value === "") return defaultValue;
-  return value === "true" || value === "1" || value === "yes";
+export const getEnvBoolean = (
+  value: string | undefined,
+  defaultValue: boolean
+): boolean => {
+  if (value === undefined || value === '') return defaultValue;
+  return value === 'true' || value === '1' || value === 'yes';
 };
 
 /**
@@ -45,12 +54,12 @@ export const getEnvBoolean = (value: string | undefined, defaultValue: boolean):
  */
 export const validateRequiredEnvVars = (
   vars: Record<string, string | undefined>,
-  requiredKeys: string[],
+  requiredKeys: string[]
 ): void => {
-  const missing = requiredKeys.filter((key) => !vars[key]);
+  const missing = requiredKeys.filter(key => !vars[key]);
 
   if (missing.length > 0) {
-    throw new Error(`❌ 必須環境変数が不足しています: ${missing.join(", ")}`);
+    throw new Error(`❌ 必須環境変数が不足しています: ${missing.join(', ')}`);
   }
 };
 
@@ -89,8 +98,8 @@ export const errorLog = (message: string, ...args: unknown[]): void => {
 
 // 🎯 デフォルト設定値（最新のベストプラクティス）
 const DEFAULT_CONFIG = {
-  GOOGLE_MAPS_MAP_ID: "佐渡島マップ",
-  BASE_PATH: "/",
+  GOOGLE_MAPS_MAP_ID: '佐渡島マップ',
+  BASE_PATH: '/',
   CACHE_TTL: 3600000, // 1時間
   API_TIMEOUT: 10000, // 10秒
   BATCH_SIZE: 100,
@@ -106,10 +115,13 @@ export const getAppConfig = () => {
   return {
     // 🏗️ 基本アプリケーション設定
     app: {
-      name: getEnvValue(import.meta.env.VITE_APP_NAME, "sado-kueccha"),
-      version: getEnvValue(import.meta.env.VITE_APP_VERSION, "0.1.0"),
-      basePath: getEnvValue(import.meta.env.VITE_BASE_PATH, DEFAULT_CONFIG.BASE_PATH),
-      baseUrl: import.meta.env.BASE_URL || "/",
+      name: getEnvValue(import.meta.env.VITE_APP_NAME, 'sado-kueccha'),
+      version: getEnvValue(import.meta.env.VITE_APP_VERSION, '0.1.0'),
+      basePath: getEnvValue(
+        import.meta.env.VITE_BASE_PATH,
+        DEFAULT_CONFIG.BASE_PATH
+      ),
+      baseUrl: import.meta.env.BASE_URL || '/',
     },
 
     // 🗺️ Google Maps関連
@@ -117,7 +129,7 @@ export const getAppConfig = () => {
       apiKey: getEnvValue(import.meta.env.VITE_GOOGLE_MAPS_API_KEY),
       mapId: getEnvValue(
         import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
-        DEFAULT_CONFIG.GOOGLE_MAPS_MAP_ID,
+        DEFAULT_CONFIG.GOOGLE_MAPS_MAP_ID
       ),
     },
 
@@ -137,23 +149,44 @@ export const getAppConfig = () => {
 
     // ⚡ パフォーマンス設定
     performance: {
-      cacheTtl: getEnvNumber(import.meta.env.VITE_CACHE_TTL, DEFAULT_CONFIG.CACHE_TTL),
-      apiTimeout: getEnvNumber(import.meta.env.VITE_API_TIMEOUT, DEFAULT_CONFIG.API_TIMEOUT),
-      batchSize: getEnvNumber(import.meta.env.VITE_BATCH_SIZE, DEFAULT_CONFIG.BATCH_SIZE),
-      maxRetries: getEnvNumber(import.meta.env.VITE_MAX_RETRIES, DEFAULT_CONFIG.MAX_RETRIES),
+      cacheTtl: getEnvNumber(
+        import.meta.env.VITE_CACHE_TTL,
+        DEFAULT_CONFIG.CACHE_TTL
+      ),
+      apiTimeout: getEnvNumber(
+        import.meta.env.VITE_API_TIMEOUT,
+        DEFAULT_CONFIG.API_TIMEOUT
+      ),
+      batchSize: getEnvNumber(
+        import.meta.env.VITE_BATCH_SIZE,
+        DEFAULT_CONFIG.BATCH_SIZE
+      ),
+      maxRetries: getEnvNumber(
+        import.meta.env.VITE_MAX_RETRIES,
+        DEFAULT_CONFIG.MAX_RETRIES
+      ),
     },
 
     // 🔧 開発・デバッグ設定
     debug: {
       mode: getEnvBoolean(import.meta.env.VITE_DEBUG_MODE, false),
-      enableLogs: getEnvBoolean(import.meta.env.VITE_ENABLE_CONSOLE_LOGS, false),
+      enableLogs: getEnvBoolean(
+        import.meta.env.VITE_ENABLE_CONSOLE_LOGS,
+        false
+      ),
     },
 
     // 🚀 フィーチャーフラグ
     features: {
-      offlineMode: getEnvBoolean(import.meta.env.VITE_FEATURE_OFFLINE_MODE, true),
+      offlineMode: getEnvBoolean(
+        import.meta.env.VITE_FEATURE_OFFLINE_MODE,
+        true
+      ),
       pwaInstall: getEnvBoolean(import.meta.env.VITE_FEATURE_PWA_INSTALL, true),
-      geolocation: getEnvBoolean(import.meta.env.VITE_FEATURE_GEOLOCATION, true),
+      geolocation: getEnvBoolean(
+        import.meta.env.VITE_FEATURE_GEOLOCATION,
+        true
+      ),
     },
 
     // 🌍 環境フラグ
@@ -173,9 +206,9 @@ export const validateAppConfig = (): void => {
 
   // 必須のAPIキー検証
   const requiredApiKeys = [
-    "VITE_GOOGLE_MAPS_API_KEY",
-    "VITE_GOOGLE_SPREADSHEET_ID",
-    "VITE_GOOGLE_SHEETS_API_KEY",
+    'VITE_GOOGLE_MAPS_API_KEY',
+    'VITE_GOOGLE_SPREADSHEET_ID',
+    'VITE_GOOGLE_SHEETS_API_KEY',
   ];
 
   validateRequiredEnvVars(
@@ -184,25 +217,31 @@ export const validateAppConfig = (): void => {
       VITE_GOOGLE_SPREADSHEET_ID: env.VITE_GOOGLE_SPREADSHEET_ID,
       VITE_GOOGLE_SHEETS_API_KEY: env.VITE_GOOGLE_SHEETS_API_KEY,
     },
-    requiredApiKeys,
+    requiredApiKeys
   );
 
   // セキュリティチェック
   if (isProduction()) {
-    const sensitiveKeys = requiredApiKeys.filter((key) => {
+    const sensitiveKeys = requiredApiKeys.filter(key => {
       const value = env[key as keyof typeof env] as string | undefined;
       return (
         !value ||
-        (typeof value === "string" && (value.includes("your_") || value.includes("example")))
+        (typeof value === 'string' &&
+          (value.includes('your_') ||
+            value.includes('example') ||
+            value.length < 10 || // 短すぎるAPIキー
+            value === 'test'))
       );
     });
 
     if (sensitiveKeys.length > 0) {
-      throw new Error(`🚨 本番環境で無効なAPIキーが検出されました: ${sensitiveKeys.join(", ")}`);
+      throw new Error(
+        `🚨 本番環境で無効なAPIキーが検出されました: ${sensitiveKeys.join(', ')}`
+      );
     }
   }
 
-  debugLog("✅ 環境変数の検証が完了しました");
+  debugLog('✅ 環境変数の検証が完了しました');
 };
 
 /**
@@ -213,17 +252,17 @@ export const performStartupCheck = (): void => {
     validateAppConfig();
     const config = getAppConfig();
 
-    debugLog("🚀 アプリケーション設定", {
+    debugLog('🚀 アプリケーション設定', {
       app: config.app,
       env: config.env,
       features: config.features,
     });
 
     if (config.env.isDev) {
-      debugLog("🔧 開発モードで実行中");
+      debugLog('🔧 開発モードで実行中');
     }
   } catch (error) {
-    errorLog("環境設定エラー", error);
+    errorLog('環境設定エラー', error);
     throw error;
   }
 };

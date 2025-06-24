@@ -1,10 +1,10 @@
-import { memo } from "react";
+import { memo } from 'react';
 import {
   useBusinessHours,
   useBusinessHoursAccessibility,
   useBusinessHoursTodayDisplay,
-} from "../../hooks/useBusinessHours";
-import "./BusinessHoursDisplay.css";
+} from '../../hooks/useBusinessHours';
+import './BusinessHoursDisplay.css';
 
 interface BusinessHoursDisplayProps {
   readonly businessHours: Record<string, string>;
@@ -14,7 +14,7 @@ interface BusinessHoursDisplayProps {
 
 const BusinessHoursDisplayComponent = ({
   businessHours,
-  className = "",
+  className = '',
   showDetailedInfo = false,
 }: BusinessHoursDisplayProps) => {
   // カスタムフックを使用して営業時間の状態を管理
@@ -24,13 +24,13 @@ const BusinessHoursDisplayComponent = ({
   const statusBadgeProps = useBusinessHoursAccessibility(
     businessHoursState.statusType,
     businessHoursState.isOpen,
-    businessHoursState.statusConfig,
+    businessHoursState.statusConfig
   );
 
   // 今日の営業時間表示の生成
   const todayHoursDisplay = useBusinessHoursTodayDisplay(
     businessHoursState.shouldShowTodayHours,
-    businessHoursState.todayHours,
+    businessHoursState.todayHours
   );
 
   return (
@@ -50,7 +50,9 @@ const BusinessHoursDisplayComponent = ({
           >
             {businessHoursState.statusConfig.icon}
           </span>
-          <span className="status-text">{businessHoursState.currentStatus}</span>
+          <span className="status-text">
+            {businessHoursState.currentStatus}
+          </span>
         </div>
 
         {todayHoursDisplay ? (
@@ -62,7 +64,10 @@ const BusinessHoursDisplayComponent = ({
             <span className="hours-label" aria-hidden="true">
               本日:
             </span>
-            <time className="hours-value" dateTime={todayHoursDisplay.todayHours}>
+            <time
+              className="hours-value"
+              dateTime={todayHoursDisplay.todayHours}
+            >
               {todayHoursDisplay.todayHours}
             </time>
           </div>

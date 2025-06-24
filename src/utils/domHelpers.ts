@@ -6,23 +6,29 @@
 /**
  * 🔍 DOM要素の型安全性チェック用ユーティリティ
  */
-export const isHTMLElement = (element: Element | null): element is HTMLElement =>
-  element instanceof HTMLElement;
+export const isHTMLElement = (
+  element: Element | null
+): element is HTMLElement => element instanceof HTMLElement;
 
-export const isHTMLButtonElement = (element: Element | null): element is HTMLButtonElement =>
-  element instanceof HTMLButtonElement;
+export const isHTMLButtonElement = (
+  element: Element | null
+): element is HTMLButtonElement => element instanceof HTMLButtonElement;
 
-export const isHTMLInputElement = (element: Element | null): element is HTMLInputElement =>
-  element instanceof HTMLInputElement;
+export const isHTMLInputElement = (
+  element: Element | null
+): element is HTMLInputElement => element instanceof HTMLInputElement;
 
-export const isHTMLDivElement = (element: Element | null): element is HTMLDivElement =>
-  element instanceof HTMLDivElement;
+export const isHTMLDivElement = (
+  element: Element | null
+): element is HTMLDivElement => element instanceof HTMLDivElement;
 
-export const isHTMLAnchorElement = (element: Element | null): element is HTMLAnchorElement =>
-  element instanceof HTMLAnchorElement;
+export const isHTMLAnchorElement = (
+  element: Element | null
+): element is HTMLAnchorElement => element instanceof HTMLAnchorElement;
 
-export const isHTMLFormElement = (element: Element | null): element is HTMLFormElement =>
-  element instanceof HTMLFormElement;
+export const isHTMLFormElement = (
+  element: Element | null
+): element is HTMLFormElement => element instanceof HTMLFormElement;
 
 /**
  * 🎯 セーフなクエリセレクター（型安全版）
@@ -34,7 +40,7 @@ export const isHTMLFormElement = (element: Element | null): element is HTMLFormE
 export const safeQuerySelector = <T extends Element>(
   parent: Element | Document,
   selector: string,
-  typeGuard: (element: Element | null) => element is T,
+  typeGuard: (element: Element | null) => element is T
 ): T | null => {
   try {
     const element = parent.querySelector(selector);
@@ -54,7 +60,7 @@ export const safeQuerySelector = <T extends Element>(
 export const safeQuerySelectorAll = <T extends Element>(
   parent: Element | Document,
   selector: string,
-  typeGuard: (element: Element | null) => element is T,
+  typeGuard: (element: Element | null) => element is T
 ): T[] => {
   try {
     const elements = Array.from(parent.querySelectorAll(selector));
@@ -87,7 +93,7 @@ export class SafeEventManager {
     element: Element,
     event: string,
     handler: EventListener,
-    options?: AddEventListenerOptions,
+    options?: AddEventListenerOptions
   ): void {
     try {
       element.addEventListener(event, handler, options);
@@ -98,7 +104,7 @@ export class SafeEventManager {
         this.listeners.push(listenerInfo);
       }
     } catch (error) {
-      console.error("🚨 イベントリスナーの追加に失敗しました:", error);
+      console.error('🚨 イベントリスナーの追加に失敗しました:', error);
     }
   }
 
@@ -110,10 +116,10 @@ export class SafeEventManager {
       try {
         element.removeEventListener(event, handler, options);
       } catch (error) {
-        console.error("🚨 イベントリスナーの削除に失敗しました:", error);
+        console.error('🚨 イベントリスナーの削除に失敗しました:', error);
       }
     });
-    this.listeners = [];
+    this.listeners.length = 0; // 配列を空にする効率的な方法
   }
 
   /**
@@ -122,12 +128,16 @@ export class SafeEventManager {
    * @param event - イベント名
    */
   removeListener(element: Element, event: string): void {
-    this.listeners = this.listeners.filter((listener) => {
+    this.listeners = this.listeners.filter(listener => {
       if (listener.element === element && listener.event === event) {
         try {
-          element.removeEventListener(event, listener.handler, listener.options);
+          element.removeEventListener(
+            event,
+            listener.handler,
+            listener.options
+          );
         } catch (error) {
-          console.error("🚨 イベントリスナーの削除に失敗しました:", error);
+          console.error('🚨 イベントリスナーの削除に失敗しました:', error);
         }
         return false;
       }
@@ -164,9 +174,12 @@ export class SafeEventManager {
  * @param element - 対象要素
  * @param attributes - ARIA属性のオブジェクト
  */
-export function setAriaAttributes(element: Element, attributes: Record<string, string>): void {
+export function setAriaAttributes(
+  element: Element,
+  attributes: Record<string, string>
+): void {
   Object.entries(attributes).forEach(([key, value]) => {
-    if (key.startsWith("aria-") || key === "role") {
+    if (key.startsWith('aria-') || key === 'role') {
       element.setAttribute(key, value);
     }
   });
@@ -179,12 +192,12 @@ export function setAriaAttributes(element: Element, attributes: Record<string, s
  */
 export function setFocus(element: Element, options?: FocusOptions): boolean {
   try {
-    if (isHTMLElement(element) && typeof element.focus === "function") {
+    if (isHTMLElement(element) && typeof element.focus === 'function') {
       element.focus(options);
       return true;
     }
   } catch (error) {
-    console.error("🚨 フォーカス設定に失敗しました:", error);
+    console.error('🚨 フォーカス設定に失敗しました:', error);
   }
   return false;
 }
@@ -195,8 +208,8 @@ export function setFocus(element: Element, options?: FocusOptions): boolean {
  * @returns 隠しテキスト要素
  */
 export function createScreenReaderText(text: string): HTMLSpanElement {
-  const span = document.createElement("span");
-  span.className = "sr-only";
+  const span = document.createElement('span');
+  span.className = 'sr-only';
   span.textContent = text;
   span.style.cssText = `
     position: absolute !important;
@@ -219,8 +232,8 @@ export function createScreenReaderText(text: string): HTMLSpanElement {
  */
 export function toggleVisibility(element: Element, visible: boolean): void {
   if (isHTMLElement(element)) {
-    element.style.display = visible ? "" : "none";
-    element.setAttribute("aria-hidden", (!visible).toString());
+    element.style.display = visible ? '' : 'none';
+    element.setAttribute('aria-hidden', (!visible).toString());
   }
 }
 
@@ -253,7 +266,8 @@ export function isElementVisible(element: Element): boolean {
   return (
     rect.top >= 0 &&
     rect.left >= 0 &&
-    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.bottom <=
+      (window.innerHeight || document.documentElement.clientHeight) &&
     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
   );
 }
@@ -263,9 +277,12 @@ export function isElementVisible(element: Element): boolean {
  * @param element - 対象要素
  * @param behavior - スクロール動作
  */
-export function scrollIntoView(element: Element, behavior: ScrollBehavior = "smooth"): void {
+export function scrollIntoView(
+  element: Element,
+  behavior: ScrollBehavior = 'smooth'
+): void {
   try {
-    element.scrollIntoView({ behavior, block: "nearest" });
+    element.scrollIntoView({ behavior, block: 'nearest' });
   } catch {
     // フォールバック
     try {

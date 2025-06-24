@@ -1,13 +1,18 @@
-import { AdvancedMarker, APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
-import type React from "react";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AdvancedMarker,
+  APIProvider,
+  Map,
+  useMap,
+} from '@vis.gl/react-google-maps';
+import type React from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { SADO_ISLAND } from "../../constants";
-import type { FilterState } from "../../types/filter";
-import type { POI } from "../../types/poi";
-import { getAppConfig } from "../../utils/env";
-import { InfoWindow } from "./InfoWindow";
-import "./Map.css";
+import { SADO_ISLAND } from '../../constants';
+import type { FilterState } from '../../types/filter';
+import type { POI } from '../../types/poi';
+import { getAppConfig } from '../../utils/env';
+import { InfoWindow } from './InfoWindow';
+import './Map.css';
 
 // MapインスタンスをキャプチャするためのComponent
 const MapInstanceCapture = memo<{
@@ -25,7 +30,7 @@ const MapInstanceCapture = memo<{
   return null;
 });
 
-MapInstanceCapture.displayName = "MapInstanceCapture";
+MapInstanceCapture.displayName = 'MapInstanceCapture';
 
 // POIマーカーコンポーネント - 最適化されたレンダリング
 const POIMarkers = memo<{
@@ -39,7 +44,7 @@ const POIMarkers = memo<{
   useEffect(() => {
     if (renderedCount < pois.length) {
       const timeoutId = setTimeout(() => {
-        setRenderedCount((prev) => Math.min(prev + 25, pois.length));
+        setRenderedCount(prev => Math.min(prev + 25, pois.length));
       }, 16); // 次のフレームで追加レンダリング
 
       return () => {
@@ -60,11 +65,11 @@ const POIMarkers = memo<{
     // 優先度つきソート: おすすめマーカーを最初に表示
     const sorted = [...pois].sort((a, b) => {
       const aIsRecommended =
-        a.sourceSheet?.toLowerCase().includes("recommend") ||
-        a.sourceSheet?.toLowerCase().includes("おすすめ");
+        a.sourceSheet?.toLowerCase().includes('recommend') ||
+        a.sourceSheet?.toLowerCase().includes('おすすめ');
       const bIsRecommended =
-        b.sourceSheet?.toLowerCase().includes("recommend") ||
-        b.sourceSheet?.toLowerCase().includes("おすすめ");
+        b.sourceSheet?.toLowerCase().includes('recommend') ||
+        b.sourceSheet?.toLowerCase().includes('おすすめ');
 
       if (aIsRecommended && !bIsRecommended) return -1;
       if (!aIsRecommended && bIsRecommended) return 1;
@@ -76,7 +81,7 @@ const POIMarkers = memo<{
 
   return (
     <>
-      {poisToRender.map((poi) => (
+      {poisToRender.map(poi => (
         <AdvancedMarker
           key={poi.id}
           position={poi.position}
@@ -90,7 +95,7 @@ const POIMarkers = memo<{
   );
 });
 
-POIMarkers.displayName = "POIMarkers";
+POIMarkers.displayName = 'POIMarkers';
 
 interface MapComponentProps {
   className?: string;
@@ -104,7 +109,7 @@ interface MapComponentProps {
 
 export const MapComponent = memo<MapComponentProps>(
   ({
-    className = "map-container",
+    className = 'map-container',
     onMapLoaded,
     enableClickableIcons = false,
     filterState,
@@ -127,7 +132,7 @@ export const MapComponent = memo<MapComponentProps>(
     useEffect(() => {
       const updateActivePois = async () => {
         const basePois = externalPois ?? internalPois;
-        const { removeDuplicatePOIs } = await import("../../services/sheets");
+        const { removeDuplicatePOIs } = await import('../../services/sheets');
         setActivePois(removeDuplicatePOIs(basePois));
       };
 
@@ -147,14 +152,14 @@ export const MapComponent = memo<MapComponentProps>(
         filterState?.showParking,
         filterState?.showRecommended,
         filterState?.showSnacks,
-      ],
+      ]
     );
 
     // フィルタリング - 最適化されたロジック
     const filteredPois = useMemo(() => {
       if (!filterState) return activePois;
 
-      return activePois.filter((poi) => {
+      return activePois.filter(poi => {
         if (!poi.sourceSheet) return true;
 
         const sheetName = poi.sourceSheet.toLowerCase();
@@ -173,7 +178,7 @@ export const MapComponent = memo<MapComponentProps>(
     // API設定
     const { maps } = getAppConfig();
     const { apiKey: googleMapsApiKey, mapId } = maps;
-    const libraries = useMemo(() => ["marker"], []);
+    const libraries = useMemo(() => ['marker'], []);
 
     // マップオプションの完全なメモ化
     const mapOptions = useMemo(
@@ -183,11 +188,11 @@ export const MapComponent = memo<MapComponentProps>(
         maxZoom: SADO_ISLAND.ZOOM.MAX,
         minZoom: SADO_ISLAND.ZOOM.MIN,
         mapId,
-        mapTypeId: "roadmap" as const,
+        mapTypeId: 'roadmap' as const,
         clickableIcons: enableClickableIcons,
         disableDefaultUI: false,
         keyboardShortcuts: true,
-        gestureHandling: "greedy" as const,
+        gestureHandling: 'greedy' as const,
         restriction: {
           latLngBounds: {
             north: SADO_ISLAND.BOUNDS.NORTH,
@@ -198,18 +203,18 @@ export const MapComponent = memo<MapComponentProps>(
           strictBounds: false,
         },
       }),
-      [mapId, enableClickableIcons],
+      [mapId, enableClickableIcons]
     );
 
     const apiProviderConfig = useMemo(
       () => ({
         apiKey: googleMapsApiKey,
-        version: "weekly" as const,
+        version: 'weekly' as const,
         libraries,
-        language: "ja",
-        region: "JP",
+        language: 'ja',
+        region: 'JP',
       }),
-      [googleMapsApiKey, libraries],
+      [googleMapsApiKey, libraries]
     );
 
     // POIデータ読み込み
@@ -223,7 +228,7 @@ export const MapComponent = memo<MapComponentProps>(
 
       const loadPOIs = async () => {
         try {
-          const { fetchPOIs } = await import("../../services/sheets");
+          const { fetchPOIs } = await import('../../services/sheets');
           const data = await fetchPOIs();
           if (isMounted) {
             setInternalPois(data);
@@ -231,9 +236,9 @@ export const MapComponent = memo<MapComponentProps>(
             setError(null);
           }
         } catch (error) {
-          console.error("POIデータの読み込みに失敗しました:", error);
+          console.error('POIデータの読み込みに失敗しました:', error);
           if (isMounted) {
-            setError("POIデータの読み込みに失敗しました");
+            setError('POIデータの読み込みに失敗しました');
             setIsLoading(false);
           }
         }
@@ -253,9 +258,11 @@ export const MapComponent = memo<MapComponentProps>(
         _mapInstanceRef.current = map;
 
         // 開発環境でのデバッグログ
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
-          console.log("[Map] Google Mapsインスタンス読み込み完了 - onMapLoadedを呼び出し");
+          console.log(
+            '[Map] Google Mapsインスタンス読み込み完了 - onMapLoadedを呼び出し'
+          );
         }
 
         onMapLoaded?.(map);
@@ -264,12 +271,12 @@ export const MapComponent = memo<MapComponentProps>(
         if (zoomListenerRef.current) {
           google.maps.event.removeListener(zoomListenerRef.current);
         }
-        zoomListenerRef.current = map.addListener("zoom_changed", () => {
+        zoomListenerRef.current = map.addListener('zoom_changed', () => {
           const zoom = map.getZoom() ?? SADO_ISLAND.ZOOM.DEFAULT;
           _currentZoomRef.current = zoom;
         });
       },
-      [onMapLoaded],
+      [onMapLoaded]
     );
 
     // POIクリックハンドラー
@@ -290,7 +297,9 @@ export const MapComponent = memo<MapComponentProps>(
     if (!googleMapsApiKey) {
       return (
         <div className={className}>
-          <div className="map-error">地図を読み込めません（APIキーが設定されていません）</div>
+          <div className="map-error">
+            地図を読み込めません（APIキーが設定されていません）
+          </div>
         </div>
       );
     }
@@ -298,7 +307,9 @@ export const MapComponent = memo<MapComponentProps>(
     if (!mapId) {
       return (
         <div className={className}>
-          <div className="map-error">地図を読み込めません（Map IDが設定されていません）</div>
+          <div className="map-error">
+            地図を読み込めません（Map IDが設定されていません）
+          </div>
         </div>
       );
     }
@@ -324,16 +335,16 @@ export const MapComponent = memo<MapComponentProps>(
         <APIProvider
           {...apiProviderConfig}
           onError={() => {
-            setError("地図の読み込みに失敗しました");
+            setError('地図の読み込みに失敗しました');
           }}
         >
           <Map
             {...mapOptions}
-            style={{ width: "100%", height: "400px" }}
+            style={{ width: '100%', height: '400px' }}
             onClick={() => {
               setSelectedPoi(null);
             }}
-            onCameraChanged={(_event) => {
+            onCameraChanged={_event => {
               // カメラ変更時の処理（必要に応じて）
             }}
           >
@@ -353,7 +364,7 @@ export const MapComponent = memo<MapComponentProps>(
         </APIProvider>
       </div>
     );
-  },
+  }
 );
 
-MapComponent.displayName = "MapComponent";
+MapComponent.displayName = 'MapComponent';

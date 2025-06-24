@@ -36,9 +36,12 @@
 @layer tokens {
   :root {
     /* フォントファミリー */
-    --font-family-primary: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', 'Meiryo',
-      system-ui, sans-serif;
-    --font-family-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    --font-family-primary:
+      'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI',
+      'Meiryo', system-ui, sans-serif;
+    --font-family-mono:
+      'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono',
+      'Courier New', monospace;
 
     /* z-index階層管理（より体系的に） */
     --z-base: 0;
@@ -58,13 +61,26 @@
     --color-primary-hue: 196;
     --color-primary-saturation: 68%;
     --color-primary-lightness: 46%;
-    --color-primary: hsl(var(--color-primary-hue) var(--color-primary-saturation) var(--color-primary-lightness));
-    --color-primary-50: hsl(var(--color-primary-hue) var(--color-primary-saturation) 95%);
-    --color-primary-100: hsl(var(--color-primary-hue) var(--color-primary-saturation) 90%);
+    --color-primary: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation)
+        var(--color-primary-lightness)
+    );
+    --color-primary-50: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation) 95%
+    );
+    --color-primary-100: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation) 90%
+    );
     --color-primary-500: var(--color-primary);
-    --color-primary-600: hsl(var(--color-primary-hue) var(--color-primary-saturation) 40%);
-    --color-primary-700: hsl(var(--color-primary-hue) var(--color-primary-saturation) 34%);
-    --color-primary-900: hsl(var(--color-primary-hue) var(--color-primary-saturation) 20%);
+    --color-primary-600: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation) 40%
+    );
+    --color-primary-700: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation) 34%
+    );
+    --color-primary-900: hsl(
+      var(--color-primary-hue) var(--color-primary-saturation) 20%
+    );
 
     /* 佐渡島テーマカラー */
     --color-sado-blue: var(--color-primary);
@@ -110,7 +126,11 @@
     --color-border-tertiary: var(--color-gray-100);
 
     /* グラデーション - より高品質な色空間 */
-    --gradient-primary: linear-gradient(135deg in oklab, var(--color-sado-blue) 0%, var(--color-sado-purple) 100%);
+    --gradient-primary: linear-gradient(
+      135deg in oklab,
+      var(--color-sado-blue) 0%,
+      var(--color-sado-purple) 100%
+    );
     --gradient-rainbow: linear-gradient(
       45deg in oklab,
       var(--color-sado-blue),
@@ -121,14 +141,21 @@
 
     /* シャドウ - より自然な影 */
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
+    --shadow-sm:
+      0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md:
+      0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-xl:
+      0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
     --shadow-inner: inset 0 2px 4px 0 hsl(0 0% 0% / 0.05);
     --shadow-focus: 0 0 0 3px
-      hsl(var(--color-primary-hue) var(--color-primary-saturation) var(--color-primary-lightness) / 0.5);
+      hsl(
+        var(--color-primary-hue) var(--color-primary-saturation)
+          var(--color-primary-lightness) / 0.5
+      );
 
     /* アニメーション・トランジション */
     --duration-fast: 150ms;
@@ -333,7 +360,9 @@
   }
 
   .map-loading-content {
-    transition: transform var(--transition-slow), opacity var(--transition-slow);
+    transition:
+      transform var(--transition-slow),
+      opacity var(--transition-slow);
   }
 
   .loading-title-image,
@@ -349,7 +378,9 @@
   }
 
   .map-loading-title-image {
-    transition: transform var(--transition-slow), opacity var(--transition-slow);
+    transition:
+      transform var(--transition-slow),
+      opacity var(--transition-slow);
   }
 
   .map-loading-overlay {
@@ -829,7 +860,8 @@
     transition-duration: var(--duration-normal);
   }
   .transition-colors {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill, stroke;
     transition-timing-function: var(--easing-smooth);
     transition-duration: var(--duration-normal);
   }
@@ -952,7 +984,9 @@
 
   /* Hover effects - 最新のCSS機能を活用 */
   .hover-lift {
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition:
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast);
   }
   .hover-lift:hover {
     transform: translateY(-2px);
@@ -1106,7 +1140,8 @@
     border: 1px solid var(--color-primary);
     border-radius: var(--radius-full);
     background-color: hsl(
-      var(--color-primary-hue) var(--color-primary-saturation) var(--color-primary-lightness) / 0.05
+      var(--color-primary-hue) var(--color-primary-saturation)
+        var(--color-primary-lightness) / 0.05
     );
     font-size: var(--font-size-xs);
   }
@@ -1140,7 +1175,11 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, hsl(0 0% 100% / 0.1) 0%, transparent 50%);
+    background: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.1) 0%,
+      transparent 50%
+    );
     pointer-events: none;
   }
 

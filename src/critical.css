@@ -40,7 +40,8 @@
 
     /* フォントファミリー */
     --font-family-primary:
-      'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', 'Meiryo', system-ui, sans-serif;
+      'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI',
+      'Meiryo', system-ui, sans-serif;
 
     /* z-index階層管理 - 基本のみ */
     --z-base: 0;

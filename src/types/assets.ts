@@ -4,7 +4,7 @@
  */
 
 // ブランド型でURL文字列の型安全性を向上
-export type AssetUrl = string & { readonly __brand: "AssetUrl" };
+export type AssetUrl = string & { readonly __brand: 'AssetUrl' };
 
 /**
  * 番号付きアセットのマッピング
@@ -73,12 +73,12 @@ export interface AssetLoadOptions {
   readonly timeout?: number;
   readonly maxRetries?: number;
   readonly preload?: boolean;
-  readonly priority?: "high" | "low" | "auto";
+  readonly priority?: 'high' | 'low' | 'auto';
 }
 
 // 型ガード関数
 export const isAssetUrl = (value: string): value is AssetUrl => {
-  return typeof value === "string" && value.length > 0;
+  return typeof value === 'string' && value.length > 0;
 };
 
 /**

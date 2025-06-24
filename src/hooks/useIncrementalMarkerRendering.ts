@@ -12,8 +12,8 @@
  * @since 2025-01-27
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { POI } from "../types/poi";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { POI } from '../types/poi';
 
 interface IncrementalRenderingOptions {
   /** 全POIデータ */
@@ -49,7 +49,7 @@ interface IncrementalRenderingResult {
  * インクリメンタルマーカーレンダリングフック
  */
 export const useIncrementalMarkerRendering = (
-  options: IncrementalRenderingOptions,
+  options: IncrementalRenderingOptions
 ): IncrementalRenderingResult => {
   const {
     allPois,
@@ -72,9 +72,11 @@ export const useIncrementalMarkerRendering = (
   const isInViewport = useCallback(
     (poi: POI): boolean => {
       if (!viewport) return true;
-      return viewport.contains(new google.maps.LatLng(poi.position.lat, poi.position.lng));
+      return viewport.contains(
+        new google.maps.LatLng(poi.position.lat, poi.position.lng)
+      );
     },
-    [viewport],
+    [viewport]
   );
 
   // POIを優先度順にソート
@@ -171,7 +173,14 @@ export const useIncrementalMarkerRendering = (
         renderNextBatch();
       }, renderInterval);
     }
-  }, [allPois, disabled, sortedPois, batchSize, renderInterval, renderNextBatch]);
+  }, [
+    allPois,
+    disabled,
+    sortedPois,
+    batchSize,
+    renderInterval,
+    renderNextBatch,
+  ]);
 
   // 強制完了
   const forceComplete = useCallback(() => {
@@ -217,7 +226,8 @@ export const useIncrementalMarkerRendering = (
   }, [startRendering]);
 
   // 進行率の計算
-  const progress = allPois.length > 0 ? renderedPois.length / allPois.length : 1;
+  const progress =
+    allPois.length > 0 ? renderedPois.length / allPois.length : 1;
 
   return {
     renderedPois,

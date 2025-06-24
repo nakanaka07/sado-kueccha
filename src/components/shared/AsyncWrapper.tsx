@@ -1,7 +1,7 @@
-import type React from "react";
-import { memo } from "react";
-import "./AsyncWrapper.css";
-import { LoadingSpinner } from "./LoadingSpinner";
+import type React from 'react';
+import { memo } from 'react';
+import './AsyncWrapper.css';
+import { LoadingSpinner } from './LoadingSpinner';
 
 /**
  * 非同期処理の共通化コンポーネント
@@ -49,15 +49,18 @@ const AsyncWrapperComponent = <T,>({
   errorComponent,
   emptyComponent,
   retryFn,
-  retryText = "再試行",
-  loadingMessage = "読み込み中...",
-  emptyMessage = "データがありません",
-  testId = "async-wrapper",
+  retryText = '再試行',
+  loadingMessage = '読み込み中...',
+  emptyMessage = 'データがありません',
+  testId = 'async-wrapper',
 }: AsyncWrapperProps<T>): React.ReactElement => {
   // ローディング状態
   if (loading) {
     return (
-      <div className="async-wrapper async-wrapper--loading" data-testid={`${testId}-loading`}>
+      <div
+        className="async-wrapper async-wrapper--loading"
+        data-testid={`${testId}-loading`}
+      >
         {loadingComponent || <LoadingSpinner message={loadingMessage} />}
       </div>
     );
@@ -65,18 +68,24 @@ const AsyncWrapperComponent = <T,>({
 
   // エラー状態
   if (error) {
-    const errorMessage = typeof error === "string" ? error : error.message;
+    const errorMessage = typeof error === 'string' ? error : error.message;
 
     if (errorComponent) {
       return (
-        <div className="async-wrapper async-wrapper--error" data-testid={`${testId}-error`}>
+        <div
+          className="async-wrapper async-wrapper--error"
+          data-testid={`${testId}-error`}
+        >
           {errorComponent(error)}
         </div>
       );
     }
 
     return (
-      <div className="async-wrapper async-wrapper--error" data-testid={`${testId}-error`}>
+      <div
+        className="async-wrapper async-wrapper--error"
+        data-testid={`${testId}-error`}
+      >
         <div className="async-wrapper__error">
           <div className="async-wrapper__error-icon" aria-hidden="true">
             ⚠️
@@ -84,7 +93,11 @@ const AsyncWrapperComponent = <T,>({
           <h3 className="async-wrapper__error-title">エラーが発生しました</h3>
           <p className="async-wrapper__error-message">{errorMessage}</p>
           {retryFn ? (
-            <button onClick={retryFn} className="async-wrapper__retry" type="button">
+            <button
+              onClick={retryFn}
+              className="async-wrapper__retry"
+              type="button"
+            >
               {retryText}
             </button>
           ) : null}
@@ -97,14 +110,20 @@ const AsyncWrapperComponent = <T,>({
   if (!data) {
     if (emptyComponent) {
       return (
-        <div className="async-wrapper async-wrapper--empty" data-testid={`${testId}-empty`}>
+        <div
+          className="async-wrapper async-wrapper--empty"
+          data-testid={`${testId}-empty`}
+        >
           {emptyComponent}
         </div>
       );
     }
 
     return (
-      <div className="async-wrapper async-wrapper--empty" data-testid={`${testId}-empty`}>
+      <div
+        className="async-wrapper async-wrapper--empty"
+        data-testid={`${testId}-empty`}
+      >
         <div className="async-wrapper__empty">
           <div className="async-wrapper__empty-icon" aria-hidden="true">
             📭
@@ -117,7 +136,10 @@ const AsyncWrapperComponent = <T,>({
 
   // 成功状態
   return (
-    <div className="async-wrapper async-wrapper--success" data-testid={`${testId}-success`}>
+    <div
+      className="async-wrapper async-wrapper--success"
+      data-testid={`${testId}-success`}
+    >
       {children(data)}
     </div>
   );
@@ -128,7 +150,7 @@ const AsyncWrapperComponent = <T,>({
  * パフォーマンス最適化のため、propsが変更された場合のみ再レンダリング
  */
 export const AsyncWrapper = memo(AsyncWrapperComponent) as <T>(
-  props: AsyncWrapperProps<T>,
+  props: AsyncWrapperProps<T>
 ) => React.ReactElement;
 
-AsyncWrapperComponent.displayName = "AsyncWrapper";
+AsyncWrapperComponent.displayName = 'AsyncWrapper';

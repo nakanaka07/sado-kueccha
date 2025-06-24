@@ -1,10 +1,10 @@
-import { InfoWindow as GoogleInfoWindow } from "@vis.gl/react-google-maps";
-import { memo, useMemo } from "react";
-import type { POI } from "../../types/poi";
-import { parseTextWithLinks } from "../../utils/social";
-import { AsyncWrapper, InfoPanel } from "../shared";
-import { BusinessHoursDisplay } from "../ui/BusinessHoursDisplay";
-import "./InfoWindow.css";
+import { InfoWindow as GoogleInfoWindow } from '@vis.gl/react-google-maps';
+import { memo, useMemo } from 'react';
+import type { POI } from '../../types/poi';
+import { parseTextWithLinks } from '../../utils/social';
+import { AsyncWrapper, InfoPanel } from '../shared';
+import { BusinessHoursDisplay } from '../ui/BusinessHoursDisplay';
+import './InfoWindow.css';
 
 interface InfoWindowProps {
   readonly poi: POI;
@@ -17,9 +17,9 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
     const description = poi.details?.description;
     if (!description) return null;
 
-    const linkParts = parseTextWithLinks(description, "info-window-link");
-    return linkParts.map((part) => {
-      if (part.type === "link") {
+    const linkParts = parseTextWithLinks(description, 'info-window-link');
+    return linkParts.map(part => {
+      if (part.type === 'link') {
         return (
           <a
             key={part.key}
@@ -40,9 +40,9 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
   // 電話番号リンクのクリックハンドラー
   const phoneHref = useMemo(() => {
     const phone = poi.contact?.phone;
-    if (!phone) return "";
+    if (!phone) return '';
     // 電話番号の形式を正規化
-    const normalizedPhone = phone.replace(/[^\d-]/g, "");
+    const normalizedPhone = phone.replace(/[^\d-]/g, '');
     return `tel:${normalizedPhone}`;
   }, [poi.contact?.phone]);
 
@@ -53,24 +53,26 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
     // WeeklyBusinessHoursをRecord<string, string>に変換
     const record: Record<string, string> = {};
     const days = [
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-      "sunday",
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
     ] as const;
 
-    days.forEach((day) => {
+    days.forEach(day => {
       const dayHours = poi.businessHours?.[day];
       if (dayHours) {
         if (dayHours.isClosed) {
-          record[day] = "closed";
+          record[day] = 'closed';
         } else if (dayHours.is24Hours) {
-          record[day] = "24h";
+          record[day] = '24h';
         } else if (dayHours.periods.length) {
-          const periodsStr = dayHours.periods.map((p) => `${p.start}-${p.end}`).join(", ");
+          const periodsStr = dayHours.periods
+            .map(p => `${p.start}-${p.end}`)
+            .join(', ');
           record[day] = periodsStr;
         }
       }
@@ -99,10 +101,13 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
           error={null}
           emptyMessage="POI情報が見つかりません"
         >
-          {(poiData) => (
+          {poiData => (
             <div className="info-window-content">
               {poiData.genre ? (
-                <span className="info-window-genre" aria-label={`カテゴリ: ${poiData.genre}`}>
+                <span
+                  className="info-window-genre"
+                  aria-label={`カテゴリ: ${poiData.genre}`}
+                >
                   {poiData.genre}
                 </span>
               ) : null}
@@ -115,7 +120,9 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
 
               {poiData.details?.description ? (
                 <div className="info-window-section">
-                  <div className="info-window-description">{linkifiedContent}</div>
+                  <div className="info-window-description">
+                    {linkifiedContent}
+                  </div>
                 </div>
               ) : null}
 
@@ -134,10 +141,14 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
 
               <div className="info-window-features">
                 {poiData.parking ? (
-                  <div className="feature-badge parking">🅿️ 隣接駐車場: {poiData.parking}</div>
+                  <div className="feature-badge parking">
+                    🅿️ 隣接駐車場: {poiData.parking}
+                  </div>
                 ) : null}
                 {poiData.cashless ? (
-                  <div className="feature-badge cashless">💳 キャッシュレス対応</div>
+                  <div className="feature-badge cashless">
+                    💳 キャッシュレス対応
+                  </div>
                 ) : null}
               </div>
 
@@ -180,4 +191,4 @@ const InfoWindowComponent = ({ poi, onClose }: InfoWindowProps) => {
  */
 export const InfoWindow = memo(InfoWindowComponent);
 
-InfoWindowComponent.displayName = "InfoWindow";
+InfoWindowComponent.displayName = 'InfoWindow';

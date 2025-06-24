@@ -1,24 +1,26 @@
-import type { FC, ReactElement } from "react";
-import { Suspense, lazy, useEffect } from "react";
+import type { FC, ReactElement } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import {
   ErrorBoundary,
   LoadingScreen,
   MapLoadingOverlay,
   PerformanceDebugger,
-} from "../components/ui";
-import { useAppState } from "../hooks/useAppState";
-import { getAppConfig } from "../utils/env";
+} from '../components/ui';
+import { useAppState } from '../hooks/useAppState';
+import { getAppConfig } from '../utils/env';
 
 // 最適化されたスタイルの遅延読み込み
-void import("../styles/filter-loading.css");
+void import('../styles/filter-loading.css');
 
 // コンポーネントの遅延読み込み（Code Splitting最適化）
 const FilterPanel = lazy(() =>
-  import("../components/filter/FilterPanel").then((module) => ({ default: module.FilterPanel })),
+  import('../components/filter/FilterPanel').then(module => ({
+    default: module.FilterPanel,
+  }))
 );
 
 const MapComponent = lazy(async () => {
-  const module = await import("../components/map");
+  const module = await import('../components/map');
   return { default: module.MapComponent };
 });
 
@@ -46,24 +48,26 @@ const APP_CONFIG = {
    * WCAG 2.1 AA準拠のラベルと説明文
    */
   accessibility: {
-    appLabel: "佐渡観光マップアプリケーション",
-    appDescription: "佐渡島の観光スポットを検索・閲覧できるインタラクティブマップアプリケーション",
-    loadingLabel: "アプリケーション読み込み中",
-    mapLoadingLabel: "マップ読み込み中",
-    mapLabel: "観光スポットマップ",
-    filterLabel: "観光スポットフィルター",
-    mainHeading: "佐渡観光マップ",
-    mapInstructions: "矢印キーでマップを移動、Enterキーで選択されたマーカーの詳細を表示",
+    appLabel: '佐渡観光マップアプリケーション',
+    appDescription:
+      '佐渡島の観光スポットを検索・閲覧できるインタラクティブマップアプリケーション',
+    loadingLabel: 'アプリケーション読み込み中',
+    mapLoadingLabel: 'マップ読み込み中',
+    mapLabel: '観光スポットマップ',
+    filterLabel: '観光スポットフィルター',
+    mainHeading: '佐渡観光マップ',
+    mapInstructions:
+      '矢印キーでマップを移動、Enterキーで選択されたマーカーの詳細を表示',
   },
   /**
    * CSS クラス名定数
    * 文字列リテラルの型安全性を確保
    */
   cssClasses: {
-    app: "app",
-    appMain: "app-main",
-    mapContainer: "map-container",
-    visuallyHidden: "visually-hidden",
+    app: 'app',
+    appMain: 'app-main',
+    mapContainer: 'map-container',
+    visuallyHidden: 'visually-hidden',
   },
   /**
    * React 19の新機能利用フラグ
@@ -132,12 +136,14 @@ const APP_CONFIG = {
 const App: FC = (): ReactElement => {
   // 開発環境での設定確認
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
       const config = getAppConfig();
       // eslint-disable-next-line no-console
-      console.log("[App] Google Maps設定確認:", {
-        apiKey: config.maps.apiKey ? `[設定済: ${config.maps.apiKey.slice(0, 10)}...]` : "[未設定]",
-        mapId: config.maps.mapId || "[未設定]",
+      console.log('[App] Google Maps設定確認:', {
+        apiKey: config.maps.apiKey
+          ? `[設定済: ${config.maps.apiKey.slice(0, 10)}...]`
+          : '[未設定]',
+        mapId: config.maps.mapId || '[未設定]',
       });
     }
   }, []);
@@ -163,7 +169,7 @@ const App: FC = (): ReactElement => {
       onError={(_error, _errorInfo) => {
         // React 19の改良されたエラーハンドリング
         // 本番環境では外部エラー監視サービス（Sentry、LogRocket等）に送信
-        if (process.env.NODE_ENV === "production") {
+        if (process.env.NODE_ENV === 'production') {
           // 例: reportError(error, errorInfo);
           // 例: analytics.track('app_error', { error: error.message });
         }
@@ -179,7 +185,10 @@ const App: FC = (): ReactElement => {
           React 19 のアクセシビリティ向上
           スクリーンリーダー用の詳細説明
         */}
-        <div id="app-description" className={APP_CONFIG.cssClasses.visuallyHidden}>
+        <div
+          id="app-description"
+          className={APP_CONFIG.cssClasses.visuallyHidden}
+        >
           {APP_CONFIG.accessibility.appDescription}
         </div>
 
@@ -196,17 +205,34 @@ const App: FC = (): ReactElement => {
           />
         ) : null}
 
-        <main className={APP_CONFIG.cssClasses.appMain} role="main" aria-labelledby="main-heading">
+        <main
+          className={APP_CONFIG.cssClasses.appMain}
+          role="main"
+          aria-labelledby="main-heading"
+        >
           {/*
             アクセシビリティのためのメインヘッディング
             視覚的には非表示だが構造的に重要
           */}
-          <h1 id="main-heading" className={APP_CONFIG.cssClasses.visuallyHidden}>
+          <h1
+            id="main-heading"
+            className={APP_CONFIG.cssClasses.visuallyHidden}
+          >
             {APP_CONFIG.accessibility.mainHeading}
           </h1>
 
-          <Suspense fallback={<LoadingScreen aria-label={APP_CONFIG.accessibility.loadingLabel} />}>
-            <Suspense fallback={<MapLoadingOverlay fadeOut={false} poisLoading={true} />}>
+          <Suspense
+            fallback={
+              <LoadingScreen
+                aria-label={APP_CONFIG.accessibility.loadingLabel}
+              />
+            }
+          >
+            <Suspense
+              fallback={
+                <MapLoadingOverlay fadeOut={false} poisLoading={true} />
+              }
+            >
               <MapComponent
                 className={APP_CONFIG.cssClasses.mapContainer}
                 onMapLoaded={handleMapLoaded}
@@ -218,11 +244,20 @@ const App: FC = (): ReactElement => {
                 aria-describedby="map-instructions"
               >
                 {/* キーボードナビゲーション説明 */}
-                <div id="map-instructions" className={APP_CONFIG.cssClasses.visuallyHidden}>
+                <div
+                  id="map-instructions"
+                  className={APP_CONFIG.cssClasses.visuallyHidden}
+                >
                   {APP_CONFIG.accessibility.mapInstructions}
                 </div>
 
-                <Suspense fallback={<div className="filter-loading">フィルター読み込み中...</div>}>
+                <Suspense
+                  fallback={
+                    <div className="filter-loading">
+                      フィルター読み込み中...
+                    </div>
+                  }
+                >
                   <FilterPanel
                     pois={pois}
                     filterState={filterState}

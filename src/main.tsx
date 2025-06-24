@@ -1,20 +1,20 @@
-import { StrictMode, Suspense, lazy } from "react";
-import { createRoot } from "react-dom/client";
-import { ErrorBoundary, LoadingScreen } from "./components/ui";
+import { StrictMode, Suspense, lazy } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ErrorBoundary, LoadingScreen } from './components/ui';
 
 // アプリケーションの遅延読み込み
-const App = lazy(() => import("./app/App"));
+const App = lazy(() => import('./app/App'));
 
 // クリティカル CSS を優先読み込み
-import "./critical.css";
+import './critical.css';
 
-import { isDevelopment, isProduction, validateAppConfig } from "./utils/env";
+import { isDevelopment, isProduction, validateAppConfig } from './utils/env';
 
 // 非クリティカル CSS の遅延読み込み（パフォーマンス最適化）
 const loadNonCriticalStyles = (): void => {
-  void import("./index.css").catch((error: unknown) => {
+  void import('./index.css').catch((error: unknown) => {
     if (isDevelopment()) {
-      console.warn("⚠️ Non-critical styles loading failed:", error);
+      console.warn('⚠️ Non-critical styles loading failed:', error);
     }
   });
 };
@@ -22,15 +22,15 @@ const loadNonCriticalStyles = (): void => {
 // Pre-connect to external domains for performance
 const preconnectToDomains = (): void => {
   const domains = [
-    "https://maps.googleapis.com",
-    "https://fonts.googleapis.com",
-    "https://docs.google.com",
-    "https://sheets.googleapis.com",
+    'https://maps.googleapis.com',
+    'https://fonts.googleapis.com',
+    'https://docs.google.com',
+    'https://sheets.googleapis.com',
   ];
 
-  domains.forEach((domain) => {
-    const link = document.createElement("link");
-    link.rel = "preconnect";
+  domains.forEach(domain => {
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
     link.href = domain;
     document.head.appendChild(link);
   });
@@ -54,21 +54,21 @@ const validateEnvironment = (): void => {
     validateAppConfig();
   } catch (error) {
     if (isDevelopment()) {
-      console.warn("⚠️ Environment validation error:", error);
+      console.warn('⚠️ Environment validation error:', error);
       console.warn(
-        "アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。",
+        'アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。'
       );
     }
 
     if (isProduction()) {
-      console.error("❌ Production environment validation failed", error);
+      console.error('❌ Production environment validation failed', error);
     }
   }
 };
 
 // 🚨 グローバルエラーハンドリング: 未処理のPromise拒否をキャッチ
 const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
-  console.error("🚨 Unhandled Promise Rejection:", event.reason);
+  console.error('🚨 Unhandled Promise Rejection:', event.reason);
 
   // Core Web Vitalsに影響するエラーの追跡
   if (isProduction()) {
@@ -81,7 +81,7 @@ const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
 
 // 🚨 グローバルエラーハンドリング: JavaScript実行時エラーをキャッチ
 const handleError = (event: ErrorEvent): void => {
-  console.error("🚨 JavaScript Error:", {
+  console.error('🚨 JavaScript Error:', {
     message: event.message,
     filename: event.filename,
     lineno: event.lineno,
@@ -97,40 +97,40 @@ const handleError = (event: ErrorEvent): void => {
 };
 
 // グローバルエラーハンドラーの設定
-window.addEventListener("unhandledrejection", handleUnhandledRejection);
-window.addEventListener("error", handleError);
+window.addEventListener('unhandledrejection', handleUnhandledRejection);
+window.addEventListener('error', handleError);
 
 // 📊 パフォーマンス監視とCore Web Vitals追跡
 if (isDevelopment()) {
   // React DevTools のパフォーマンストラッキングを有効化
-  performance.mark("app-start");
+  performance.mark('app-start');
 
   // Web Vitals 測定開始マーク
-  performance.mark("vitals-measurement-start");
+  performance.mark('vitals-measurement-start');
 }
 
 // 🌐 Service Worker登録処理 (Vite PWA Plugin経由)
 const registerServiceWorker = async (): Promise<void> => {
   // 開発環境またはService Worker非対応ブラウザではスキップ
-  if (isDevelopment() || !("serviceWorker" in navigator)) {
+  if (isDevelopment() || !('serviceWorker' in navigator)) {
     return;
   }
 
   try {
     // Vite PWA Plugin が生成する Service Worker を使用
-    const { registerSW } = await import("virtual:pwa-register");
+    const { registerSW } = await import('virtual:pwa-register');
 
     const updateSW = registerSW({
       onNeedRefresh() {
         // 新しいコンテンツが利用可能
         if (isDevelopment()) {
-          console.warn("🔄 New content available, please refresh the page");
+          console.warn('🔄 New content available, please refresh the page');
         }
       },
       onOfflineReady() {
         // アプリがオフライン対応完了
         if (isDevelopment()) {
-          console.warn("✅ App ready to work offline");
+          console.warn('✅ App ready to work offline');
         }
       },
     });
@@ -139,7 +139,7 @@ const registerServiceWorker = async (): Promise<void> => {
     void updateSW;
   } catch (error) {
     if (isDevelopment()) {
-      console.warn("❌ SW registration failed:", error);
+      console.warn('❌ SW registration failed:', error);
     }
   }
 };
@@ -153,52 +153,59 @@ const initWebVitals = (): void => {
   try {
     // LCP (Largest Contentful Paint) 測定
     // パフォーマンス監視（エラー時のみ出力）
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       const entries = list.getEntries();
       const lcp = entries[entries.length - 1];
       // LCP計測のみ実行、ログ出力は開発環境のみ
-      if (isDevelopment() && lcp?.startTime !== undefined && lcp.startTime > 2500) {
-        console.warn("📊 LCP遅延:", Math.round(lcp.startTime));
+      if (
+        isDevelopment() &&
+        lcp?.startTime !== undefined &&
+        lcp.startTime > 2500
+      ) {
+        console.warn('📊 LCP遅延:', Math.round(lcp.startTime));
       }
-    }).observe({ type: "largest-contentful-paint", buffered: true });
+    }).observe({ type: 'largest-contentful-paint', buffered: true });
 
     // CLS監視（閾値超過時のみ）
     let clsValue = 0;
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         const layoutShift = entry as PerformanceEntry & {
           hadRecentInput?: boolean;
           value?: number;
         };
-        if (!layoutShift.hadRecentInput && typeof layoutShift.value === "number") {
+        if (
+          !layoutShift.hadRecentInput &&
+          typeof layoutShift.value === 'number'
+        ) {
           clsValue += layoutShift.value;
         }
       }
       // CLS計測のみ実行、ログ出力は開発環境のみ
       if (isDevelopment() && clsValue > 0.1) {
-        console.warn("📊 CLS閾値超過:", Math.round(clsValue * 1000) / 1000);
+        console.warn('📊 CLS閾値超過:', Math.round(clsValue * 1000) / 1000);
       }
-    }).observe({ type: "layout-shift", buffered: true });
+    }).observe({ type: 'layout-shift', buffered: true });
 
     // FID監視（遅延時のみ）
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         const eventTiming = entry as PerformanceEntry & {
           processingStart?: number;
         };
-        if (typeof eventTiming.processingStart === "number") {
+        if (typeof eventTiming.processingStart === 'number') {
           const fid = eventTiming.processingStart - entry.startTime;
           // FID計測のみ実行、ログ出力は開発環境のみ
           if (isDevelopment() && fid > 100) {
-            console.warn("📊 FID遅延:", Math.round(fid));
+            console.warn('📊 FID遅延:', Math.round(fid));
           }
         }
       }
-    }).observe({ type: "first-input", buffered: true });
+    }).observe({ type: 'first-input', buffered: true });
   } catch (error) {
     // Performance Observer非対応ブラウザでは無視
     if (isDevelopment()) {
-      console.warn("⚠️ Performance Observer not supported:", error);
+      console.warn('⚠️ Performance Observer not supported:', error);
     }
   }
 };
@@ -218,18 +225,18 @@ const initializeApp = (): void => {
     }, 100);
 
     // Step 4: ルート要素の取得と検証
-    const rootElement = document.getElementById("root");
+    const rootElement = document.getElementById('root');
     if (!rootElement) {
       throw new Error(
-        'Root element not found. Make sure there is an element with id="root" in your HTML.',
+        'Root element not found. Make sure there is an element with id="root" in your HTML.'
       );
     }
 
     // Step 5: 最適化されたデータプリロードを並行して開始（ノンブロッキング）
-    void import("./services/preload").then(({ preloadManager }) => {
+    void import('./services/preload').then(({ preloadManager }) => {
       preloadManager.startOptimizedPreload().catch((error: unknown) => {
         if (isDevelopment()) {
-          console.warn("⚠️ プリロード失敗:", error);
+          console.warn('⚠️ プリロード失敗:', error);
         }
       });
     });
@@ -245,13 +252,13 @@ const initializeApp = (): void => {
             <App />
           </Suspense>
         </ErrorBoundary>
-      </StrictMode>,
+      </StrictMode>
     );
 
     // Step 8: パフォーマンス測定 (開発環境)
     if (isDevelopment()) {
-      performance.mark("app-rendered");
-      performance.measure("app-initialization", "app-start", "app-rendered");
+      performance.mark('app-rendered');
+      performance.measure('app-initialization', 'app-start', 'app-rendered');
       // パフォーマンス測定のみ実行（ログ出力なし）
     }
 
@@ -261,10 +268,10 @@ const initializeApp = (): void => {
     // Step 10: Web Vitals測定初期化
     initWebVitals();
   } catch (error) {
-    console.error("❌ Failed to initialize application:", error);
+    console.error('❌ Failed to initialize application:', error);
 
     // フォールバック: シンプルなエラーメッセージを表示
-    const rootElement = document.getElementById("root");
+    const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.innerHTML = `
         <div style="
@@ -303,13 +310,13 @@ const initializeApp = (): void => {
 
 // 🎯 DOMContentLoaded最適化アプローチ
 // React 19 + Vite環境での最適なDOM初期化
-if (document.readyState === "loading") {
+if (document.readyState === 'loading') {
   // DOM読み込み中の場合、DOMContentLoadedイベントを待つ
-  document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+  document.addEventListener('DOMContentLoaded', initializeApp, { once: true });
 } else {
   // DOMが既に読み込まれている場合は即座に実行
   // パフォーマンス最適化：nextTickで実行してブロッキングを防ぐ
-  if (typeof requestIdleCallback !== "undefined") {
+  if (typeof requestIdleCallback !== 'undefined') {
     // ブラウザがアイドル状態の時に実行（パフォーマンス最適化）
     requestIdleCallback(initializeApp, { timeout: 100 });
   } else {

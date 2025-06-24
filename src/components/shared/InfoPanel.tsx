@@ -1,6 +1,6 @@
-import type React from "react";
-import { memo, useCallback } from "react";
-import "./InfoPanel.css";
+import type React from 'react';
+import { memo, useCallback } from 'react';
+import './InfoPanel.css';
 
 /**
  * 汎用情報表示パネルコンポーネント
@@ -22,50 +22,55 @@ interface InfoPanelProps {
   /** カスタムクラス名 */
   className?: string;
   /** パネルのサイズ */
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
   /** パネルの位置 */
-  position?: "center" | "top" | "bottom" | "left" | "right";
+  position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
   /** テスト用ID */
   testId?: string;
   /** ARIA属性 */
-  "aria-label"?: string;
+  'aria-label'?: string;
   /** パネルの役割 */
-  role?: "dialog" | "region" | "complementary";
+  role?: 'dialog' | 'region' | 'complementary';
 }
 
 const InfoPanelComponent: React.FC<InfoPanelProps> = ({
   title,
   children,
   onClose,
-  className = "",
-  size = "medium",
-  position = "center",
-  testId = "info-panel",
-  "aria-label": ariaLabel,
-  role = "region",
+  className = '',
+  size = 'medium',
+  position = 'center',
+  testId = 'info-panel',
+  'aria-label': ariaLabel,
+  role = 'region',
 }) => {
-  const panelClasses = ["info-panel", `info-panel--${size}`, `info-panel--${position}`, className]
+  const panelClasses = [
+    'info-panel',
+    `info-panel--${size}`,
+    `info-panel--${position}`,
+    className,
+  ]
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 
   // キーボード操作でのクローズ処理
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === "Escape" && onClose) {
+      if (event.key === 'Escape' && onClose) {
         onClose();
       }
     },
-    [onClose],
+    [onClose]
   );
 
   return (
     <div
       className={panelClasses}
       role={role}
-      aria-label={ariaLabel || title || "Information panel"}
+      aria-label={ariaLabel || title || 'Information panel'}
       data-testid={testId}
-      onKeyDown={role === "dialog" ? handleKeyDown : undefined}
-      tabIndex={role === "dialog" ? -1 : undefined}
+      onKeyDown={role === 'dialog' ? handleKeyDown : undefined}
+      tabIndex={role === 'dialog' ? -1 : undefined}
     >
       {title || onClose ? (
         <div className="info-panel__header">
@@ -87,7 +92,10 @@ const InfoPanelComponent: React.FC<InfoPanelProps> = ({
         </div>
       ) : null}
 
-      <div className="info-panel__content" aria-labelledby={title ? `${testId}-title` : undefined}>
+      <div
+        className="info-panel__content"
+        aria-labelledby={title ? `${testId}-title` : undefined}
+      >
         {children}
       </div>
     </div>
@@ -100,4 +108,4 @@ const InfoPanelComponent: React.FC<InfoPanelProps> = ({
  */
 export const InfoPanel = memo(InfoPanelComponent);
 
-InfoPanelComponent.displayName = "InfoPanel";
+InfoPanelComponent.displayName = 'InfoPanel';

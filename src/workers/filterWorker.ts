@@ -11,11 +11,11 @@
  * @since 2025-06-20
  */
 
-import type { FilterState } from "../types/filter";
-import type { POI } from "../types/poi";
+import type { FilterState } from '../types/filter';
+import type { POI } from '../types/poi';
 
 interface FilterWorkerMessage {
-  type: "filter" | "stats";
+  type: 'filter' | 'stats';
   payload: {
     pois: POI[];
     filterState: FilterState;
@@ -23,7 +23,7 @@ interface FilterWorkerMessage {
 }
 
 interface FilterWorkerResponse {
-  type: "filter-result" | "stats-result";
+  type: 'filter-result' | 'stats-result';
   payload: {
     filteredPois?: POI[];
     stats?: {
@@ -49,7 +49,7 @@ function filterPOIs(pois: POI[], filterState: FilterState): POI[] {
     snack: filterState.showSnacks,
   };
 
-  const result = pois.filter((poi) => {
+  const result = pois.filter(poi => {
     if (!poi.sourceSheet) return true;
 
     const sheetName = poi.sourceSheet.toLowerCase();
@@ -64,7 +64,7 @@ function filterPOIs(pois: POI[], filterState: FilterState): POI[] {
     return true;
   });
   // const _endTime = performance.now(); // 開発時のみ使用
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === 'development') {
     // パフォーマンス測定（開発環境のみ）
   }
 
@@ -79,7 +79,7 @@ function calculateStats(pois: POI[], filterState: FilterState) {
 
   const categoryStats: Record<string, number> = {};
 
-  filteredPois.forEach((poi) => {
+  filteredPois.forEach(poi => {
     if (poi.sourceSheet) {
       const category = poi.sourceSheet.toLowerCase();
       categoryStats[category] = (categoryStats[category] || 0) + 1;
@@ -106,20 +106,20 @@ self.onmessage = (event: MessageEvent<FilterWorkerMessage>) => {
 
   try {
     switch (type) {
-      case "filter": {
+      case 'filter': {
         const filteredPois = filterPOIs(pois, filterState);
         const response: FilterWorkerResponse = {
-          type: "filter-result",
+          type: 'filter-result',
           payload: { filteredPois },
         };
         self.postMessage(response);
         break;
       }
 
-      case "stats": {
+      case 'stats': {
         const stats = calculateStats(pois, filterState);
         const response: FilterWorkerResponse = {
-          type: "stats-result",
+          type: 'stats-result',
           payload: { stats },
         };
         self.postMessage(response);
@@ -127,19 +127,21 @@ self.onmessage = (event: MessageEvent<FilterWorkerMessage>) => {
       }
 
       default:
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV === 'development') {
           // 未知のメッセージタイプ（開発環境のみ）
         }
     }
   } catch (error) {
-    console.error("[FilterWorker] Processing error:", error);
+    console.error('[FilterWorker] Processing error:', error);
     // エラー応答を返す
     self.postMessage({
-      type: "error",
-      payload: { error: error instanceof Error ? error.message : "Unknown error" },
+      type: 'error',
+      payload: {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
     });
   }
 };
 
 // ワーカーの初期化完了を通知
-self.postMessage({ type: "ready", payload: {} });
+self.postMessage({ type: 'ready', payload: {} });

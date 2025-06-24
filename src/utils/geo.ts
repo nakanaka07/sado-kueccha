@@ -3,8 +3,8 @@
  * 最新のベストプラクティスに基づいた地理計算システム
  */
 
-import { DISTANCE_THRESHOLDS, ZOOM_CONSTANTS } from "../constants";
-import type { Coordinates, PositionObject } from "../types";
+import { DISTANCE_THRESHOLDS, ZOOM_CONSTANTS } from '../constants';
+import type { Coordinates, PositionObject } from '../types';
 
 /**
  * 地理計算の定数（高精度版）
@@ -29,7 +29,12 @@ export const GeoUtils = {
    * @param lng2 - 地点2の経度
    * @returns 距離の2乗
    */
-  getDistanceSquared(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  getDistanceSquared(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ): number {
     const latDiff = lat1 - lat2;
     const lngDiff = lng1 - lng2;
     return latDiff * latDiff + lngDiff * lngDiff;
@@ -43,7 +48,12 @@ export const GeoUtils = {
    * @param lng2 - 地点2の経度
    * @returns 距離（度単位）
    */
-  getDistanceDegrees(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  getDistanceDegrees(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ): number {
     return Math.sqrt(this.getDistanceSquared(lat1, lng1, lat2, lng2));
   },
 
@@ -55,7 +65,12 @@ export const GeoUtils = {
    * @param lng2 - 地点2の経度
    * @returns 距離（メートル）
    */
-  getDistanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  getDistanceMeters(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ): number {
     const dLat = (lat2 - lat1) * GEO_CONSTANTS.DEGREES_TO_RADIANS;
     const dLng = (lng2 - lng1) * GEO_CONSTANTS.DEGREES_TO_RADIANS;
 
@@ -82,7 +97,7 @@ export const GeoUtils = {
 
     return Math.max(
       DISTANCE_THRESHOLDS.CLUSTERING.MIN_DISTANCE * adjustmentFactor,
-      baseDistance / Math.pow(2, zoomLevel - ZOOM_CONSTANTS.BASE_ZOOM_LEVEL),
+      baseDistance / Math.pow(2, zoomLevel - ZOOM_CONSTANTS.BASE_ZOOM_LEVEL)
     );
   },
 
@@ -93,7 +108,11 @@ export const GeoUtils = {
    * @param bounds - 境界オブジェクト
    * @returns 境界内の場合true
    */
-  isInBounds(lat: number, lng: number, bounds: google.maps.LatLngBounds | null): boolean {
+  isInBounds(
+    lat: number,
+    lng: number,
+    bounds: google.maps.LatLngBounds | null
+  ): boolean {
     if (!bounds || !Number.isFinite(lat) || !Number.isFinite(lng)) return true;
     return bounds.contains({ lat, lng });
   },
@@ -112,15 +131,17 @@ export const GeoUtils = {
     lng1: number,
     lat2: number,
     lng2: number,
-    threshold: number = DISTANCE_THRESHOLDS.UI.VERY_CLOSE,
+    threshold: number = DISTANCE_THRESHOLDS.UI.VERY_CLOSE
   ): boolean {
     // NaN や Infinity チェック
     const coords = [lat1, lng1, lat2, lng2];
-    if (coords.some((coord) => !Number.isFinite(coord))) {
+    if (coords.some(coord => !Number.isFinite(coord))) {
       return false;
     }
 
-    return this.getDistanceSquared(lat1, lng1, lat2, lng2) < threshold * threshold;
+    return (
+      this.getDistanceSquared(lat1, lng1, lat2, lng2) < threshold * threshold
+    );
   },
 
   /**
@@ -133,25 +154,37 @@ export const GeoUtils = {
   areCoordinatesClose(
     coord1: Coordinates,
     coord2: Coordinates,
-    threshold: number = DISTANCE_THRESHOLDS.UI.VERY_CLOSE,
+    threshold: number = DISTANCE_THRESHOLDS.UI.VERY_CLOSE
   ): boolean {
-    return this.arePositionsClose(coord1.lat, coord1.lng, coord2.lat, coord2.lng, threshold);
+    return this.arePositionsClose(
+      coord1.lat,
+      coord1.lng,
+      coord2.lat,
+      coord2.lng,
+      threshold
+    );
   },
 
   /**
    * 🎨 同一または近い位置にあるマーカーにオフセットを適用（最適化版）
+   * 大量データに対してパフォーマンスを考慮した実装
    * @param pois - POI配列
    * @param offsetDistance - オフセット距離
    * @returns オフセット適用済みPOI配列
    */
   applyOffsetsForCloseMarkers<T extends PositionObject>(
     pois: T[],
-    offsetDistance: number = DISTANCE_THRESHOLDS.UI.MARKER_OFFSET,
+    offsetDistance: number = DISTANCE_THRESHOLDS.UI.MARKER_OFFSET
   ): T[] {
     if (pois.length <= 1) return [...pois];
 
     const result = [...pois];
     const processed = new Set<number>();
+
+    // 大量データの場合は空間インデックスを使用
+    if (pois.length > 1000) {
+      return this.applyOffsetsWithSpatialIndex(result, offsetDistance);
+    }
 
     for (let i = 0; i < result.length; i++) {
       if (processed.has(i)) continue;
@@ -163,9 +196,71 @@ export const GeoUtils = {
 
       if (closeMarkerIndices.length > 1) {
         this.applyCircularOffsets(result, closeMarkerIndices, offsetDistance);
-        closeMarkerIndices.forEach((index) => processed.add(index));
+        closeMarkerIndices.forEach(index => processed.add(index));
       } else {
         processed.add(i);
+      }
+    }
+
+    return result;
+  },
+
+  /**
+   * 🚀 空間インデックスを使用した高速オフセット適用（大量データ用）
+   * @param pois - POI配列
+   * @param offsetDistance - オフセット距離
+   * @returns オフセット適用済みPOI配列
+   * @private
+   */
+  applyOffsetsWithSpatialIndex<T extends PositionObject>(
+    pois: T[],
+    offsetDistance: number
+  ): T[] {
+    // 簡易的な空間インデックス（グリッドベース）
+    const gridSize = offsetDistance * 2;
+    const grid = new Map<string, number[]>();
+
+    // グリッドにマーカーを配置
+    pois.forEach((poi, index) => {
+      const gridX = Math.floor(poi.position.lat / gridSize);
+      const gridY = Math.floor(poi.position.lng / gridSize);
+      const key = `${gridX},${gridY}`;
+
+      const existing = grid.get(key);
+      if (existing) {
+        existing.push(index);
+      } else {
+        grid.set(key, [index]);
+      }
+    });
+
+    const result = [...pois];
+    const processed = new Set<number>();
+
+    // 各グリッドセル内でクラスタリング
+    for (const indices of grid.values()) {
+      if (indices.length <= 1) continue;
+
+      for (const index of indices) {
+        if (processed.has(index)) continue;
+
+        const closeMarkers = indices.filter(otherIndex => {
+          if (processed.has(otherIndex)) return false;
+
+          const indexPoi = result[index];
+          const otherPoi = result[otherIndex];
+
+          return (
+            indexPoi?.position &&
+            otherPoi?.position &&
+            this.areCoordinatesClose(indexPoi.position, otherPoi.position)
+          );
+        });
+
+        if (closeMarkers.length > 1) {
+          this.applyCircularOffsets(result, closeMarkers, offsetDistance);
+          closeMarkers.forEach(idx => processed.add(idx));
+        }
       }
     }
 
@@ -180,7 +275,11 @@ export const GeoUtils = {
    * @returns 近いマーカーのインデックス配列
    * @private
    */
-  findCloseMarkers(pois: PositionObject[], targetIndex: number, processed: Set<number>): number[] {
+  findCloseMarkers(
+    pois: PositionObject[],
+    targetIndex: number,
+    processed: Set<number>
+  ): number[] {
     const targetPoi = pois[targetIndex];
     if (!targetPoi?.position) return [];
 
@@ -211,7 +310,7 @@ export const GeoUtils = {
   applyCircularOffsets<T extends PositionObject>(
     pois: T[],
     indices: number[],
-    offsetDistance: number,
+    offsetDistance: number
   ): T[] {
     indices.forEach((index, arrayIndex) => {
       if (arrayIndex === 0) return; // 最初のマーカーは元の位置のまま
@@ -297,7 +396,7 @@ export const GeoUtils = {
     if (positions.length === 0) return null;
 
     const validPositions = positions.filter(
-      (pos) => Number.isFinite(pos.lat) && Number.isFinite(pos.lng),
+      pos => Number.isFinite(pos.lat) && Number.isFinite(pos.lng)
     );
 
     if (validPositions.length === 0) return null;
@@ -307,7 +406,7 @@ export const GeoUtils = {
         lat: acc.lat + pos.lat,
         lng: acc.lng + pos.lng,
       }),
-      { lat: 0, lng: 0 },
+      { lat: 0, lng: 0 }
     );
 
     return {
@@ -326,7 +425,7 @@ export const GeoUtils = {
   calculateOptimalZoom(
     positions: Coordinates[],
     containerWidth: number,
-    containerHeight: number,
+    containerHeight: number
   ): number {
     const bounds = this.getBoundingBox(positions);
     if (!bounds) return ZOOM_CONSTANTS.BASE_ZOOM_LEVEL;
@@ -341,10 +440,12 @@ export const GeoUtils = {
 
     // 緯度と経度の差からズームレベルを計算
     const latZoom = Math.log2(
-      containerHeight / ((adjustedLatDiff * GEO_CONSTANTS.METERS_PER_DEGREE_AT_EQUATOR) / 256),
+      containerHeight /
+        ((adjustedLatDiff * GEO_CONSTANTS.METERS_PER_DEGREE_AT_EQUATOR) / 256)
     );
     const lngZoom = Math.log2(
-      containerWidth / ((adjustedLngDiff * GEO_CONSTANTS.METERS_PER_DEGREE_AT_EQUATOR) / 256),
+      containerWidth /
+        ((adjustedLngDiff * GEO_CONSTANTS.METERS_PER_DEGREE_AT_EQUATOR) / 256)
     );
 
     return Math.max(1, Math.min(20, Math.floor(Math.min(latZoom, lngZoom))));

@@ -5,7 +5,7 @@
 
 // 🎭 SNS関連の型定義（強化版）
 export interface LinkPart {
-  readonly type: "link";
+  readonly type: 'link';
   readonly key: number;
   readonly href: string;
   readonly icon: string;
@@ -15,7 +15,7 @@ export interface LinkPart {
 }
 
 export interface TextPart {
-  readonly type: "text";
+  readonly type: 'text';
   readonly key: number;
   readonly content: string;
 }
@@ -24,28 +24,28 @@ export type ParsedTextPart = LinkPart | TextPart;
 
 // 🔗 SNS関連の定数（2024年版・拡張対応）
 const SNS_DOMAIN_ICONS = {
-  "twitter.com": { icon: "🐦", platform: "Twitter" },
-  "x.com": { icon: "🐦", platform: "X (Twitter)" },
-  "instagram.com": { icon: "📷", platform: "Instagram" },
-  "facebook.com": { icon: "📘", platform: "Facebook" },
-  "youtube.com": { icon: "🎥", platform: "YouTube" },
-  "tiktok.com": { icon: "🎵", platform: "TikTok" },
-  "linkedin.com": { icon: "💼", platform: "LinkedIn" },
-  "discord.com": { icon: "💬", platform: "Discord" },
-  "github.com": { icon: "🐙", platform: "GitHub" },
-  "reddit.com": { icon: "🔴", platform: "Reddit" },
-  "pinterest.com": { icon: "📌", platform: "Pinterest" },
-  "snapchat.com": { icon: "👻", platform: "Snapchat" },
-  "telegram.org": { icon: "✈️", platform: "Telegram" },
-  "whatsapp.com": { icon: "💬", platform: "WhatsApp" },
-  "line.me": { icon: "💚", platform: "LINE" },
+  'twitter.com': { icon: '🐦', platform: 'Twitter' },
+  'x.com': { icon: '🐦', platform: 'X (Twitter)' },
+  'instagram.com': { icon: '📷', platform: 'Instagram' },
+  'facebook.com': { icon: '📘', platform: 'Facebook' },
+  'youtube.com': { icon: '🎥', platform: 'YouTube' },
+  'tiktok.com': { icon: '🎵', platform: 'TikTok' },
+  'linkedin.com': { icon: '💼', platform: 'LinkedIn' },
+  'discord.com': { icon: '💬', platform: 'Discord' },
+  'github.com': { icon: '🐙', platform: 'GitHub' },
+  'reddit.com': { icon: '🔴', platform: 'Reddit' },
+  'pinterest.com': { icon: '📌', platform: 'Pinterest' },
+  'snapchat.com': { icon: '👻', platform: 'Snapchat' },
+  'telegram.org': { icon: '✈️', platform: 'Telegram' },
+  'whatsapp.com': { icon: '💬', platform: 'WhatsApp' },
+  'line.me': { icon: '💚', platform: 'LINE' },
 } as const;
 
 type SNSDomain = keyof typeof SNS_DOMAIN_ICONS;
 
 const DEFAULT_LINK_CONFIG = {
-  icon: "🔗",
-  platform: "Webサイト",
+  icon: '🔗',
+  platform: 'Webサイト',
 } as const;
 
 // 🛡️ より精密で安全なURL正規表現（セキュリティ強化版）
@@ -57,11 +57,15 @@ const URL_REGEX =
  * @param url - 判定するURL
  * @returns SNS情報オブジェクト
  */
-export function getSNSInfo(url: string): { icon: string; platform: string; isSecure: boolean } {
+export function getSNSInfo(url: string): {
+  icon: string;
+  platform: string;
+  isSecure: boolean;
+} {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
-    const isSecure = urlObj.protocol === "https:";
+    const isSecure = urlObj.protocol === 'https:';
 
     // ドメインの完全一致または適切なサブドメイン一致をチェック
     const domainKeys = Object.keys(SNS_DOMAIN_ICONS) as SNSDomain[];
@@ -100,14 +104,14 @@ export function getSNSInfo(url: string): { icon: string; platform: string; isSec
  */
 export function parseTextWithLinks(
   text: string,
-  linkClassName = "info-window-link",
+  linkClassName = 'info-window-link'
 ): ParsedTextPart[] {
-  if (!text || typeof text !== "string") {
+  if (!text || typeof text !== 'string') {
     return [
       {
-        type: "text",
+        type: 'text',
         key: 0,
-        content: text || "",
+        content: text || '',
       },
     ];
   }
@@ -126,7 +130,7 @@ export function parseTextWithLinks(
       const snsInfo = getSNSInfo(part);
 
       result.push({
-        type: "link",
+        type: 'link',
         key: i,
         href: part,
         icon: snsInfo.icon,
@@ -136,7 +140,7 @@ export function parseTextWithLinks(
       });
     } else {
       result.push({
-        type: "text",
+        type: 'text',
         key: i,
         content: part,
       });
@@ -152,15 +156,15 @@ export function parseTextWithLinks(
  * @returns サニタイズ済みテキスト
  */
 function sanitizeText(text: string): string {
-  return text.replace(/[<>&"']/g, (match) => {
+  return text.replace(/[<>&"']/g, match => {
     const escapeMap: Record<string, string> = {
-      "<": "&lt;",
-      ">": "&gt;",
-      "&": "&amp;",
-      '"': "&quot;",
-      "'": "&#x27;",
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&#x27;',
     };
-    return escapeMap[match] || match;
+    return escapeMap[match] ?? match;
   });
 }
 
@@ -174,7 +178,7 @@ export function isValidUrl(url: string): boolean {
     const urlObj = new URL(url);
 
     // HTTPまたはHTTPSのみ許可
-    if (!["http:", "https:"].includes(urlObj.protocol)) {
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
       return false;
     }
 
@@ -182,10 +186,10 @@ export function isValidUrl(url: string): boolean {
     const hostname = urlObj.hostname.toLowerCase();
     const privateIpPattern = /^172\.(1[6-9]|2[0-9]|3[01])\./;
     if (
-      hostname === "localhost" ||
-      hostname.startsWith("127.") ||
-      hostname.startsWith("192.168.") ||
-      hostname.startsWith("10.") ||
+      hostname === 'localhost' ||
+      hostname.startsWith('127.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
       privateIpPattern.exec(hostname)
     ) {
       return false;
@@ -209,30 +213,32 @@ export function generateShareUrl(
     url: string;
     text?: string;
     hashtags?: string[];
-  },
+  }
 ): string | null {
-  const { url, text = "", hashtags = [] } = options;
+  const { url, text = '', hashtags = [] } = options;
 
   if (!isValidUrl(url)) return null;
 
   const encodedUrl = encodeURIComponent(url);
   const encodedText = encodeURIComponent(text);
-  const encodedHashtags = hashtags.map((tag) => encodeURIComponent(tag)).join(",");
+  const encodedHashtags = hashtags
+    .map(tag => encodeURIComponent(tag))
+    .join(',');
 
   switch (platform.toLowerCase()) {
-    case "twitter":
-    case "x":
+    case 'twitter':
+    case 'x':
       return `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}${
-        hashtags.length > 0 ? `&hashtags=${encodedHashtags}` : ""
+        hashtags.length > 0 ? `&hashtags=${encodedHashtags}` : ''
       }`;
 
-    case "facebook":
+    case 'facebook':
       return `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
-    case "line":
+    case 'line':
       return `https://social-plugins.line.me/lineit/share?url=${encodedUrl}`;
 
-    case "copy":
+    case 'copy':
       // クリップボードコピー用（特別なケース）
       return url;
 
@@ -252,22 +258,28 @@ export function getSocialMediaStats(parsedParts: ParsedTextPart[]): {
   platforms: string[];
   secureLinks: number;
 } {
-  const linkParts = parsedParts.filter((part): part is LinkPart => part.type === "link");
+  const linkParts = parsedParts.filter(
+    (part): part is LinkPart => part.type === 'link'
+  );
 
-  const socialPlatforms = Object.values(SNS_DOMAIN_ICONS).map((info) => info.platform);
+  const socialPlatforms = Object.values(SNS_DOMAIN_ICONS).map(
+    info => info.platform
+  );
   const socialLinks = linkParts.filter(
-    (link) => link.platform && (socialPlatforms as readonly string[]).includes(link.platform),
+    link =>
+      link.platform &&
+      (socialPlatforms as readonly string[]).includes(link.platform)
   );
 
   const platforms = Array.from(
     new Set(
       linkParts
-        .map((link) => link.platform)
-        .filter((platform): platform is string => Boolean(platform)),
-    ),
+        .map(link => link.platform)
+        .filter((platform): platform is string => Boolean(platform))
+    )
   );
 
-  const secureLinks = linkParts.filter((link) => link.isSecure).length;
+  const secureLinks = linkParts.filter(link => link.isSecure).length;
 
   return {
     totalLinks: linkParts.length,

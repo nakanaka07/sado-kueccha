@@ -12,8 +12,15 @@
  * @since 2025-06-20
  */
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { POI } from "../types/poi";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import type { POI } from '../types/poi';
 
 interface BatchRenderingOptions {
   /** 全POIデータ */
@@ -53,7 +60,9 @@ interface BatchRenderingResult {
   };
 }
 
-export function useBatchRendering(options: BatchRenderingOptions): BatchRenderingResult {
+export function useBatchRendering(
+  options: BatchRenderingOptions
+): BatchRenderingResult {
   const {
     allPois,
     batchSize = 20,
@@ -132,41 +141,45 @@ export function useBatchRendering(options: BatchRenderingOptions): BatchRenderin
           () => {
             processBatch();
           },
-          { timeout: 16 },
+          { timeout: 16 }
         );
         return;
       }
 
-      const endIndex = Math.min(currentIndex + batchSize, prioritizedPois.length);
+      const endIndex = Math.min(
+        currentIndex + batchSize,
+        prioritizedPois.length
+      );
 
       const newBatch = prioritizedPois.slice(currentIndex, endIndex);
 
       // React 18 startTransition で非緊急更新として処理
       startTransition(() => {
-        setRenderedPois((prev) => [...prev, ...newBatch]);
+        setRenderedPois(prev => [...prev, ...newBatch]);
         setCurrentIndex(endIndex);
 
         // 統計更新
         const frameTime = performance.now() - frameStart;
         frameTimesRef.current.push(frameTime);
 
-        setStats((prev) => ({
+        setStats(prev => ({
           processedCount: endIndex,
           totalFrames: prev.totalFrames + 1,
           averageFrameTime:
-            frameTimesRef.current.reduce((a, b) => a + b, 0) / frameTimesRef.current.length,
+            frameTimesRef.current.reduce((a, b) => a + b, 0) /
+            frameTimesRef.current.length,
         }));
       });
 
       // 次のバッチを処理
       if (endIndex < prioritizedPois.length) {
         // 可能であればrequestIdleCallbackを使用
-        if ("requestIdleCallback" in window) {
+        if ('requestIdleCallback' in window) {
           schedulerRef.current = requestIdleCallback(
             () => {
               processBatch();
             },
-            { timeout: 16 },
+            { timeout: 16 }
           );
         } else {
           // フォールバック: setTimeout
@@ -185,7 +198,7 @@ export function useBatchRendering(options: BatchRenderingOptions): BatchRenderin
   // 強制完了
   const forceComplete = useCallback(() => {
     if (schedulerRef.current) {
-      if ("cancelIdleCallback" in window) {
+      if ('cancelIdleCallback' in window) {
         cancelIdleCallback(schedulerRef.current);
       } else {
         clearTimeout(schedulerRef.current);
@@ -203,7 +216,7 @@ export function useBatchRendering(options: BatchRenderingOptions): BatchRenderin
   // リセット
   const reset = useCallback(() => {
     if (schedulerRef.current) {
-      if ("cancelIdleCallback" in window) {
+      if ('cancelIdleCallback' in window) {
         cancelIdleCallback(schedulerRef.current);
       } else {
         clearTimeout(schedulerRef.current);
@@ -248,7 +261,7 @@ export function useBatchRendering(options: BatchRenderingOptions): BatchRenderin
   useEffect(() => {
     return () => {
       if (schedulerRef.current) {
-        if ("cancelIdleCallback" in window) {
+        if ('cancelIdleCallback' in window) {
           cancelIdleCallback(schedulerRef.current);
         } else {
           clearTimeout(schedulerRef.current);

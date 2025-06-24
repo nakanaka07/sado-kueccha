@@ -12,10 +12,10 @@
  * @since 2025-01-27
  */
 
-import type React from "react";
-import { memo } from "react";
-import type { VirtualListProps } from "../../hooks";
-import { useVirtualizedList } from "../../hooks";
+import type React from 'react';
+import { memo } from 'react';
+import type { VirtualListProps } from '../../hooks';
+import { useVirtualizedList } from '../../hooks';
 
 /**
  * 仮想化リストコンポーネント
@@ -28,21 +28,22 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
     renderItem,
     itemData = [],
     overscan = 5,
-    className = "",
+    className = '',
     style = {},
   }) => {
-    const { startIndex, endIndex, offsetTop, offsetBottom, scrollElementRef } = useVirtualizedList({
-      itemCount,
-      itemHeight,
-      containerHeight: height,
-      overscan,
-    });
+    const { startIndex, endIndex, offsetTop, offsetBottom, scrollElementRef } =
+      useVirtualizedList({
+        itemCount,
+        itemHeight,
+        containerHeight: height,
+        overscan,
+      });
 
     // レンダリング対象のアイテムを生成
     const items = [];
     for (let index = startIndex; index <= endIndex; index++) {
       const itemStyle: React.CSSProperties = {
-        position: "absolute",
+        position: 'absolute',
         top: index * itemHeight,
         left: 0,
         right: 0,
@@ -54,7 +55,7 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
           index,
           style: itemStyle,
           data: itemData[index],
-        }),
+        })
       );
     }
 
@@ -64,8 +65,8 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
         className={`virtual-list ${className}`}
         style={{
           height,
-          overflow: "auto",
-          position: "relative",
+          overflow: 'auto',
+          position: 'relative',
           ...style,
         }}
         role="list"
@@ -76,7 +77,7 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
           <div
             style={{
               height: offsetTop,
-              pointerEvents: "none",
+              pointerEvents: 'none',
             }}
             aria-hidden="true"
           />
@@ -85,7 +86,7 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
         {/* 実際にレンダリングされるアイテム */}
         <div
           style={{
-            position: "relative",
+            position: 'relative',
             height: (endIndex - startIndex + 1) * itemHeight,
           }}
         >
@@ -97,17 +98,17 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
           <div
             style={{
               height: offsetBottom,
-              pointerEvents: "none",
+              pointerEvents: 'none',
             }}
             aria-hidden="true"
           />
         ) : null}
       </div>
     );
-  },
+  }
 );
 
-VirtualList.displayName = "VirtualList";
+VirtualList.displayName = 'VirtualList';
 
 /**
  * シンプルな仮想化リストアイテムコンポーネント
@@ -121,4 +122,4 @@ export const VirtualListItem: React.FC<{
   </div>
 ));
 
-VirtualListItem.displayName = "VirtualListItem";
+VirtualListItem.displayName = 'VirtualListItem';

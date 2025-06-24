@@ -5,7 +5,8 @@
   --info-window-padding: 1rem;
   --info-window-border-radius: 12px;
   --info-window-gap: 0.75rem;
-  --info-window-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+  --info-window-shadow:
+    0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
   --info-window-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* 色合いの調整 */
@@ -169,7 +170,11 @@
 }
 
 .hours-group:hover {
-  background-color: color-mix(in srgb, var(--color-primary-blue, #3b82f6), transparent 95%);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary-blue, #3b82f6),
+    transparent 95%
+  );
 }
 
 .days {
@@ -203,7 +208,8 @@
   background-color: var(--color-background-light, #f9fafb);
   color: var(--info-window-text-primary);
   transition: var(--info-window-transition);
-  border: 1px solid color-mix(in srgb, var(--info-window-text-primary), transparent 90%);
+  border: 1px solid
+    color-mix(in srgb, var(--info-window-text-primary), transparent 90%);
 }
 
 .feature-badge:hover {
@@ -212,13 +218,21 @@
 }
 
 .feature-badge.parking {
-  background-color: color-mix(in srgb, var(--color-primary-green, #059669), transparent 90%);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary-green, #059669),
+    transparent 90%
+  );
   color: var(--color-primary-green, #059669);
   border-color: var(--color-primary-green, #059669);
 }
 
 .feature-badge.cashless {
-  background-color: color-mix(in srgb, var(--color-primary-gold, #d97706), transparent 90%);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary-gold, #d97706),
+    transparent 90%
+  );
   color: var(--color-primary-gold, #d97706);
   border-color: var(--color-primary-gold, #d97706);
 }
@@ -244,7 +258,11 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--color-primary-blue, #3b82f6), transparent 90%);
+  background: color-mix(
+    in srgb,
+    var(--color-primary-blue, #3b82f6),
+    transparent 90%
+  );
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.2s ease;
@@ -278,7 +296,10 @@
 }
 
 .info-window-link.primary:hover {
-  background: var(--gradient-primary, linear-gradient(135deg, #3b82f6, #1d4ed8));
+  background: var(
+    --gradient-primary,
+    linear-gradient(135deg, #3b82f6, #1d4ed8)
+  );
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.15);

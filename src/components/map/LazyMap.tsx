@@ -11,12 +11,12 @@
  * @since 2025-01-27
  */
 
-import React, { Suspense } from "react";
-import { ErrorBoundary, LoadingScreen } from "../ui";
+import React, { Suspense } from 'react';
+import { ErrorBoundary, LoadingScreen } from '../ui';
 
 // 遅延読み込み用のMapコンポーネント
 const LazyMapComponent = React.lazy(() =>
-  import("./Map").then((module) => ({ default: module.MapComponent })),
+  import('./Map').then(module => ({ default: module.MapComponent }))
 );
 
 /**
@@ -32,17 +32,17 @@ interface LazyMapProps {
 /**
  * 遅延読み込みマップコンポーネント
  */
-export const LazyMap: React.FC<LazyMapProps> = (props) => {
+export const LazyMap: React.FC<LazyMapProps> = props => {
   return (
     <ErrorBoundary>
       <Suspense
         fallback={
           <div
             style={{
-              minHeight: "400px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              minHeight: '400px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <LoadingScreen message="地図を読み込み中..." />

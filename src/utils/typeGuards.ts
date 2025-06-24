@@ -3,7 +3,7 @@
  * 最新のTypeScriptベストプラクティスに基づいた型安全性確保
  */
 
-import type { LatLngLiteral, POI, POICluster } from "../types";
+import type { LatLngLiteral, POI, POICluster } from '../types';
 
 /**
  * 📍 型ガード: 有効な地理座標の検証（高精度版）
@@ -12,7 +12,7 @@ import type { LatLngLiteral, POI, POICluster } from "../types";
  * @returns 有効な座標の場合true
  */
 export function isValidPosition(position: unknown): position is LatLngLiteral {
-  if (typeof position !== "object" || position === null) {
+  if (typeof position !== 'object' || position === null) {
     return false;
   }
 
@@ -20,8 +20,8 @@ export function isValidPosition(position: unknown): position is LatLngLiteral {
   const { lat, lng } = pos;
 
   return (
-    typeof lat === "number" &&
-    typeof lng === "number" &&
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
     Number.isFinite(lat) &&
     Number.isFinite(lng) &&
     lat >= -90 &&
@@ -39,7 +39,7 @@ export function isValidPosition(position: unknown): position is LatLngLiteral {
  * @returns 有効な文字列の場合true
  */
 function isValidString(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 /**
@@ -48,7 +48,9 @@ function isValidString(value: unknown): value is string {
  * @returns 有効な数値の場合true
  */
 function isValidNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && !Number.isNaN(value);
+  return (
+    typeof value === 'number' && Number.isFinite(value) && !Number.isNaN(value)
+  );
 }
 
 /**
@@ -85,7 +87,7 @@ export function isValidUrl(value: unknown): value is string {
 
   try {
     const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol);
+    return ['http:', 'https:'].includes(url.protocol);
   } catch {
     return false;
   }
@@ -98,7 +100,7 @@ export function isValidUrl(value: unknown): value is string {
  * @returns POI型の場合true
  */
 export function isPOI(data: unknown): data is POI {
-  if (typeof data !== "object" || data === null) {
+  if (typeof data !== 'object' || data === null) {
     return false;
   }
 
@@ -161,11 +163,13 @@ export function isPOIArray(data: unknown): data is POI[] {
     const sampleIndices = [
       ...Array.from({ length: 10 }, (_, i) => i),
       ...Array.from({ length: 10 }, (_, i) => data.length - 1 - i),
-      ...Array.from({ length: 10 }, () => Math.floor(Math.random() * data.length)),
+      ...Array.from({ length: 10 }, () =>
+        Math.floor(Math.random() * data.length)
+      ),
     ];
 
     const uniqueIndices = Array.from(new Set(sampleIndices));
-    return uniqueIndices.every((index) => isPOI(data[index]));
+    return uniqueIndices.every(index => isPOI(data[index]));
   }
 
   // 小さな配列はすべての要素をチェック
@@ -179,7 +183,7 @@ export function isPOIArray(data: unknown): data is POI[] {
  * @returns POIクラスターの場合true
  */
 export function isPOICluster(data: unknown): data is POICluster {
-  if (typeof data !== "object" || data === null) {
+  if (typeof data !== 'object' || data === null) {
     return false;
   }
 
@@ -188,7 +192,7 @@ export function isPOICluster(data: unknown): data is POICluster {
   const isValid =
     isValidString(obj.id) &&
     isValidPosition(obj.center) &&
-    typeof obj.size === "number" &&
+    typeof obj.size === 'number' &&
     Number.isInteger(obj.size) &&
     obj.size >= 0 &&
     Array.isArray(obj.pois) &&
@@ -210,14 +214,16 @@ export function isPOICluster(data: unknown): data is POICluster {
  */
 export function hasRequiredKeys<T extends Record<string, unknown>>(
   obj: unknown,
-  keys: Array<keyof T>,
+  keys: Array<keyof T>
 ): obj is T {
-  if (typeof obj !== "object" || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 
   const record = obj as Record<string, unknown>;
-  return keys.every((key) => key in record && record[key as string] !== undefined);
+  return keys.every(
+    key => key in record && record[key as string] !== undefined
+  );
 }
 
 /**
@@ -225,22 +231,22 @@ export function hasRequiredKeys<T extends Record<string, unknown>>(
  * @returns モバイルデバイスの場合true
  */
 export function isMobileDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
+  if (typeof navigator === 'undefined') return false;
 
   const userAgent = navigator.userAgent.toLowerCase();
   const mobileKeywords = [
-    "mobile",
-    "android",
-    "iphone",
-    "ipod",
-    "blackberry",
-    "windows phone",
-    "opera mini",
-    "tablet",
-    "ipad",
+    'mobile',
+    'android',
+    'iphone',
+    'ipod',
+    'blackberry',
+    'windows phone',
+    'opera mini',
+    'tablet',
+    'ipad',
   ];
 
-  return mobileKeywords.some((keyword) => userAgent.includes(keyword));
+  return mobileKeywords.some(keyword => userAgent.includes(keyword));
 }
 
 /**
@@ -249,18 +255,18 @@ export function isMobileDevice(): boolean {
  * @returns サポートされている場合true
  */
 export function isBrowserFeatureSupported(feature: string): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === 'undefined') return false;
 
   switch (feature) {
-    case "geolocation":
-      return "geolocation" in navigator;
+    case 'geolocation':
+      return 'geolocation' in navigator;
 
-    case "serviceWorker":
-      return "serviceWorker" in navigator;
+    case 'serviceWorker':
+      return 'serviceWorker' in navigator;
 
-    case "localStorage":
+    case 'localStorage':
       try {
-        const test = "test";
+        const test = 'test';
         localStorage.setItem(test, test);
         localStorage.removeItem(test);
         return true;
@@ -268,15 +274,23 @@ export function isBrowserFeatureSupported(feature: string): boolean {
         return false;
       }
 
-    case "intersectionObserver":
-      return "IntersectionObserver" in window;
+    case 'intersectionObserver':
+      return 'IntersectionObserver' in window;
 
-    case "webp": {
-      // WebP サポートチェックは同期的に実行できないため、基本的なチェックのみ
-      const canvas = document.createElement("canvas");
-      canvas.width = 1;
-      canvas.height = 1;
-      return canvas.toDataURL("image/webp").startsWith("data:image/webp");
+    case 'webp': {
+      // WebP サポートチェック（同期版）
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return false;
+
+        // 基本的なWebPサポート判定
+        return canvas.toDataURL('image/webp').startsWith('data:image/webp');
+      } catch {
+        return false;
+      }
     }
 
     default:
@@ -290,8 +304,11 @@ export function isBrowserFeatureSupported(feature: string): boolean {
  * @param value - プロパティ値
  * @returns サポートされている場合true
  */
-export function isCSSFeatureSupported(property: string, value?: string): boolean {
-  if (typeof CSS === "undefined" || typeof CSS.supports !== "function") {
+export function isCSSFeatureSupported(
+  property: string,
+  value?: string
+): boolean {
+  if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') {
     return false;
   }
 

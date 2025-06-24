@@ -3,12 +3,12 @@
  * データソースとしてのGoogle Sheetsの管理
  */
 
-import type { Brand, TimestampMs } from "./common";
+import type { Brand, TimestampMs } from './common';
 
 // Sheets関連のブランド型
-export type SheetId = Brand<string, "SheetId">;
-export type SpreadsheetId = Brand<string, "SpreadsheetId">;
-export type CellRange = Brand<string, "CellRange">;
+export type SheetId = Brand<string, 'SheetId'>;
+export type SpreadsheetId = Brand<string, 'SpreadsheetId'>;
+export type CellRange = Brand<string, 'CellRange'>;
 
 /**
  * Google Sheets設定の基本インターフェース
@@ -61,7 +61,7 @@ export interface SheetMetadata {
  */
 export interface SheetLoadState {
   readonly sheetId: SheetId;
-  readonly status: "idle" | "loading" | "success" | "error";
+  readonly status: 'idle' | 'loading' | 'success' | 'error';
   readonly data?: unknown[][];
   readonly metadata?: SheetMetadata;
   readonly error?: Error;
@@ -75,7 +75,14 @@ export interface SheetLoadState {
 export interface SheetColumnDefinition {
   readonly name: string;
   readonly index: number;
-  readonly type: "string" | "number" | "boolean" | "date" | "url" | "email" | "phone";
+  readonly type:
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'date'
+    | 'url'
+    | 'email'
+    | 'phone';
   readonly required?: boolean;
   readonly validator?: (value: unknown) => boolean;
   readonly transformer?: (value: unknown) => unknown;
@@ -103,7 +110,7 @@ export interface SheetTransformConfig {
   readonly trimWhitespace?: boolean;
   readonly convertTypes?: boolean;
   readonly validateData?: boolean;
-  readonly errorHandling?: "strict" | "lenient" | "ignore";
+  readonly errorHandling?: 'strict' | 'lenient' | 'ignore';
   readonly customTransformers?: Record<string, (value: unknown) => unknown>;
 }
 
@@ -131,7 +138,7 @@ export interface SheetOperationResult<T = unknown> {
  */
 export interface SheetBatchOperation {
   readonly operations: ReadonlyArray<{
-    readonly type: "read" | "write" | "update" | "delete";
+    readonly type: 'read' | 'write' | 'update' | 'delete';
     readonly sheetId: SheetId;
     readonly range?: CellRange;
     readonly data?: unknown[][];
@@ -143,34 +150,38 @@ export interface SheetBatchOperation {
 
 // 型ガード関数
 export const isSheetId = (value: string): value is SheetId => {
-  return typeof value === "string" && value.length > 0;
+  return typeof value === 'string' && value.length > 0;
 };
 
 export const isSpreadsheetId = (value: string): value is SpreadsheetId => {
-  return typeof value === "string" && /^[a-zA-Z0-9-_]+$/.test(value);
+  return typeof value === 'string' && /^[a-zA-Z0-9-_]+$/.test(value);
 };
 
 export const isCellRange = (value: string): value is CellRange => {
-  return typeof value === "string" && /^[A-Z]+\d+:[A-Z]+\d+$/.test(value);
+  return typeof value === 'string' && /^[A-Z]+\d+:[A-Z]+\d+$/.test(value);
 };
 
-export const isValidSheetsConfig = (config: unknown): config is SheetsConfig => {
-  if (typeof config !== "object" || config === null) return false;
+export const isValidSheetsConfig = (
+  config: unknown
+): config is SheetsConfig => {
+  if (typeof config !== 'object' || config === null) return false;
 
   const candidate = config as Record<string, unknown>;
   const validKeys = [
-    "recommended",
-    "toilets",
-    "parking",
-    "ryotsuAikawa",
-    "kanaiSawada",
-    "akadomariHamochi",
-    "snacks",
+    'recommended',
+    'toilets',
+    'parking',
+    'ryotsuAikawa',
+    'kanaiSawada',
+    'akadomariHamochi',
+    'snacks',
   ];
 
   return (
-    Object.keys(candidate).every((key) => validKeys.includes(key)) &&
-    Object.values(candidate).every((value) => value === undefined || typeof value === "string")
+    Object.keys(candidate).every(key => validKeys.includes(key)) &&
+    Object.values(candidate).every(
+      value => value === undefined || typeof value === 'string'
+    )
   );
 };
 
@@ -178,7 +189,7 @@ export const isValidSheetsConfig = (config: unknown): config is SheetsConfig => 
  * シート設定のデフォルト値
  */
 export const DEFAULT_SHEET_CONFIG: Partial<ExtendedSheetsConfig> = {
-  defaultRange: "A1:Z1000" as CellRange,
+  defaultRange: 'A1:Z1000' as CellRange,
   refreshInterval: 300000, // 5分
   maxRetries: 3,
   timeout: 10000, // 10秒
@@ -204,9 +215,12 @@ export interface SheetsContextValue {
   readonly schemas: readonly SheetSchema[];
   readonly loadSheet: (
     sheetId: SheetId,
-    options?: SheetTransformConfig,
+    options?: SheetTransformConfig
   ) => Promise<SheetOperationResult>;
   readonly refreshSheet: (sheetId: SheetId) => Promise<SheetOperationResult>;
   readonly getSheetData: (sheetId: SheetId) => SheetDataMatrix | undefined;
-  readonly validateSheetData: (sheetId: SheetId, data: SheetDataMatrix) => readonly string[];
+  readonly validateSheetData: (
+    sheetId: SheetId,
+    data: SheetDataMatrix
+  ) => readonly string[];
 }

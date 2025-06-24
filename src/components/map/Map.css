@@ -25,7 +25,9 @@
 
   /* シャドウシステム */
   --map-shadow-sm: 0 1px 2px 0 var(--map-shadow-color);
-  --map-shadow-md: 0 4px 6px -1px var(--map-shadow-color), 0 2px 4px -1px var(--map-shadow-color);
+  --map-shadow-md:
+    0 4px 6px -1px var(--map-shadow-color),
+    0 2px 4px -1px var(--map-shadow-color);
 
   /* アニメーション */
   --map-transition-base: all 0.2s ease-in-out;

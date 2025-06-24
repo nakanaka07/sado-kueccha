@@ -1,5 +1,5 @@
-import { useMemo, useRef } from "react";
-import type { FilterState, FilterStats, POI } from "../types";
+import { useMemo, useRef } from 'react';
+import type { FilterState, FilterStats, POI } from '../types';
 
 /**
  * フィルターの統計情報を計算するカスタムフック
@@ -46,30 +46,33 @@ const categorizePOIsByArea = (pois: POI[]) => {
 
   for (const poi of pois) {
     // POIの分類ロジック（district または sourceSheet ベースで分類）
-    const district = poi.district?.toString() || "";
-    const sourceSheet = poi.sourceSheet || "";
+    const district = poi.district?.toString() || '';
+    const sourceSheet = poi.sourceSheet || '';
 
-    if (sourceSheet.includes("recommended") || sourceSheet.includes("おすすめ")) {
+    if (
+      sourceSheet.includes('recommended') ||
+      sourceSheet.includes('おすすめ')
+    ) {
       categorized.recommended.push(poi);
     } else if (
-      district.includes("ryotsu") ||
-      district.includes("aikawa") ||
-      sourceSheet.includes("両津") ||
-      sourceSheet.includes("相川")
+      district.includes('ryotsu') ||
+      district.includes('aikawa') ||
+      sourceSheet.includes('両津') ||
+      sourceSheet.includes('相川')
     ) {
       categorized.ryotsuAikawa.push(poi);
     } else if (
-      district.includes("kanai") ||
-      district.includes("sawada") ||
-      sourceSheet.includes("金井") ||
-      sourceSheet.includes("佐和田")
+      district.includes('kanai') ||
+      district.includes('sawada') ||
+      sourceSheet.includes('金井') ||
+      sourceSheet.includes('佐和田')
     ) {
       categorized.kanaiSawada.push(poi);
     } else if (
-      district.includes("akadomari") ||
-      district.includes("hamochi") ||
-      sourceSheet.includes("赤泊") ||
-      sourceSheet.includes("羽茂")
+      district.includes('akadomari') ||
+      district.includes('hamochi') ||
+      sourceSheet.includes('赤泊') ||
+      sourceSheet.includes('羽茂')
     ) {
       categorized.akadomariHamochi.push(poi);
     } else {
@@ -81,7 +84,11 @@ const categorizePOIsByArea = (pois: POI[]) => {
 };
 
 // エリア別統計を計算する関数
-const calculateAreaStats = (areaPOIs: POI[], isVisible: boolean, totalPOIs: number): AreaStats => {
+const calculateAreaStats = (
+  areaPOIs: POI[],
+  isVisible: boolean,
+  totalPOIs: number
+): AreaStats => {
   const total = areaPOIs.length;
   const visible = isVisible ? total : 0;
   const hidden = total - visible;
@@ -95,7 +102,10 @@ const calculateAreaStats = (areaPOIs: POI[], isVisible: boolean, totalPOIs: numb
   };
 };
 
-export const useFilterStats = (pois: POI[], filterState: FilterState): DetailedFilterStats => {
+export const useFilterStats = (
+  pois: POI[],
+  filterState: FilterState
+): DetailedFilterStats => {
   const performanceRef = useRef({
     times: [] as number[],
     lastCalculationTime: 0,
@@ -126,33 +136,37 @@ export const useFilterStats = (pois: POI[], filterState: FilterState): DetailedF
     };
 
     // 可視POI数を効率的に計算
-    const visibleCount = Object.entries(categorizedPOIs).reduce((total, [area, areaPOIs]) => {
-      if (area === "uncategorized") return total;
-      const isAreaVisible = areaVisibility[area as keyof typeof areaVisibility];
-      return total + (isAreaVisible ? areaPOIs.length : 0);
-    }, 0);
+    const visibleCount = Object.entries(categorizedPOIs).reduce(
+      (total, [area, areaPOIs]) => {
+        if (area === 'uncategorized') return total;
+        const isAreaVisible =
+          areaVisibility[area as keyof typeof areaVisibility];
+        return total + (isAreaVisible ? areaPOIs.length : 0);
+      },
+      0
+    );
 
     // エリア別統計を計算
     const areaStats = {
       recommended: calculateAreaStats(
         categorizedPOIs.recommended,
         areaVisibility.recommended,
-        pois.length,
+        pois.length
       ),
       ryotsuAikawa: calculateAreaStats(
         categorizedPOIs.ryotsuAikawa,
         areaVisibility.ryotsuAikawa,
-        pois.length,
+        pois.length
       ),
       kanaiSawada: calculateAreaStats(
         categorizedPOIs.kanaiSawada,
         areaVisibility.kanaiSawada,
-        pois.length,
+        pois.length
       ),
       akadomariHamochi: calculateAreaStats(
         categorizedPOIs.akadomariHamochi,
         areaVisibility.akadomariHamochi,
-        pois.length,
+        pois.length
       ),
     };
 
@@ -170,23 +184,21 @@ export const useFilterStats = (pois: POI[], filterState: FilterState): DetailedF
       recentTimes.reduce((sum, time) => sum + time, 0) / recentTimes.length;
 
     // 基本統計とシート統計（後方互換性のため）
-    const sheetStats = Object.entries(categorizedPOIs).reduce<Record<string, number>>(
-      (stats, [area, areaPOIs]) => {
-        if (area !== "uncategorized") {
-          stats[area] = areaPOIs.length;
-        }
-        return stats;
-      },
-      {},
-    );
+    const sheetStats = Object.entries(categorizedPOIs).reduce<
+      Record<string, number>
+    >((stats, [area, areaPOIs]) => {
+      if (area !== 'uncategorized') {
+        stats[area] = areaPOIs.length;
+      }
+      return stats;
+    }, {});
 
-    const visibleSheetStats = Object.entries(areaStats).reduce<Record<string, number>>(
-      (stats, [area, areaStats_]) => {
-        stats[area] = areaStats_.visible;
-        return stats;
-      },
-      {},
-    );
+    const visibleSheetStats = Object.entries(areaStats).reduce<
+      Record<string, number>
+    >((stats, [area, areaStats_]) => {
+      stats[area] = areaStats_.visible;
+      return stats;
+    }, {});
 
     return {
       total: pois.length,
@@ -207,7 +219,10 @@ export const useFilterStats = (pois: POI[], filterState: FilterState): DetailedF
 /**
  * シンプルなフィルター統計フック（後方互換性のため）
  */
-export const useSimpleFilterStats = (pois: POI[], filterState: FilterState): FilterStats => {
+export const useSimpleFilterStats = (
+  pois: POI[],
+  filterState: FilterState
+): FilterStats => {
   const detailedStats = useFilterStats(pois, filterState);
 
   return {

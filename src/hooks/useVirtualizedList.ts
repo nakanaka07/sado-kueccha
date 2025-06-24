@@ -12,7 +12,7 @@
  * @since 2025-01-27
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface VirtualizedListOptions {
   /** アイテムの総数 */
@@ -49,30 +49,39 @@ interface VirtualizedListResult {
 /**
  * 仮想化リストフック
  */
-export const useVirtualizedList = (options: VirtualizedListOptions): VirtualizedListResult => {
-  const { itemCount, itemHeight, containerHeight, overscan = 5, initialScrollTop = 0 } = options;
+export const useVirtualizedList = (
+  options: VirtualizedListOptions
+): VirtualizedListResult => {
+  const {
+    itemCount,
+    itemHeight,
+    containerHeight,
+    overscan = 5,
+    initialScrollTop = 0,
+  } = options;
 
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(initialScrollTop);
 
   // 表示するアイテムの範囲を計算
-  const { startIndex, endIndex, visibleItemCount, offsetTop, offsetBottom } = useMemo(() => {
-    const visibleCount = Math.ceil(containerHeight / itemHeight);
-    const start = Math.floor(scrollTop / itemHeight);
-    const end = Math.min(itemCount - 1, start + visibleCount - 1);
+  const { startIndex, endIndex, visibleItemCount, offsetTop, offsetBottom } =
+    useMemo(() => {
+      const visibleCount = Math.ceil(containerHeight / itemHeight);
+      const start = Math.floor(scrollTop / itemHeight);
+      const end = Math.min(itemCount - 1, start + visibleCount - 1);
 
-    // オーバースキャンを適用
-    const overscanStart = Math.max(0, start - overscan);
-    const overscanEnd = Math.min(itemCount - 1, end + overscan);
+      // オーバースキャンを適用
+      const overscanStart = Math.max(0, start - overscan);
+      const overscanEnd = Math.min(itemCount - 1, end + overscan);
 
-    return {
-      startIndex: overscanStart,
-      endIndex: overscanEnd,
-      visibleItemCount: overscanEnd - overscanStart + 1,
-      offsetTop: overscanStart * itemHeight,
-      offsetBottom: (itemCount - overscanEnd - 1) * itemHeight,
-    };
-  }, [scrollTop, itemHeight, containerHeight, itemCount, overscan]);
+      return {
+        startIndex: overscanStart,
+        endIndex: overscanEnd,
+        visibleItemCount: overscanEnd - overscanStart + 1,
+        offsetTop: overscanStart * itemHeight,
+        offsetBottom: (itemCount - overscanEnd - 1) * itemHeight,
+      };
+    }, [scrollTop, itemHeight, containerHeight, itemCount, overscan]);
 
   // スクロールイベントハンドラー
   const handleScroll = useCallback((event: Event) => {
@@ -89,7 +98,7 @@ export const useVirtualizedList = (options: VirtualizedListOptions): Virtualized
       scrollElementRef.current.scrollTop = targetScrollTop;
       setScrollTop(targetScrollTop);
     },
-    [itemHeight],
+    [itemHeight]
   );
 
   // スクロールイベントリスナーの設定
@@ -97,10 +106,10 @@ export const useVirtualizedList = (options: VirtualizedListOptions): Virtualized
     const scrollElement = scrollElementRef.current;
     if (!scrollElement) return;
 
-    scrollElement.addEventListener("scroll", handleScroll, { passive: true });
+    scrollElement.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      scrollElement.removeEventListener("scroll", handleScroll);
+      scrollElement.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
 

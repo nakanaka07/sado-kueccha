@@ -137,22 +137,26 @@
   0% {
     transform: scale3d(1, 1, 1);
     opacity: 1;
-    box-shadow: 0 0 0 0 color-mix(in oklch, var(--marker-primary-color) 40%, transparent);
+    box-shadow: 0 0 0 0
+      color-mix(in oklch, var(--marker-primary-color) 40%, transparent);
   }
   25% {
     transform: scale3d(1.05, 1.05, 1);
     opacity: 0.98;
-    box-shadow: 0 0 0 4px color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
+    box-shadow: 0 0 0 4px
+      color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
   }
   50% {
     transform: scale3d(1.1, 1.1, 1);
     opacity: 0.95;
-    box-shadow: 0 0 0 8px color-mix(in oklch, var(--marker-primary-color) 20%, transparent);
+    box-shadow: 0 0 0 8px
+      color-mix(in oklch, var(--marker-primary-color) 20%, transparent);
   }
   75% {
     transform: scale3d(1.05, 1.05, 1);
     opacity: 0.9;
-    box-shadow: 0 0 0 4px color-mix(in oklch, var(--marker-primary-color) 10%, transparent);
+    box-shadow: 0 0 0 4px
+      color-mix(in oklch, var(--marker-primary-color) 10%, transparent);
   }
   100% {
     transform: scale3d(1, 1, 1);
@@ -236,7 +240,8 @@
 .clustering-controls button {
   padding-block: 8px;
   padding-inline: 12px;
-  border: 1px solid color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
+  border: 1px solid
+    color-mix(in oklch, var(--marker-primary-color) 30%, transparent);
   border-radius: 8px;
   background: var(--marker-primary-color);
   color: white;

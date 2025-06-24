@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ブラウザ固有のフルスクリーンAPI型定義
 interface ExtendedDocument extends Document {
@@ -87,14 +87,14 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
     const selectors = [
       // Google Mapsの一般的なフルスクリーンコンテナ
       '[style*="position: absolute"][style*="top: 0px"][style*="left: 0px"]',
-      ".gm-fullscreen-control",
+      '.gm-fullscreen-control',
       '[data-control-name="FullscreenControl"]',
       // 他の地図ライブラリとの互換性
       '[class*="fullscreen-container"]',
       '[class*="map-fullscreen"]',
       // 汎用的なフルスクリーンコンテナ
       '[data-fullscreen="true"]',
-      ".fullscreen-active",
+      '.fullscreen-active',
     ];
 
     for (const selector of selectors) {
@@ -103,7 +103,8 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
         // 実際にフルスクリーン状態かを確認
         const rect = element.getBoundingClientRect();
         const isFullSize =
-          rect.width >= window.innerWidth * 0.9 && rect.height >= window.innerHeight * 0.9;
+          rect.width >= window.innerWidth * 0.9 &&
+          rect.height >= window.innerHeight * 0.9;
         if (isFullSize) {
           return element;
         }
@@ -126,9 +127,11 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
     try {
       const fullscreenElement = getFullscreenElement();
       const isFullscreen = !!fullscreenElement;
-      const fullscreenContainer = isFullscreen ? detectFullscreenContainer() : null;
+      const fullscreenContainer = isFullscreen
+        ? detectFullscreenContainer()
+        : null;
 
-      setState((prevState) => {
+      setState(prevState => {
         // 状態が実際に変更された場合のみ更新
         if (
           prevState.isFullscreen !== isFullscreen ||
@@ -148,8 +151,10 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
       });
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "フルスクリーン状態の取得に失敗しました";
-      setState((prevState) => ({
+        error instanceof Error
+          ? error.message
+          : 'フルスクリーン状態の取得に失敗しました';
+      setState(prevState => ({
         ...prevState,
         error: errorMessage,
         isTransitioning: false,
@@ -161,13 +166,14 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
   const enterFullscreen = useCallback(
     async (element?: Element): Promise<void> => {
       if (!isFullscreenSupported()) {
-        throw new Error("このブラウザはフルスクリーンをサポートしていません");
+        throw new Error('このブラウザはフルスクリーンをサポートしていません');
       }
 
-      setState((prev) => ({ ...prev, isTransitioning: true, error: null }));
+      setState(prev => ({ ...prev, isTransitioning: true, error: null }));
 
       try {
-        const targetElement = (element ?? document.documentElement) as ExtendedElement;
+        const targetElement = (element ??
+          document.documentElement) as ExtendedElement;
 
         // ブラウザ固有API順に試行
         if (targetElement.webkitRequestFullscreen) {
@@ -181,17 +187,23 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
         }
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "フルスクリーンの開始に失敗しました";
-        setState((prev) => ({ ...prev, error: errorMessage, isTransitioning: false }));
+          error instanceof Error
+            ? error.message
+            : 'フルスクリーンの開始に失敗しました';
+        setState(prev => ({
+          ...prev,
+          error: errorMessage,
+          isTransitioning: false,
+        }));
         throw error;
       }
     },
-    [isFullscreenSupported],
+    [isFullscreenSupported]
   );
 
   // フルスクリーンから退出
   const exitFullscreen = useCallback(async (): Promise<void> => {
-    setState((prev) => ({ ...prev, isTransitioning: true, error: null }));
+    setState(prev => ({ ...prev, isTransitioning: true, error: null }));
 
     try {
       const doc = document as ExtendedDocument;
@@ -208,8 +220,14 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "フルスクリーンの終了に失敗しました";
-      setState((prev) => ({ ...prev, error: errorMessage, isTransitioning: false }));
+        error instanceof Error
+          ? error.message
+          : 'フルスクリーンの終了に失敗しました';
+      setState(prev => ({
+        ...prev,
+        error: errorMessage,
+        isTransitioning: false,
+      }));
       throw error;
     }
   }, []);
@@ -223,12 +241,12 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
         await enterFullscreen(element);
       }
     },
-    [state.isFullscreen, enterFullscreen, exitFullscreen],
+    [state.isFullscreen, enterFullscreen, exitFullscreen]
   );
 
   // エラーのクリア
   const clearError = useCallback(() => {
-    setState((prev) => ({ ...prev, error: null }));
+    setState(prev => ({ ...prev, error: null }));
   }, []);
 
   // フルスクリーン変更イベントの監視
@@ -238,18 +256,20 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
 
     // フルスクリーン変更イベントのリスナー（クロスブラウザ対応）
     const events = [
-      "fullscreenchange",
-      "webkitfullscreenchange",
-      "mozfullscreenchange",
-      "MSFullscreenChange",
+      'fullscreenchange',
+      'webkitfullscreenchange',
+      'mozfullscreenchange',
+      'MSFullscreenChange',
     ];
 
-    events.forEach((event) => {
-      document.addEventListener(event, updateFullscreenState, { passive: true });
+    events.forEach(event => {
+      document.addEventListener(event, updateFullscreenState, {
+        passive: true,
+      });
     });
 
     return () => {
-      events.forEach((event) => {
+      events.forEach(event => {
         document.removeEventListener(event, updateFullscreenState);
       });
     };
@@ -259,13 +279,15 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
   useEffect(() => {
     if (!state.isFullscreen) return;
 
-    observerRef.current = new MutationObserver((mutations) => {
-      const shouldUpdate = mutations.some((mutation) => {
+    observerRef.current = new MutationObserver(mutations => {
+      const shouldUpdate = mutations.some(mutation => {
         return (
-          (mutation.type === "attributes" &&
-            (mutation.attributeName === "style" || mutation.attributeName === "class")) ||
-          (mutation.type === "childList" &&
-            (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0))
+          (mutation.type === 'attributes' &&
+            (mutation.attributeName === 'style' ||
+              mutation.attributeName === 'class')) ||
+          (mutation.type === 'childList' &&
+            (mutation.addedNodes.length > 0 ||
+              mutation.removedNodes.length > 0))
         );
       });
 
@@ -278,7 +300,7 @@ export const useFullscreenState = (): UseFullscreenStateReturn => {
       attributes: true,
       childList: true,
       subtree: true,
-      attributeFilter: ["style", "class"],
+      attributeFilter: ['style', 'class'],
     });
 
     return () => {

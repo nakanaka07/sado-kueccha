@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { preloadManager } from "../services/preload";
-import type { FilterState, POI } from "../types";
-import { DEFAULT_FILTER_STATE } from "../types";
-import { isDevelopment } from "../utils/env";
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { preloadManager } from '../services/preload';
+import type { FilterState, POI } from '../types';
+import { DEFAULT_FILTER_STATE } from '../types';
+import { isDevelopment } from '../utils/env';
 
 // 読み込み状態の型定義
 interface LoadingState {
@@ -15,15 +15,15 @@ interface LoadingState {
 
 // アクションタイプの定義
 type LoadingAction =
-  | { type: "PRELOAD_START" }
-  | { type: "PRELOAD_COMPLETE" }
-  | { type: "MAP_LOADED" }
-  | { type: "POIS_LOADING_START" }
-  | { type: "POIS_LOADING_COMPLETE" }
-  | { type: "FADE_OUT_START" }
-  | { type: "FADE_OUT_COMPLETE" }
-  | { type: "ERROR"; payload: string }
-  | { type: "RESET_ERROR" };
+  | { type: 'PRELOAD_START' }
+  | { type: 'PRELOAD_COMPLETE' }
+  | { type: 'MAP_LOADED' }
+  | { type: 'POIS_LOADING_START' }
+  | { type: 'POIS_LOADING_COMPLETE' }
+  | { type: 'FADE_OUT_START' }
+  | { type: 'FADE_OUT_COMPLETE' }
+  | { type: 'ERROR'; payload: string }
+  | { type: 'RESET_ERROR' };
 
 // 読み込み状態の初期値
 const initialLoadingState: LoadingState = {
@@ -35,33 +35,41 @@ const initialLoadingState: LoadingState = {
 };
 
 // リデューサー関数
-function loadingReducer(state: LoadingState, action: LoadingAction): LoadingState {
+function loadingReducer(
+  state: LoadingState,
+  action: LoadingAction
+): LoadingState {
   // 開発環境でのアクション監視
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === 'development') {
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] Action dispatched:", action.type, action);
+      console.log('[AppState] Action dispatched:', action.type, action);
     }
   }
 
   switch (action.type) {
-    case "PRELOAD_START":
+    case 'PRELOAD_START':
       return { ...state, loading: true, error: null };
-    case "PRELOAD_COMPLETE":
+    case 'PRELOAD_COMPLETE':
       return { ...state, loading: false };
-    case "MAP_LOADED":
+    case 'MAP_LOADED':
       return { ...state };
-    case "POIS_LOADING_START":
+    case 'POIS_LOADING_START':
       return { ...state, poisLoading: true, error: null };
-    case "POIS_LOADING_COMPLETE":
+    case 'POIS_LOADING_COMPLETE':
       return { ...state, poisLoading: false };
-    case "FADE_OUT_START":
+    case 'FADE_OUT_START':
       return { ...state, fadeOut: true };
-    case "FADE_OUT_COMPLETE":
+    case 'FADE_OUT_COMPLETE':
       return { ...state, mapLoading: false, fadeOut: false };
-    case "ERROR":
-      return { ...state, error: action.payload, loading: false, poisLoading: false };
-    case "RESET_ERROR":
+    case 'ERROR':
+      return {
+        ...state,
+        error: action.payload,
+        loading: false,
+        poisLoading: false,
+      };
+    case 'RESET_ERROR':
       return { ...state, error: null };
     default:
       return state;
@@ -92,7 +100,10 @@ type UseAppStateReturn = AppState & AppStateActions;
  */
 export const useAppState = (): UseAppStateReturn => {
   // リデューサーベースの状態管理 - 複雑な状態変更を安全に管理
-  const [loadingState, dispatch] = useReducer(loadingReducer, initialLoadingState);
+  const [loadingState, dispatch] = useReducer(
+    loadingReducer,
+    initialLoadingState
+  );
 
   // データ状態 - シンプルな状態はuseStateを使用
   const [pois, setPois] = useState<POI[]>([]);
@@ -108,11 +119,11 @@ export const useAppState = (): UseAppStateReturn => {
   // アセットとAPIの事前読み込み - エラーリカバリ機能付き
   const preloadAssets = useCallback(async (): Promise<void> => {
     try {
-      dispatch({ type: "PRELOAD_START" });
+      dispatch({ type: 'PRELOAD_START' });
       const startTime = performance.now();
 
       // 開発環境では常に短い遅延のみでプリロードを完了
-      await new Promise<void>((resolve) => setTimeout(resolve, 300));
+      await new Promise<void>(resolve => setTimeout(resolve, 300));
 
       // Google Maps APIのプリロードも省略して確実に完了
       // const { maps } = getAppConfig();
@@ -124,47 +135,52 @@ export const useAppState = (): UseAppStateReturn => {
       const endTime = performance.now();
       const minDisplayTime = 300;
       const remainingTime = Math.max(0, minDisplayTime - (endTime - startTime));
-      await new Promise<void>((resolve) => setTimeout(resolve, remainingTime));
+      await new Promise<void>(resolve => setTimeout(resolve, remainingTime));
 
       if (isComponentMountedRef.current) {
-        dispatch({ type: "PRELOAD_COMPLETE" });
+        dispatch({ type: 'PRELOAD_COMPLETE' });
         retryCountRef.current = 0; // 成功時にリトライカウンターをリセット
 
         if (isDevelopment()) {
           if (isDevelopment()) {
             // eslint-disable-next-line no-console
-            console.log("[AppState] プリロード完了");
+            console.log('[AppState] プリロード完了');
           }
         }
       }
     } catch (error) {
       if (isComponentMountedRef.current) {
         const errorMessage =
-          error instanceof Error ? error.message : "アセットの読み込みに失敗しました";
+          error instanceof Error
+            ? error.message
+            : 'アセットの読み込みに失敗しました';
 
         if (retryCountRef.current < maxRetries) {
           retryCountRef.current++;
           // 指数バックオフで再試行
-          const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 5000);
+          const retryDelay = Math.min(
+            1000 * Math.pow(2, retryCountRef.current - 1),
+            5000
+          );
           setTimeout(() => {
             if (isComponentMountedRef.current) {
               void preloadAssets();
             }
           }, retryDelay);
         } else {
-          dispatch({ type: "ERROR", payload: errorMessage });
+          dispatch({ type: 'ERROR', payload: errorMessage });
         }
       }
     }
   }, []); // POIデータの読み込み - 簡素化バージョン（デバッグ用）
   const loadPOIs = useCallback(async (): Promise<void> => {
     try {
-      dispatch({ type: "POIS_LOADING_START" });
+      dispatch({ type: 'POIS_LOADING_START' });
 
       if (isDevelopment()) {
         if (import.meta.env.DEV) {
           // eslint-disable-next-line no-console
-          console.log("[AppState] POI読み込み開始");
+          console.log('[AppState] POI読み込み開始');
         }
       }
 
@@ -175,21 +191,27 @@ export const useAppState = (): UseAppStateReturn => {
         if (isDevelopment()) {
           if (isDevelopment()) {
             // eslint-disable-next-line no-console
-            console.log("[AppState] デバッグモード: 実際のfetchPOIsをスキップして模擬データで完了");
+            console.log(
+              '[AppState] デバッグモード: 実際のfetchPOIsをスキップして模擬データで完了'
+            );
           }
         }
 
         // 短い遅延で模擬データを返す
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 500));
         data = []; // 空配列で成功
 
         if (isDevelopment()) {
           // eslint-disable-next-line no-console
-          console.log("[AppState] デバッグモード: 模擬POI読み込み完了:", data.length, "件");
+          console.log(
+            '[AppState] デバッグモード: 模擬POI読み込み完了:',
+            data.length,
+            '件'
+          );
         }
       } catch (fetchError) {
         if (isDevelopment()) {
-          console.warn("[AppState] fetchPOIs失敗、空配列で継続:", fetchError);
+          console.warn('[AppState] fetchPOIs失敗、空配列で継続:', fetchError);
         }
         // エラーが発生しても空配列で処理を継続
         data = [];
@@ -197,27 +219,27 @@ export const useAppState = (): UseAppStateReturn => {
 
       if (isComponentMountedRef.current) {
         setPois(data);
-        dispatch({ type: "POIS_LOADING_COMPLETE" });
+        dispatch({ type: 'POIS_LOADING_COMPLETE' });
         retryCountRef.current = 0;
 
         if (isDevelopment()) {
           // eslint-disable-next-line no-console
-          console.log("[AppState] POI読み込み完了:", data.length, "件");
+          console.log('[AppState] POI読み込み完了:', data.length, '件');
         }
       }
     } catch (error) {
       if (isDevelopment()) {
-        console.error("[AppState] POI読み込みで致命的エラー:", error);
+        console.error('[AppState] POI読み込みで致命的エラー:', error);
       }
 
       if (isComponentMountedRef.current) {
         // エラーが発生しても処理を継続
         setPois([]);
-        dispatch({ type: "POIS_LOADING_COMPLETE" });
+        dispatch({ type: 'POIS_LOADING_COMPLETE' });
 
         if (isDevelopment()) {
           // eslint-disable-next-line no-console
-          console.log("[AppState] POI読み込みエラーのため空配列で完了");
+          console.log('[AppState] POI読み込みエラーのため空配列で完了');
         }
       }
     }
@@ -229,7 +251,7 @@ export const useAppState = (): UseAppStateReturn => {
 
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] 初期化開始");
+      console.log('[AppState] 初期化開始');
     }
 
     void preloadAssets();
@@ -245,7 +267,7 @@ export const useAppState = (): UseAppStateReturn => {
   const handleMapLoaded = useCallback(() => {
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] handleMapLoaded呼び出し - POI読み込み状況:", {
+      console.log('[AppState] handleMapLoaded呼び出し - POI読み込み状況:', {
         poisLoading: loadingState.poisLoading,
         error: loadingState.error,
         willProceed: !loadingState.poisLoading && !loadingState.error,
@@ -258,24 +280,28 @@ export const useAppState = (): UseAppStateReturn => {
 
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] アニメーション開始: ローディング画面をフェードアウト");
+      console.log(
+        '[AppState] アニメーション開始: ローディング画面をフェードアウト'
+      );
     }
 
     const animateOut = async (): Promise<void> => {
       try {
-        await new Promise<void>((resolve) => setTimeout(resolve, 100));
+        await new Promise<void>(resolve => setTimeout(resolve, 100));
         if (isComponentMountedRef.current) {
-          dispatch({ type: "FADE_OUT_START" });
+          dispatch({ type: 'FADE_OUT_START' });
         }
-        await new Promise<void>((resolve) => setTimeout(resolve, 600));
+        await new Promise<void>(resolve => setTimeout(resolve, 600));
         if (isComponentMountedRef.current) {
-          dispatch({ type: "FADE_OUT_COMPLETE" });
+          dispatch({ type: 'FADE_OUT_COMPLETE' });
         }
       } catch (error) {
         if (isComponentMountedRef.current) {
           const errorMessage =
-            error instanceof Error ? error.message : "アニメーション処理でエラーが発生しました";
-          dispatch({ type: "ERROR", payload: errorMessage });
+            error instanceof Error
+              ? error.message
+              : 'アニメーション処理でエラーが発生しました';
+          dispatch({ type: 'ERROR', payload: errorMessage });
         }
       }
     };
@@ -287,17 +313,21 @@ export const useAppState = (): UseAppStateReturn => {
   useEffect(() => {
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] POI読み込み状況変化 - handleMapLoaded再実行チェック:", {
-        poisLoading: loadingState.poisLoading,
-        error: loadingState.error,
-        willCallHandleMapLoaded: !loadingState.poisLoading && !loadingState.error,
-      });
+      console.log(
+        '[AppState] POI読み込み状況変化 - handleMapLoaded再実行チェック:',
+        {
+          poisLoading: loadingState.poisLoading,
+          error: loadingState.error,
+          willCallHandleMapLoaded:
+            !loadingState.poisLoading && !loadingState.error,
+        }
+      );
     }
 
     if (!loadingState.poisLoading && !loadingState.error) {
       if (isDevelopment()) {
         // eslint-disable-next-line no-console
-        console.log("[AppState] 条件満了: handleMapLoaded実行");
+        console.log('[AppState] 条件満了: handleMapLoaded実行');
       }
       handleMapLoaded();
     }
@@ -311,39 +341,44 @@ export const useAppState = (): UseAppStateReturn => {
   // リトライハンドラー - エラー状態からの復旧
   const retryLoad = useCallback(() => {
     retryCountRef.current = 0;
-    dispatch({ type: "RESET_ERROR" });
+    dispatch({ type: 'RESET_ERROR' });
     void preloadAssets();
     void loadPOIs();
   }, [preloadAssets, loadPOIs]);
 
   // エラークリアハンドラー
   const clearError = useCallback(() => {
-    dispatch({ type: "RESET_ERROR" });
+    dispatch({ type: 'RESET_ERROR' });
   }, []);
 
   // 開発環境でのloadingState変化の監視
   useEffect(() => {
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
-      console.log("[AppState] Loading状態変化:", {
+      console.log('[AppState] Loading状態変化:', {
         loading: loadingState.loading,
         mapLoading: loadingState.mapLoading,
         poisLoading: loadingState.poisLoading,
         error: loadingState.error,
       });
     }
-  }, [loadingState.loading, loadingState.mapLoading, loadingState.poisLoading, loadingState.error]);
+  }, [
+    loadingState.loading,
+    loadingState.mapLoading,
+    loadingState.poisLoading,
+    loadingState.error,
+  ]);
 
   // デバッグ用パフォーマンス監視 (開発環境のみ)
   useEffect(() => {
     if (isDevelopment()) {
       const logPerformanceStats = () => {
         // パフォーマンス統計（開発環境のみ簡易表示）
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV === 'development') {
           const preloadStats = preloadManager.getStats();
           // シンプルなログ出力
           if (isDevelopment()) {
-            console.warn("[AppState] プリロード統計:", preloadStats);
+            console.warn('[AppState] プリロード統計:', preloadStats);
           }
         }
       };
@@ -377,7 +412,7 @@ export const useAppState = (): UseAppStateReturn => {
   // 開発環境での状態デバッグ（条件付き）
   if (isDevelopment() && (result.loading || result.error)) {
     // eslint-disable-next-line no-console
-    console.log("[AppState] 現在の状態:", {
+    console.log('[AppState] 現在の状態:', {
       loading: result.loading,
       mapLoading: result.mapLoading,
       poisLoading: result.poisLoading,

@@ -1,4 +1,4 @@
-import type { SheetId, SheetsConfig } from "../types";
+import type { SheetId, SheetsConfig } from '../types';
 
 /**
  * 環境変数の型安全な取得
@@ -6,7 +6,10 @@ import type { SheetId, SheetsConfig } from "../types";
  * @param defaultValue デフォルト値
  * @returns 環境変数の値
  */
-const getEnvValue = (value: string | undefined, defaultValue: string): SheetId => {
+const getEnvValue = (
+  value: string | undefined,
+  defaultValue: string
+): SheetId => {
   return createSheetId(value || defaultValue);
 };
 
@@ -22,13 +25,13 @@ function createSheetId(id: string): SheetId {
  * 型定義と一致するデフォルト値を提供
  */
 const DEFAULT_SHEETS_CONFIG = {
-  recommended: "recommended",
-  toilets: "toilet",
-  parking: "parking",
-  ryotsuAikawa: "ryotsu_aikawa",
-  kanaiSawada: "kanai_sawada",
-  akadomariHamochi: "akadomari_hamochi",
-  snacks: "snacks",
+  recommended: 'recommended',
+  toilets: 'toilet',
+  parking: 'parking',
+  ryotsuAikawa: 'ryotsu_aikawa',
+  kanaiSawada: 'kanai_sawada',
+  akadomariHamochi: 'akadomari_hamochi',
+  snacks: 'snacks',
 } as const;
 
 /**
@@ -39,23 +42,32 @@ export function getSheetsConfig(): SheetsConfig {
   return {
     recommended: getEnvValue(
       import.meta.env.VITE_SHEETS_RECOMMENDED,
-      DEFAULT_SHEETS_CONFIG.recommended,
+      DEFAULT_SHEETS_CONFIG.recommended
     ),
-    toilets: getEnvValue(import.meta.env.VITE_SHEETS_TOILETS, DEFAULT_SHEETS_CONFIG.toilets),
-    parking: getEnvValue(import.meta.env.VITE_SHEETS_PARKING, DEFAULT_SHEETS_CONFIG.parking),
+    toilets: getEnvValue(
+      import.meta.env.VITE_SHEETS_TOILETS,
+      DEFAULT_SHEETS_CONFIG.toilets
+    ),
+    parking: getEnvValue(
+      import.meta.env.VITE_SHEETS_PARKING,
+      DEFAULT_SHEETS_CONFIG.parking
+    ),
     ryotsuAikawa: getEnvValue(
       import.meta.env.VITE_SHEETS_RYOTSU_AIKAWA,
-      DEFAULT_SHEETS_CONFIG.ryotsuAikawa,
+      DEFAULT_SHEETS_CONFIG.ryotsuAikawa
     ),
     kanaiSawada: getEnvValue(
       import.meta.env.VITE_SHEETS_KANAI_SAWADA,
-      DEFAULT_SHEETS_CONFIG.kanaiSawada,
+      DEFAULT_SHEETS_CONFIG.kanaiSawada
     ),
     akadomariHamochi: getEnvValue(
       import.meta.env.VITE_SHEETS_AKADOMARI_HAMOCHI,
-      DEFAULT_SHEETS_CONFIG.akadomariHamochi,
+      DEFAULT_SHEETS_CONFIG.akadomariHamochi
     ),
-    snacks: getEnvValue(import.meta.env.VITE_SHEETS_SNACKS, DEFAULT_SHEETS_CONFIG.snacks),
+    snacks: getEnvValue(
+      import.meta.env.VITE_SHEETS_SNACKS,
+      DEFAULT_SHEETS_CONFIG.snacks
+    ),
   };
 }
 
@@ -66,5 +78,5 @@ export function getSheetsConfig(): SheetsConfig {
  */
 export const getSheetName = (sheetKey: keyof SheetsConfig): string => {
   const config = getSheetsConfig();
-  return config[sheetKey] || "";
+  return config[sheetKey] || '';
 };

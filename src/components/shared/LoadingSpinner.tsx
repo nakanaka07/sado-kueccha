@@ -1,6 +1,6 @@
-import type React from "react";
-import { memo } from "react";
-import "./LoadingSpinner.css";
+import type React from 'react';
+import { memo } from 'react';
+import './LoadingSpinner.css';
 
 /**
  * 統一されたローディングスピナーコンポーネント
@@ -14,7 +14,7 @@ import "./LoadingSpinner.css";
  */
 interface LoadingSpinnerProps {
   /** スピナーのサイズ */
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
   /** ローディングメッセージ */
   message?: string;
   /** 進捗率（0-100） */
@@ -28,28 +28,28 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinnerComponent: React.FC<LoadingSpinnerProps> = ({
-  size = "medium",
+  size = 'medium',
   message,
   progress,
   overlay = false,
-  testId = "loading-spinner",
-  className = "",
+  testId = 'loading-spinner',
+  className = '',
 }) => {
   const spinnerClasses = [
-    "loading-spinner",
+    'loading-spinner',
     `loading-spinner--${size}`,
-    overlay && "loading-spinner--overlay",
+    overlay && 'loading-spinner--overlay',
     className,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 
   return (
     <div
       className={spinnerClasses}
       role="status"
       aria-live="polite"
-      aria-label={message || "コンテンツを読み込み中"}
+      aria-label={message || 'コンテンツを読み込み中'}
       data-testid={testId}
     >
       <div className="loading-spinner__icon" aria-hidden="true">
@@ -59,7 +59,10 @@ const LoadingSpinnerComponent: React.FC<LoadingSpinnerProps> = ({
       {message ? <p className="loading-spinner__message">{message}</p> : null}
 
       {progress !== undefined && (
-        <div className="loading-spinner__progress" aria-label={`進捗: ${progress}%`}>
+        <div
+          className="loading-spinner__progress"
+          aria-label={`進捗: ${progress}%`}
+        >
           <div
             className="loading-spinner__progress-bar"
             style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
@@ -83,4 +86,4 @@ const LoadingSpinnerComponent: React.FC<LoadingSpinnerProps> = ({
  */
 export const LoadingSpinner = memo(LoadingSpinnerComponent);
 
-LoadingSpinnerComponent.displayName = "LoadingSpinner";
+LoadingSpinnerComponent.displayName = 'LoadingSpinner';

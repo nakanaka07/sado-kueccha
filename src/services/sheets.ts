@@ -1,27 +1,32 @@
-import { GOOGLE_SHEETS_API } from "../constants";
-import type { ContactInfo, DistrictId, GenreId, POI, POIId } from "../types";
-import { getAppConfig } from "../utils/env";
-import { getSheetsConfig } from "../utils/sheetsConfig";
-import { isPOIArray } from "../utils/typeGuards";
-import { cacheService } from "./cache";
+import { GOOGLE_SHEETS_API } from '../constants';
+import type { ContactInfo, DistrictId, GenreId, POI, POIId } from '../types';
+import { getAppConfig } from '../utils/env';
+import { getSheetsConfig } from '../utils/sheetsConfig';
+import { isPOIArray } from '../utils/typeGuards';
+import { cacheService } from './cache';
 
 /**
  * ブランド型用のキャスト関数
  */
 const createPOIId = (id: string): POIId => id as POIId;
 const createGenreId = (genre: string): GenreId => genre as GenreId;
-const createContactInfo = (contact: string): ContactInfo => ({ phone: contact });
+const createContactInfo = (contact: string): ContactInfo => ({
+  phone: contact,
+});
 
 /**
  * 営業時間の型変換ヘルパー
  */
 const createBusinessHours = (hours: Record<string, string>) => {
-  const mappedHours: Record<string, { periods: Array<{ start: string; end: string }> }> = {};
+  const mappedHours: Record<
+    string,
+    { periods: Array<{ start: string; end: string }> }
+  > = {};
 
   for (const [key, value] of Object.entries(hours)) {
     if (value.trim()) {
       mappedHours[key] = {
-        periods: [{ start: "00:00", end: "23:59" }], // 簡易実装
+        periods: [{ start: '00:00', end: '23:59' }], // 簡易実装
       };
     }
   }
@@ -33,9 +38,13 @@ const createBusinessHours = (hours: Record<string, string>) => {
  * Google Sheets APIのエラークラス
  */
 export class SheetsApiError extends Error {
-  constructor(message: string, public readonly status?: number, public readonly details?: string) {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly details?: string
+  ) {
     super(message);
-    this.name = "SheetsApiError";
+    this.name = 'SheetsApiError';
   }
 }
 
@@ -53,7 +62,7 @@ export interface SheetConfig {
 export interface RequestMetadata {
   readonly timestamp: number;
   readonly sheetName: string;
-  readonly method: "csv" | "api";
+  readonly method: 'csv' | 'api';
 }
 
 /**
@@ -70,7 +79,7 @@ export const performanceLogger = {
   async logOperation<T>(
     operation: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>,
+    metadata?: Record<string, unknown>
   ): Promise<T> {
     const start = performance.now();
     try {
@@ -110,7 +119,7 @@ interface LoadStrategy {
   /** シート名 */
   sheetName: string;
   /** 優先度 */
-  priority: "critical" | "high" | "normal" | "low";
+  priority: 'critical' | 'high' | 'normal' | 'low';
   /** 初期ロードサイズ */
   initialSize: number;
   /** 最大サイズ */
@@ -137,50 +146,50 @@ class SheetsService {
   // 最適化されたロード戦略 - 並列化と初期ロードサイズの削減
   private readonly loadStrategies: LoadStrategy[] = [
     {
-      sheetName: "recommended",
-      priority: "critical",
+      sheetName: 'recommended',
+      priority: 'critical',
       initialSize: 20, // 削減
       maxSize: 50, // 削減
       preload: true,
     },
     {
-      sheetName: "snack",
-      priority: "high",
+      sheetName: 'snack',
+      priority: 'high',
       initialSize: 30, // 削減
       maxSize: 100, // 削減
       preload: true,
     },
     {
-      sheetName: "parking",
-      priority: "high",
+      sheetName: 'parking',
+      priority: 'high',
       initialSize: 30, // 削減
       maxSize: 100, // 削減
       preload: true,
     },
     {
-      sheetName: "toilet",
-      priority: "high",
+      sheetName: 'toilet',
+      priority: 'high',
       initialSize: 30, // 削減
       maxSize: 100, // 削減
       preload: true,
     },
     {
-      sheetName: "ryotsu_aikawa",
-      priority: "normal",
+      sheetName: 'ryotsu_aikawa',
+      priority: 'normal',
       initialSize: 50, // 削減
       maxSize: 200, // 削減
       preload: false,
     },
     {
-      sheetName: "kanai_sawada",
-      priority: "normal",
+      sheetName: 'kanai_sawada',
+      priority: 'normal',
       initialSize: 50, // 削減
       maxSize: 200, // 削減
       preload: false,
     },
     {
-      sheetName: "akadomari_hamochi",
-      priority: "normal",
+      sheetName: 'akadomari_hamochi',
+      priority: 'normal',
       initialSize: 50, // 削減
       maxSize: 200, // 削減
       preload: false,
@@ -213,13 +222,13 @@ class SheetsService {
 
   // キャッシュレス判定用の値
   private static readonly CASHLESS_TRUE_VALUES = new Set([
-    "true",
-    "○",
-    "yes",
-    "可",
-    "あり",
-    "1",
-    "対応",
+    'true',
+    '○',
+    'yes',
+    '可',
+    'あり',
+    '1',
+    '対応',
   ]);
 
   constructor() {
@@ -253,7 +262,7 @@ class SheetsService {
    */
   private parseSheetConfig(configStr: string | undefined): SheetConfig | null {
     if (!configStr) return null;
-    const [name, gid] = configStr.split(":");
+    const [name, gid] = configStr.split(':');
     return name && gid ? { name: name.trim(), gid: gid.trim() } : null;
   }
 
@@ -293,28 +302,30 @@ class SheetsService {
           return await this.fetchSheetDataViaAPI(sheetName, range);
         }
       },
-      { sheetName, range, method: "hybrid" },
+      { sheetName, range, method: 'hybrid' }
     );
   }
 
   /**
    * シートの優先度を取得
    */
-  private getSheetPriority(sheetName: string): "critical" | "high" | "normal" | "low" {
-    const strategy = this.loadStrategies.find((s) => s.sheetName === sheetName);
-    return strategy?.priority || "normal";
+  private getSheetPriority(
+    sheetName: string
+  ): 'critical' | 'high' | 'normal' | 'low' {
+    const strategy = this.loadStrategies.find(s => s.sheetName === sheetName);
+    return strategy?.priority || 'normal';
   }
 
   /**
    * シートのサイズヒントを取得
    */
-  private getSheetSizeHint(sheetName: string): "small" | "medium" | "large" {
-    const strategy = this.loadStrategies.find((s) => s.sheetName === sheetName);
-    if (!strategy) return "medium";
+  private getSheetSizeHint(sheetName: string): 'small' | 'medium' | 'large' {
+    const strategy = this.loadStrategies.find(s => s.sheetName === sheetName);
+    if (!strategy) return 'medium';
 
-    if (strategy.maxSize <= 100) return "small";
-    if (strategy.maxSize <= 300) return "medium";
-    return "large";
+    if (strategy.maxSize <= 100) return 'small';
+    if (strategy.maxSize <= 300) return 'medium';
+    return 'large';
   }
 
   /**
@@ -324,19 +335,21 @@ class SheetsService {
   private async fetchSheetDataAsCSV(sheetName: string): Promise<string[][]> {
     if (!this.spreadsheetId) {
       throw new SheetsApiError(
-        "スプレッドシートIDが設定されていません。",
+        'スプレッドシートIDが設定されていません。',
         undefined,
-        "環境変数 VITE_GOOGLE_SPREADSHEET_ID を確認してください。",
+        '環境変数 VITE_GOOGLE_SPREADSHEET_ID を確認してください。'
       );
     }
 
     // 設定から対応するGIDを取得
-    const sheetConfig = this.sheetConfigs.find((config) => config.name === sheetName);
+    const sheetConfig = this.sheetConfigs.find(
+      config => config.name === sheetName
+    );
     if (!sheetConfig) {
       throw new SheetsApiError(
         `シート "${sheetName}" の設定が見つかりません。`,
         undefined,
-        `利用可能なシート: ${this.sheetConfigs.map((c) => c.name).join(", ")}`,
+        `利用可能なシート: ${this.sheetConfigs.map(c => c.name).join(', ')}`
       );
     }
 
@@ -351,8 +364,8 @@ class SheetsService {
       const response = await fetch(csvUrl, {
         signal: controller.signal,
         headers: {
-          Accept: "text/csv",
-          "Cache-Control": "no-cache",
+          Accept: 'text/csv',
+          'Cache-Control': 'no-cache',
         },
       });
 
@@ -362,7 +375,7 @@ class SheetsService {
         throw new SheetsApiError(
           `CSV取得失敗: ${response.status} ${response.statusText}`,
           response.status,
-          csvUrl,
+          csvUrl
         );
       }
 
@@ -370,9 +383,9 @@ class SheetsService {
 
       if (!csvText.trim()) {
         throw new SheetsApiError(
-          "CSVデータが空です",
+          'CSVデータが空です',
           undefined,
-          `シート: ${sheetName}, URL: ${csvUrl}`,
+          `シート: ${sheetName}, URL: ${csvUrl}`
         );
       }
 
@@ -386,13 +399,21 @@ class SheetsService {
       }
 
       if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          throw new SheetsApiError("CSV取得がタイムアウトしました", 408, csvUrl);
+        if (error.name === 'AbortError') {
+          throw new SheetsApiError(
+            'CSV取得がタイムアウトしました',
+            408,
+            csvUrl
+          );
         }
-        throw new SheetsApiError(`CSV取得中にエラーが発生: ${error.message}`, undefined, csvUrl);
+        throw new SheetsApiError(
+          `CSV取得中にエラーが発生: ${error.message}`,
+          undefined,
+          csvUrl
+        );
       }
 
-      throw new SheetsApiError("不明なエラーが発生しました", undefined, csvUrl);
+      throw new SheetsApiError('不明なエラーが発生しました', undefined, csvUrl);
     }
   }
 
@@ -400,25 +421,28 @@ class SheetsService {
    * API形式でスプレッドシートからデータを取得（従来の方法）
    * エラーハンドリングを改善
    */
-  private async fetchSheetDataViaAPI(sheetName: string, range: string): Promise<string[][]> {
+  private async fetchSheetDataViaAPI(
+    sheetName: string,
+    range: string
+  ): Promise<string[][]> {
     if (!this.apiKey) {
       throw new SheetsApiError(
-        "Google Sheets APIキーが設定されていません。",
+        'Google Sheets APIキーが設定されていません。',
         401,
-        "環境変数 VITE_GOOGLE_SHEETS_API_KEY を設定してください。",
+        '環境変数 VITE_GOOGLE_SHEETS_API_KEY を設定してください。'
       );
     }
 
     if (!this.spreadsheetId) {
       throw new SheetsApiError(
-        "スプレッドシートIDが設定されていません。",
+        'スプレッドシートIDが設定されていません。',
         undefined,
-        "環境変数 VITE_GOOGLE_SPREADSHEET_ID を設定してください。",
+        '環境変数 VITE_GOOGLE_SPREADSHEET_ID を設定してください。'
       );
     }
 
     const url = `${GOOGLE_SHEETS_API.API_BASE}/${this.spreadsheetId}/values/${encodeURIComponent(
-      sheetName,
+      sheetName
     )}!${range}?key=${this.apiKey}`;
 
     try {
@@ -430,8 +454,8 @@ class SheetsService {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
-          Accept: "application/json",
-          "Cache-Control": "no-cache",
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
         },
       });
 
@@ -465,13 +489,17 @@ class SheetsService {
       }
 
       if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          throw new SheetsApiError("API取得がタイムアウトしました", 408, url);
+        if (error.name === 'AbortError') {
+          throw new SheetsApiError('API取得がタイムアウトしました', 408, url);
         }
-        throw new SheetsApiError(`API取得中にエラーが発生: ${error.message}`, undefined, url);
+        throw new SheetsApiError(
+          `API取得中にエラーが発生: ${error.message}`,
+          undefined,
+          url
+        );
       }
 
-      throw new SheetsApiError("不明なエラーが発生しました", undefined, url);
+      throw new SheetsApiError('不明なエラーが発生しました', undefined, url);
     }
   }
 
@@ -479,10 +507,14 @@ class SheetsService {
    * 生データをPOI形式に変換（リファクタリング済み）
    * より型安全で読みやすい実装
    */
-  private convertToPOI(row: string[], id: string, sheetName: string): POI | null {
+  private convertToPOI(
+    row: string[],
+    id: string,
+    sheetName: string
+  ): POI | null {
     try {
       // 列定数を使用してデータを取得（null安全）
-      const extractField = (index: number) => row[index]?.trim() ?? "";
+      const extractField = (index: number) => row[index]?.trim() ?? '';
 
       const district = extractField(SheetsService.COLUMNS.DISTRICT);
       const coordinates = extractField(SheetsService.COLUMNS.COORDINATES);
@@ -514,7 +546,7 @@ class SheetsService {
         id: createPOIId(id),
         name,
         position: coordinates_result,
-        genre: createGenreId(genre || "その他"),
+        genre: createGenreId(genre || 'その他'),
         sourceSheet: sheetName,
         ...(relatedInfo && { details: { description: relatedInfo } }),
         ...(address && { address }),
@@ -525,7 +557,9 @@ class SheetsService {
         }),
         ...(district && { district: district as DistrictId }),
         ...(cashless && {
-          cashless: SheetsService.CASHLESS_TRUE_VALUES.has(cashless.toLowerCase()),
+          cashless: SheetsService.CASHLESS_TRUE_VALUES.has(
+            cashless.toLowerCase()
+          ),
         }),
         googleMapsUrl:
           googleMapsUrl ||
@@ -542,8 +576,10 @@ class SheetsService {
   /**
    * 座標文字列を解析
    */
-  private parseCoordinates(coordinates: string): google.maps.LatLngLiteral | null {
-    const [longitudeStr, latitudeStr] = coordinates.split(",");
+  private parseCoordinates(
+    coordinates: string
+  ): google.maps.LatLngLiteral | null {
+    const [longitudeStr, latitudeStr] = coordinates.split(',');
     if (!longitudeStr?.trim() || !latitudeStr?.trim()) {
       return null;
     }
@@ -556,7 +592,12 @@ class SheetsService {
     }
 
     // 緯度経度の妥当性チェック（佐渡島周辺の範囲）
-    if (latitude < 37.5 || latitude > 38.5 || longitude < 138.0 || longitude > 139.0) {
+    if (
+      latitude < 37.5 ||
+      latitude > 38.5 ||
+      longitude < 138.0 ||
+      longitude > 139.0
+    ) {
       if (import.meta.env.DEV) {
         // 座標範囲外警告（開発環境のみ）
       }
@@ -570,18 +611,18 @@ class SheetsService {
    */
   private extractBusinessHours(row: string[]): Record<string, string> {
     const businessHours: Record<string, string> = {};
-    const extractField = (index: number) => row[index]?.trim() ?? "";
+    const extractField = (index: number) => row[index]?.trim() ?? '';
 
     const dayMappings = [
-      { key: "月", value: extractField(SheetsService.COLUMNS.MONDAY) },
-      { key: "火", value: extractField(SheetsService.COLUMNS.TUESDAY) },
-      { key: "水", value: extractField(SheetsService.COLUMNS.WEDNESDAY) },
-      { key: "木", value: extractField(SheetsService.COLUMNS.THURSDAY) },
-      { key: "金", value: extractField(SheetsService.COLUMNS.FRIDAY) },
-      { key: "土", value: extractField(SheetsService.COLUMNS.SATURDAY) },
-      { key: "日", value: extractField(SheetsService.COLUMNS.SUNDAY) },
-      { key: "祝", value: extractField(SheetsService.COLUMNS.HOLIDAY) },
-      { key: "定休日", value: extractField(SheetsService.COLUMNS.CLOSED_DAYS) },
+      { key: '月', value: extractField(SheetsService.COLUMNS.MONDAY) },
+      { key: '火', value: extractField(SheetsService.COLUMNS.TUESDAY) },
+      { key: '水', value: extractField(SheetsService.COLUMNS.WEDNESDAY) },
+      { key: '木', value: extractField(SheetsService.COLUMNS.THURSDAY) },
+      { key: '金', value: extractField(SheetsService.COLUMNS.FRIDAY) },
+      { key: '土', value: extractField(SheetsService.COLUMNS.SATURDAY) },
+      { key: '日', value: extractField(SheetsService.COLUMNS.SUNDAY) },
+      { key: '祝', value: extractField(SheetsService.COLUMNS.HOLIDAY) },
+      { key: '定休日', value: extractField(SheetsService.COLUMNS.CLOSED_DAYS) },
     ];
 
     for (const { key, value } of dayMappings) {
@@ -599,33 +640,43 @@ class SheetsService {
    */
   async fetchAllPOIs(): Promise<POI[]> {
     return performanceLogger.logOperation(
-      "fetchAllPOIs",
+      'fetchAllPOIs',
       async () => {
         const poiMap = new Map<string, POI>();
-        const recommendedSheetName = "recommended";
+        const recommendedSheetName = 'recommended';
 
         // Step 1: 推奨シートを最優先で取得（既にプリロード済みの可能性が高い）
         const recommendedConfig = this.sheetConfigs.find(
-          (config) => config.name === recommendedSheetName,
+          config => config.name === recommendedSheetName
         );
 
         if (recommendedConfig) {
           try {
             // 最小限の範囲でまず取得（高速）
-            const recommendedRows = await this.fetchSheetData(recommendedConfig.name, "AB2:AX100");
-            this.processPOIRows(recommendedRows, recommendedConfig.name, poiMap);
+            const recommendedRows = await this.fetchSheetData(
+              recommendedConfig.name,
+              'AB2:AX100'
+            );
+            this.processPOIRows(
+              recommendedRows,
+              recommendedConfig.name,
+              poiMap
+            );
           } catch (error) {
-            console.error(`推奨シート "${recommendedSheetName}" の取得に失敗:`, error);
+            console.error(
+              `推奨シート "${recommendedSheetName}" の取得に失敗:`,
+              error
+            );
           }
         }
 
         // Step 2: その他の重要シートを順次取得（キャッシュ効果を最大化）
-        const importantSheets = ["snack", "parking", "toilet"];
+        const importantSheets = ['snack', 'parking', 'toilet'];
         for (const sheetName of importantSheets) {
-          const config = this.sheetConfigs.find((c) => c.name === sheetName);
+          const config = this.sheetConfigs.find(c => c.name === sheetName);
           if (config) {
             try {
-              const rows = await this.fetchSheetData(config.name, "AB2:AX200");
+              const rows = await this.fetchSheetData(config.name, 'AB2:AX200');
               this.processPOIRows(rows, config.name, poiMap);
             } catch (error) {
               console.error(`シート "${sheetName}" の取得に失敗:`, error);
@@ -635,16 +686,17 @@ class SheetsService {
 
         // Step 3: 残りのシートを取得
         const remainingSheets = this.sheetConfigs.filter(
-          (config) => !["recommended", "snack", "parking", "toilet"].includes(config.name),
+          config =>
+            !['recommended', 'snack', 'parking', 'toilet'].includes(config.name)
         );
 
         for (const config of remainingSheets) {
           try {
-            const rows = await this.fetchSheetData(config.name, "AB2:AX1000");
+            const rows = await this.fetchSheetData(config.name, 'AB2:AX1000');
             this.processPOIRows(rows, config.name, poiMap);
 
             // UI ブロッキング防止
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 50));
           } catch (error) {
             console.error(`シート "${config.name}" の取得に失敗:`, error);
           }
@@ -654,20 +706,28 @@ class SheetsService {
 
         return allPOIs;
       },
-      { totalSheets: this.sheetConfigs.length },
+      { totalSheets: this.sheetConfigs.length }
     );
   }
 
   /**
    * POI行データを処理してマップに追加
    */
-  private processPOIRows(rows: string[][], sheetName: string, poiMap: Map<string, POI>): void {
+  private processPOIRows(
+    rows: string[][],
+    sheetName: string,
+    poiMap: Map<string, POI>
+  ): void {
     for (const [index, row] of rows.entries()) {
-      const poi = this.convertToPOI(row, `${sheetName}-${String(index + 1)}`, sheetName);
+      const poi = this.convertToPOI(
+        row,
+        `${sheetName}-${String(index + 1)}`,
+        sheetName
+      );
       if (poi) {
         const uniqueKey = this.generatePOIKey(poi);
         // 推奨シートのデータは常に優先
-        if (sheetName === "recommended" || !poiMap.has(uniqueKey)) {
+        if (sheetName === 'recommended' || !poiMap.has(uniqueKey)) {
           poiMap.set(uniqueKey, poi);
         }
       }
@@ -681,9 +741,9 @@ class SheetsService {
   private generatePOIKey(poi: POI): string {
     // 名前を正規化（空白、記号を除去して比較）
     const normalizedName = poi.name
-      .replace(/[\s\-_・]/g, "")
+      .replace(/[\s\-_・]/g, '')
       .toLowerCase()
-      .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, ""); // 日本語文字のみ保持
+      .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, ''); // 日本語文字のみ保持
 
     // 座標を小数点以下4桁で丸めて比較（GPS精度の範囲内）
     const lat = Math.round(poi.position.lat * 10000) / 10000;
@@ -716,7 +776,7 @@ class SheetsService {
    */
   private parseCSVLine(line: string): string[] {
     const result: string[] = [];
-    let current = "";
+    let current = '';
     let inQuotes = false;
     let i = 0;
 
@@ -733,9 +793,9 @@ class SheetsService {
         } else {
           inQuotes = false;
         }
-      } else if (char === "," && !inQuotes) {
+      } else if (char === ',' && !inQuotes) {
         result.push(current.trim());
-        current = "";
+        current = '';
       } else if (char) {
         current += char;
       }
@@ -753,7 +813,10 @@ class SheetsService {
    * スマートキャッシュ：範囲を考慮したデータ取得
    * 大きな範囲のキャッシュがあれば、小さな範囲の要求に応答
    */
-  private getSmartCachedData(sheetName: string, requestedRange: string): string[][] | null {
+  private getSmartCachedData(
+    sheetName: string,
+    requestedRange: string
+  ): string[][] | null {
     try {
       // 要求された範囲を解析
       const requestedRows = this.parseRangeRows(requestedRange);
@@ -771,7 +834,7 @@ class SheetsService {
       for (const cacheKey of possibleKeys) {
         const cached = cacheService.get<string[][]>(cacheKey);
         if (cached && cached.length > 0) {
-          const rangePart = cacheKey.split("_")[2];
+          const rangePart = cacheKey.split('_')[2];
           if (!rangePart) continue;
 
           const cachedRows = this.parseRangeRows(rangePart);
@@ -846,18 +909,22 @@ class SheetsService {
       const normalPriorityResult = await this.loadNormalPriorityData();
 
       // データの統合と重複排除
-      const allPOIs = this.mergePOIData([criticalResult, highPriorityResult, normalPriorityResult]);
+      const allPOIs = this.mergePOIData([
+        criticalResult,
+        highPriorityResult,
+        normalPriorityResult,
+      ]);
 
       const duration = performance.now() - startTime;
       if (import.meta.env.DEV) {
         console.warn(
-          `[OptimizedSheets] 最適化済みPOI取得完了: ${allPOIs.length}件 (${duration.toFixed(2)}ms)`,
+          `[OptimizedSheets] 最適化済みPOI取得完了: ${allPOIs.length}件 (${duration.toFixed(2)}ms)`
         );
       }
 
       return allPOIs;
     } catch (error) {
-      console.error("[OptimizedSheets] POI取得エラー:", error);
+      console.error('[OptimizedSheets] POI取得エラー:', error);
 
       // フォールバック: 従来の方法
       return this.fetchAllPOIs();
@@ -877,8 +944,11 @@ class SheetsService {
    * インテリジェントシートデータ取得
    * 最適な範囲サイズを動的に決定
    */
-  async fetchSheetDataIntelligent(sheetName: string, targetRowCount?: number): Promise<string[][]> {
-    const strategy = this.loadStrategies.find((s) => s.sheetName === sheetName);
+  async fetchSheetDataIntelligent(
+    sheetName: string,
+    targetRowCount?: number
+  ): Promise<string[][]> {
+    const strategy = this.loadStrategies.find(s => s.sheetName === sheetName);
     const optimalSize = targetRowCount || strategy?.initialSize || 200;
 
     const cacheKey = `sheet_${sheetName}_intelligent_${optimalSize}`;
@@ -887,7 +957,10 @@ class SheetsService {
       return cached as string[][];
     }
 
-    const result = await this.fetchSheetDataWithStrategy(sheetName, optimalSize);
+    const result = await this.fetchSheetDataWithStrategy(
+      sheetName,
+      optimalSize
+    );
     cacheService.set(cacheKey, result, 5 * 60 * 1000);
     return result;
   }
@@ -896,19 +969,24 @@ class SheetsService {
    * クリティカルデータの取得
    */
   private async loadCriticalData(): Promise<POI[]> {
-    const criticalStrategies = this.loadStrategies.filter((s) => s.priority === "critical");
+    const criticalStrategies = this.loadStrategies.filter(
+      s => s.priority === 'critical'
+    );
     const results: POI[] = [];
 
     for (const strategy of criticalStrategies) {
       try {
         const data = await this.fetchSheetDataWithStrategy(
           strategy.sheetName,
-          strategy.initialSize,
+          strategy.initialSize
         );
         const pois = this.convertSheetDataToPOIs(data, strategy.sheetName);
         results.push(...pois);
       } catch (error) {
-        console.error(`[OptimizedSheets] クリティカルデータ取得失敗: ${strategy.sheetName}`, error);
+        console.error(
+          `[OptimizedSheets] クリティカルデータ取得失敗: ${strategy.sheetName}`,
+          error
+        );
       }
     }
 
@@ -919,17 +997,22 @@ class SheetsService {
    * 高優先度データの並列取得
    */
   private async loadHighPriorityData(): Promise<POI[]> {
-    const highPriorityStrategies = this.loadStrategies.filter((s) => s.priority === "high");
+    const highPriorityStrategies = this.loadStrategies.filter(
+      s => s.priority === 'high'
+    );
 
-    const promises = highPriorityStrategies.map(async (strategy) => {
+    const promises = highPriorityStrategies.map(async strategy => {
       try {
         const data = await this.fetchSheetDataWithStrategy(
           strategy.sheetName,
-          strategy.initialSize,
+          strategy.initialSize
         );
         return this.convertSheetDataToPOIs(data, strategy.sheetName);
       } catch (error) {
-        console.error(`[OptimizedSheets] 高優先度データ取得失敗: ${strategy.sheetName}`, error);
+        console.error(
+          `[OptimizedSheets] 高優先度データ取得失敗: ${strategy.sheetName}`,
+          error
+        );
         return [];
       }
     });
@@ -942,19 +1025,24 @@ class SheetsService {
    * 通常優先度データの順次取得
    */
   private async loadNormalPriorityData(): Promise<POI[]> {
-    const normalStrategies = this.loadStrategies.filter((s) => s.priority === "normal");
+    const normalStrategies = this.loadStrategies.filter(
+      s => s.priority === 'normal'
+    );
     const results: POI[] = [];
 
     for (const strategy of normalStrategies) {
       try {
         const data = await this.fetchSheetDataWithStrategy(
           strategy.sheetName,
-          strategy.initialSize,
+          strategy.initialSize
         );
         const pois = this.convertSheetDataToPOIs(data, strategy.sheetName);
         results.push(...pois);
       } catch (error) {
-        console.error(`[OptimizedSheets] 通常優先度データ取得失敗: ${strategy.sheetName}`, error);
+        console.error(
+          `[OptimizedSheets] 通常優先度データ取得失敗: ${strategy.sheetName}`,
+          error
+        );
       }
     }
 
@@ -964,7 +1052,10 @@ class SheetsService {
   /**
    * 戦略に基づいたシートデータ取得
    */
-  private async fetchSheetDataWithStrategy(sheetName: string, size: number): Promise<string[][]> {
+  private async fetchSheetDataWithStrategy(
+    sheetName: string,
+    size: number
+  ): Promise<string[][]> {
     const range = `AB2:AX${size}`;
     return this.fetchSheetData(sheetName, range);
   }
@@ -1017,13 +1108,13 @@ class SheetsService {
    */
   async batchLoadOptimizedPOIs(sheetNames: string[]): Promise<POI[]> {
     return performanceLogger.logOperation(
-      "batchLoadOptimizedPOIs",
+      'batchLoadOptimizedPOIs',
       async () => {
         // バッチ操作でキャッシュを効率化
-        const operations = sheetNames.map((sheetName) => ({
+        const operations = sheetNames.map(sheetName => ({
           key: `sheet_${sheetName}_AB2:AX200`,
           sheetName, // シート名を保持
-          fetcher: () => this.fetchSheetData(sheetName, "AB2:AX200"),
+          fetcher: () => this.fetchSheetData(sheetName, 'AB2:AX200'),
           strategy: {
             priority: this.getSheetPriority(sheetName),
             sizeHint: this.getSheetSizeHint(sheetName),
@@ -1036,7 +1127,10 @@ class SheetsService {
         for (const operation of operations) {
           try {
             const rawData = await operation.fetcher();
-            const pois = this.convertSheetDataToPOIs(rawData, operation.sheetName);
+            const pois = this.convertSheetDataToPOIs(
+              rawData,
+              operation.sheetName
+            );
             if (Array.isArray(pois) && pois.length > 0) {
               poiArrays.push(pois);
             }
@@ -1047,7 +1141,7 @@ class SheetsService {
 
         return this.mergePOIData(poiArrays);
       },
-      { sheetCount: sheetNames.length },
+      { sheetCount: sheetNames.length }
     );
   }
 }
@@ -1063,55 +1157,57 @@ const sheetsService = new SheetsService();
  */
 export const samplePOIs: POI[] = [
   {
-    id: createPOIId("sample-1"),
-    name: "佐渡金山",
+    id: createPOIId('sample-1'),
+    name: '佐渡金山',
     position: { lat: 38.0494, lng: 138.2285 },
-    genre: createGenreId("観光地"),
+    genre: createGenreId('観光地'),
     details: {
-      description: "江戸時代の金山遺跡。日本最大の金山として栄えた歴史的価値の高い観光スポット。",
+      description:
+        '江戸時代の金山遺跡。日本最大の金山として栄えた歴史的価値の高い観光スポット。',
     },
-    address: "新潟県佐渡市下相川1305",
+    address: '新潟県佐渡市下相川1305',
     businessHours: {
-      monday: { periods: [{ start: "08:00", end: "17:30" }] },
-      tuesday: { periods: [{ start: "08:00", end: "17:30" }] },
-      wednesday: { periods: [{ start: "08:00", end: "17:30" }] },
-      thursday: { periods: [{ start: "08:00", end: "17:30" }] },
-      friday: { periods: [{ start: "08:00", end: "17:30" }] },
-      saturday: { periods: [{ start: "08:00", end: "17:30" }] },
-      sunday: { periods: [{ start: "08:00", end: "17:30" }] },
+      monday: { periods: [{ start: '08:00', end: '17:30' }] },
+      tuesday: { periods: [{ start: '08:00', end: '17:30' }] },
+      wednesday: { periods: [{ start: '08:00', end: '17:30' }] },
+      thursday: { periods: [{ start: '08:00', end: '17:30' }] },
+      friday: { periods: [{ start: '08:00', end: '17:30' }] },
+      saturday: { periods: [{ start: '08:00', end: '17:30' }] },
+      sunday: { periods: [{ start: '08:00', end: '17:30' }] },
     },
   },
   {
-    id: createPOIId("sample-2"),
-    name: "トキの森公園",
+    id: createPOIId('sample-2'),
+    name: 'トキの森公園',
     position: { lat: 38.0666, lng: 138.3871 },
-    genre: createGenreId("観光地"),
+    genre: createGenreId('観光地'),
     details: {
-      description: "トキの保護センター。絶滅危惧種のトキを間近で観察できる施設。",
+      description:
+        'トキの保護センター。絶滅危惧種のトキを間近で観察できる施設。',
     },
-    address: "新潟県佐渡市新穂長畝383-2",
-    parking: "無料駐車場あり",
+    address: '新潟県佐渡市新穂長畝383-2',
+    parking: '無料駐車場あり',
     businessHours: {
-      monday: { periods: [{ start: "08:30", end: "17:00" }] },
-      tuesday: { periods: [{ start: "08:30", end: "17:00" }] },
-      wednesday: { periods: [{ start: "08:30", end: "17:00" }] },
-      thursday: { periods: [{ start: "08:30", end: "17:00" }] },
-      friday: { periods: [{ start: "08:30", end: "17:00" }] },
-      saturday: { periods: [{ start: "08:30", end: "17:00" }] },
-      sunday: { periods: [{ start: "08:30", end: "17:00" }] },
+      monday: { periods: [{ start: '08:30', end: '17:00' }] },
+      tuesday: { periods: [{ start: '08:30', end: '17:00' }] },
+      wednesday: { periods: [{ start: '08:30', end: '17:00' }] },
+      thursday: { periods: [{ start: '08:30', end: '17:00' }] },
+      friday: { periods: [{ start: '08:30', end: '17:00' }] },
+      saturday: { periods: [{ start: '08:30', end: '17:00' }] },
+      sunday: { periods: [{ start: '08:30', end: '17:00' }] },
     },
   },
   {
-    id: createPOIId("sample-3"),
-    name: "両津港",
+    id: createPOIId('sample-3'),
+    name: '両津港',
     position: { lat: 38.0795, lng: 138.4371 },
-    genre: createGenreId("交通"),
+    genre: createGenreId('交通'),
     details: {
-      description: "佐渡島の玄関口。本州と佐渡を結ぶフェリーターミナル。",
+      description: '佐渡島の玄関口。本州と佐渡を結ぶフェリーターミナル。',
     },
-    address: "新潟県佐渡市両津湊353",
-    parking: "有料駐車場あり",
-    contact: createContactInfo("0259-27-5111"),
+    address: '新潟県佐渡市両津湊353',
+    parking: '有料駐車場あり',
+    contact: createContactInfo('0259-27-5111'),
   },
 ];
 
@@ -1127,7 +1223,7 @@ export const fetchPOIs = async (): Promise<POI[]> => {
     return currentFetchPromise;
   }
 
-  const CACHE_KEY = "all_pois";
+  const CACHE_KEY = 'all_pois';
 
   // まずキャッシュから取得を試行
   const cachedPOIs = cacheService.get(CACHE_KEY, isPOIArray);
@@ -1137,7 +1233,7 @@ export const fetchPOIs = async (): Promise<POI[]> => {
 
   // 新しいリクエストを開始
   currentFetchPromise = performanceLogger.logOperation(
-    "fetchPOIs-main",
+    'fetchPOIs-main',
     async () => {
       try {
         // 実際のGoogle Sheets APIからデータを取得を試行
@@ -1151,12 +1247,12 @@ export const fetchPOIs = async (): Promise<POI[]> => {
           return uniquePOIs;
         } else {
           if (import.meta.env.DEV) {
-            console.warn("APIからのデータが0件のため、サンプルデータを使用");
+            console.warn('APIからのデータが0件のため、サンプルデータを使用');
           }
           return removeDuplicatePOIs(samplePOIs);
         }
       } catch (error) {
-        console.error("API取得に失敗、サンプルデータを使用:", error);
+        console.error('API取得に失敗、サンプルデータを使用:', error);
         // APIが失敗した場合はサンプルデータを返す
         return removeDuplicatePOIs(samplePOIs);
       } finally {
@@ -1164,7 +1260,7 @@ export const fetchPOIs = async (): Promise<POI[]> => {
         currentFetchPromise = null;
       }
     },
-    { source: "main-api" },
+    { source: 'main-api' }
   );
 
   return currentFetchPromise;
@@ -1179,14 +1275,14 @@ export function removeDuplicatePOIs(pois: POI[]): POI[] {
 
   // まず通常のPOIを追加
   for (const poi of pois) {
-    if (poi.sourceSheet !== "recommended") {
+    if (poi.sourceSheet !== 'recommended') {
       uniqueMap.set(poi.id, poi);
     }
   }
 
   // 推奨シートのPOIで上書き（優先）
   for (const poi of pois) {
-    if (poi.sourceSheet === "recommended") {
+    if (poi.sourceSheet === 'recommended') {
       uniqueMap.set(poi.id, poi);
     }
   }
@@ -1208,7 +1304,8 @@ export { sheetsService };
 export const optimizedSheetsService = {
   fetchPOIsOptimized: sheetsService.fetchPOIsOptimized.bind(sheetsService),
   preloadCriticalData: sheetsService.preloadCriticalData.bind(sheetsService),
-  fetchSheetDataIntelligent: sheetsService.fetchSheetDataIntelligent.bind(sheetsService),
+  fetchSheetDataIntelligent:
+    sheetsService.fetchSheetDataIntelligent.bind(sheetsService),
   getPerformanceStats: sheetsService.getPerformanceStats.bind(sheetsService),
 };
 

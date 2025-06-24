@@ -5,17 +5,17 @@
  * @version 2.0.0 - Phase 2 構造最適化
  */
 
-import type { LatLngLiteral } from "../types";
+import type { LatLngLiteral } from '../types';
 
 /**
  * Google Sheets API 設定
  */
 export const GOOGLE_SHEETS_API = {
-  BASE_URL: "https://docs.google.com/spreadsheets/d",
-  CSV_BASE_URL: "https://docs.google.com/spreadsheets/d",
-  API_BASE: "https://sheets.googleapis.com/v4/spreadsheets",
-  CSV_EXPORT_BASE: "export?format=csv",
-  DEFAULT_RANGE: "AB:AX",
+  BASE_URL: 'https://docs.google.com/spreadsheets/d',
+  CSV_BASE_URL: 'https://docs.google.com/spreadsheets/d',
+  API_BASE: 'https://sheets.googleapis.com/v4/spreadsheets',
+  CSV_EXPORT_BASE: 'export?format=csv',
+  DEFAULT_RANGE: 'AB:AX',
   REQUEST_TIMEOUT: 10000,
   MAX_RETRIES: 3,
   BATCH_SIZE: 100,

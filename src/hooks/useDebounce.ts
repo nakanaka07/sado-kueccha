@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * 値の変更をデバウンスするカスタムフック
@@ -26,8 +26,17 @@ interface UseDebounceReturn<T> {
   flush: () => void;
 }
 
-export function useDebounce<T>(value: T, options: UseDebounceOptions = {}): UseDebounceReturn<T> {
-  const { delay = 500, maxWait, leading = false, trailing = true, adaptiveDelay = false } = options;
+export function useDebounce<T>(
+  value: T,
+  options: UseDebounceOptions = {}
+): UseDebounceReturn<T> {
+  const {
+    delay = 500,
+    maxWait,
+    leading = false,
+    trailing = true,
+    adaptiveDelay = false,
+  } = options;
 
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   const [isPending, setIsPending] = useState(false);
@@ -45,7 +54,8 @@ export function useDebounce<T>(value: T, options: UseDebounceOptions = {}): UseD
 
     const now = Date.now();
     const timeSinceLastCall = now - lastCallTimeRef.current;
-    changeCountRef.current = timeSinceLastCall < 1000 ? changeCountRef.current + 1 : 1;
+    changeCountRef.current =
+      timeSinceLastCall < 1000 ? changeCountRef.current + 1 : 1;
 
     // 高頻度の変更時は遅延を増加、低頻度時は減少
     const adaptiveFactor = Math.min(changeCountRef.current / 10, 2);
@@ -121,7 +131,15 @@ export function useDebounce<T>(value: T, options: UseDebounceOptions = {}): UseD
     }
 
     return clearTimers;
-  }, [value, leading, trailing, calculateAdaptiveDelay, maxWait, updateValue, clearTimers]);
+  }, [
+    value,
+    leading,
+    trailing,
+    calculateAdaptiveDelay,
+    maxWait,
+    updateValue,
+    clearTimers,
+  ]);
 
   // コンポーネントのアンマウント時のクリーンアップ
   useEffect(() => {

@@ -3,7 +3,7 @@
  * 型安全性とパフォーマンスを考慮したフィルターシステム
  */
 
-import type { EntityId } from "./common";
+import type { EntityId } from './common';
 
 // フィルター状態のキーをブランド型で型安全に管理
 export type FilterKey = keyof FilterState;
@@ -29,7 +29,7 @@ export interface FilterState {
  * フィルターカテゴリの型定義
  * UIでのグループ化とアクセシビリティ対応
  */
-export type FilterCategory = "facilities" | "dining" | "nightlife" | "display";
+export type FilterCategory = 'facilities' | 'dining' | 'nightlife' | 'display';
 
 /**
  * フィルターオプションの詳細定義
@@ -60,7 +60,13 @@ export interface FilterCategoryGroup {
 }
 
 // プリセットフィルターの型定義（より厳密な定義）
-export type FilterPreset = "all" | "gourmet" | "facilities" | "nightlife" | "none" | "default";
+export type FilterPreset =
+  | 'all'
+  | 'gourmet'
+  | 'facilities'
+  | 'nightlife'
+  | 'none'
+  | 'default';
 
 /**
  * プリセット設定の型定義
@@ -103,7 +109,7 @@ export interface FilterChangeEvent {
   readonly oldValue: boolean;
   readonly newValue: boolean;
   readonly timestamp: number;
-  readonly source: "user" | "preset" | "system";
+  readonly source: 'user' | 'preset' | 'system';
 }
 
 /**
@@ -128,98 +134,98 @@ export const DEFAULT_FILTER_STATE = {
 // フィルターカテゴリー定義（型安全性とイミュータビリティを保証）
 export const FILTER_CATEGORIES = [
   {
-    id: "facilities" as EntityId,
-    label: "施設",
-    icon: "🏢",
-    description: "公共施設やサービス施設",
+    id: 'facilities' as EntityId,
+    label: '施設',
+    icon: '🏢',
+    description: '公共施設やサービス施設',
     options: [
       {
-        key: "showToilets" as const,
-        icon: "🚻",
-        description: "トイレ",
-        category: "facilities" as const,
-        accessibilityLabel: "トイレの表示切り替え",
+        key: 'showToilets' as const,
+        icon: '🚻',
+        description: 'トイレ',
+        category: 'facilities' as const,
+        accessibilityLabel: 'トイレの表示切り替え',
         priority: 1,
       },
       {
-        key: "showParking" as const,
-        icon: "🅿️",
-        description: "駐車場",
-        category: "facilities" as const,
-        accessibilityLabel: "駐車場の表示切り替え",
+        key: 'showParking' as const,
+        icon: '🅿️',
+        description: '駐車場',
+        category: 'facilities' as const,
+        accessibilityLabel: '駐車場の表示切り替え',
         priority: 2,
       },
     ],
   },
   {
-    id: "dining" as EntityId,
-    label: "グルメ",
-    icon: "🍽️",
-    description: "レストラン・飲食店",
+    id: 'dining' as EntityId,
+    label: 'グルメ',
+    icon: '🍽️',
+    description: 'レストラン・飲食店',
     options: [
       {
-        key: "showRecommended" as const,
-        icon: "⭐",
-        description: "おすすめ",
-        category: "dining" as const,
-        accessibilityLabel: "おすすめ店舗の表示切り替え",
+        key: 'showRecommended' as const,
+        icon: '⭐',
+        description: 'おすすめ',
+        category: 'dining' as const,
+        accessibilityLabel: 'おすすめ店舗の表示切り替え',
         priority: 1,
       },
       {
-        key: "showRyotsuAikawa" as const,
-        icon: "🍜",
-        description: "両津・相川エリア",
-        category: "dining" as const,
-        accessibilityLabel: "両津・相川エリアの店舗表示切り替え",
+        key: 'showRyotsuAikawa' as const,
+        icon: '🍜',
+        description: '両津・相川エリア',
+        category: 'dining' as const,
+        accessibilityLabel: '両津・相川エリアの店舗表示切り替え',
         priority: 2,
       },
       {
-        key: "showKanaiSawada" as const,
-        icon: "🍱",
-        description: "金井・佐和田エリア",
-        category: "dining" as const,
-        accessibilityLabel: "金井・佐和田エリアの店舗表示切り替え",
+        key: 'showKanaiSawada' as const,
+        icon: '🍱',
+        description: '金井・佐和田エリア',
+        category: 'dining' as const,
+        accessibilityLabel: '金井・佐和田エリアの店舗表示切り替え',
         priority: 3,
       },
       {
-        key: "showAkadomariHamochi" as const,
-        icon: "🍣",
-        description: "赤泊・羽茂エリア",
-        category: "dining" as const,
-        accessibilityLabel: "赤泊・羽茂エリアの店舗表示切り替え",
+        key: 'showAkadomariHamochi' as const,
+        icon: '🍣',
+        description: '赤泊・羽茂エリア',
+        category: 'dining' as const,
+        accessibilityLabel: '赤泊・羽茂エリアの店舗表示切り替え',
         priority: 4,
       },
     ],
   },
   {
-    id: "nightlife" as EntityId,
-    label: "ナイトライフ",
-    icon: "🍸",
-    description: "夜間営業の飲食店",
+    id: 'nightlife' as EntityId,
+    label: 'ナイトライフ',
+    icon: '🍸',
+    description: '夜間営業の飲食店',
     options: [
       {
-        key: "showSnacks" as const,
-        icon: "🍻",
-        description: "スナック・バー",
-        category: "nightlife" as const,
-        accessibilityLabel: "スナック・バーの表示切り替え",
+        key: 'showSnacks' as const,
+        icon: '🍻',
+        description: 'スナック・バー',
+        category: 'nightlife' as const,
+        accessibilityLabel: 'スナック・バーの表示切り替え',
         priority: 1,
       },
     ],
   },
   {
-    id: "display" as EntityId,
-    label: "表示設定",
-    icon: "⚙️",
-    description: "地図表示の設定",
+    id: 'display' as EntityId,
+    label: '表示設定',
+    icon: '⚙️',
+    description: '地図表示の設定',
     options: [
       {
-        key: "enableClustering" as const,
-        icon: "🔗",
-        description: "マーカーをクラスタリング",
-        category: "display" as const,
-        accessibilityLabel: "マーカークラスタリングの有効/無効切り替え",
-        tooltip: "マーカーが密集している場合にグループ化して表示します",
+        key: 'enableClustering' as const,
+        icon: '🔗',
+        description: 'マーカーをクラスタリング',
+        category: 'display' as const,
+        accessibilityLabel: 'マーカークラスタリングの有効/無効切り替え',
+        tooltip: 'マーカーが密集している場合にグループ化して表示します',
         priority: 1,
       },
     ],
@@ -229,8 +235,8 @@ export const FILTER_CATEGORIES = [
 // プリセット設定定義（型安全性とイミュータビリティを保証）
 export const PRESET_CONFIGS = {
   all: {
-    name: "全て表示",
-    description: "全てのカテゴリを表示します",
+    name: '全て表示',
+    description: '全てのカテゴリを表示します',
     baseState: DEFAULT_FILTER_STATE,
     overrides: {
       showToilets: true,
@@ -244,8 +250,8 @@ export const PRESET_CONFIGS = {
     },
   },
   gourmet: {
-    name: "グルメ",
-    description: "飲食店のみを表示します",
+    name: 'グルメ',
+    description: '飲食店のみを表示します',
     baseState: DEFAULT_FILTER_STATE,
     overrides: {
       showRecommended: true,
@@ -256,8 +262,8 @@ export const PRESET_CONFIGS = {
     },
   },
   facilities: {
-    name: "施設",
-    description: "公共施設のみを表示します",
+    name: '施設',
+    description: '公共施設のみを表示します',
     baseState: DEFAULT_FILTER_STATE,
     overrides: {
       showToilets: true,
@@ -270,8 +276,8 @@ export const PRESET_CONFIGS = {
     },
   },
   nightlife: {
-    name: "ナイトライフ",
-    description: "夜間営業店のみを表示します",
+    name: 'ナイトライフ',
+    description: '夜間営業店のみを表示します',
     baseState: DEFAULT_FILTER_STATE,
     overrides: {
       showSnacks: true,
@@ -283,8 +289,8 @@ export const PRESET_CONFIGS = {
     },
   },
   none: {
-    name: "非表示",
-    description: "全てのマーカーを非表示にします",
+    name: '非表示',
+    description: '全てのマーカーを非表示にします',
     overrides: {
       showToilets: false,
       showParking: false,
@@ -297,8 +303,8 @@ export const PRESET_CONFIGS = {
     },
   },
   default: {
-    name: "デフォルト",
-    description: "デフォルトの表示設定です",
+    name: 'デフォルト',
+    description: 'デフォルトの表示設定です',
     overrides: DEFAULT_FILTER_STATE,
   },
 } as const satisfies Readonly<Record<FilterPreset, PresetConfig>>;
@@ -312,8 +318,15 @@ export const isFilterPreset = (preset: string): preset is FilterPreset => {
   return preset in PRESET_CONFIGS;
 };
 
-export const isFilterCategory = (category: string): category is FilterCategory => {
-  const validCategories: FilterCategory[] = ["facilities", "dining", "nightlife", "display"];
+export const isFilterCategory = (
+  category: string
+): category is FilterCategory => {
+  const validCategories: FilterCategory[] = [
+    'facilities',
+    'dining',
+    'nightlife',
+    'display',
+  ];
   return validCategories.includes(category as FilterCategory);
 };
 
@@ -326,11 +339,11 @@ export type FilterStateUpdate = Partial<FilterState>;
  * フィルター操作のアクションタイプ
  */
 export type FilterAction =
-  | { type: "SET_FILTER"; key: FilterKey; value: boolean }
-  | { type: "APPLY_PRESET"; preset: FilterPreset }
-  | { type: "RESET_FILTERS" }
-  | { type: "TOGGLE_FILTER"; key: FilterKey }
-  | { type: "UPDATE_MULTIPLE"; updates: FilterStateUpdate };
+  | { type: 'SET_FILTER'; key: FilterKey; value: boolean }
+  | { type: 'APPLY_PRESET'; preset: FilterPreset }
+  | { type: 'RESET_FILTERS' }
+  | { type: 'TOGGLE_FILTER'; key: FilterKey }
+  | { type: 'UPDATE_MULTIPLE'; updates: FilterStateUpdate };
 
 /**
  * フィルターコンテキストの型定義

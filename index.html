@@ -72,7 +72,7 @@
     <meta property="og:url" content="https://sado-kueccha.com/" />
     <meta property="og:site_name" content="佐渡で食えっちゃ" />
     <meta property="og:locale" content="ja_JP" />
-    <meta property="og:updated_time" content="2025-06-16T00:00:00Z" />
+    <meta property="og:updated_time" content="2025-06-23T00:00:00Z" />
 
     <!-- Twitter Card (Enhanced) -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -98,13 +98,16 @@
     <meta name="theme-color" content="#d7003a" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#a50029" media="(prefers-color-scheme: dark)" />
     <meta name="msapplication-navbutton-color" content="#d7003a" />
+
+    <!-- Critical CSS Inline Loading -->
+    <link rel="stylesheet" href="./src/critical.css" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- Security Headers (Enhanced) -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=()" />
     <!-- Note: CSP should be set via HTTP headers for better security -->
 
     <!-- Enhanced Structured Data for Better SEO -->
@@ -266,14 +269,12 @@
         const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const themeColor = isDarkMode ? '#a50029' : '#d7003a';
 
-        // Update existing theme-color meta tag
-        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
-        if (!themeColorMeta) {
-          themeColorMeta = document.createElement('meta');
-          themeColorMeta.name = 'theme-color';
-          document.head.appendChild(themeColorMeta);
-        }
-        themeColorMeta.content = themeColor;
+        // Update theme-color meta tags for both light and dark modes
+        const lightThemeMeta = document.querySelector('meta[name="theme-color"][media*="light"]');
+        const darkThemeMeta = document.querySelector('meta[name="theme-color"][media*="dark"]');
+
+        if (lightThemeMeta) lightThemeMeta.content = '#d7003a';
+        if (darkThemeMeta) darkThemeMeta.content = '#a50029';
 
         // Update status bar color for iOS
         let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');

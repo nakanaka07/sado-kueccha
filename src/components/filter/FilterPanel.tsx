@@ -1,4 +1,4 @@
-import type React from "react";
+import type React from 'react';
 import {
   memo,
   startTransition,
@@ -8,16 +8,24 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
-import { createPortal } from "react-dom";
-import { useFullscreenPanel } from "../../hooks";
-import { useFullscreenState } from "../../hooks/useFullscreenState";
-import type { FilterPreset, FilterState, FilterStats } from "../../types/filter";
-import { DEFAULT_FILTER_STATE, FILTER_CATEGORIES, PRESET_CONFIGS } from "../../types/filter";
-import type { POI } from "../../types/poi";
-import { ErrorBoundary } from "../ui/ErrorBoundary";
-import "./FilterPanel.css";
-import { VirtualizedFilterOptions } from "./VirtualizedFilterOptions";
+} from 'react';
+import { createPortal } from 'react-dom';
+import { useFullscreenPanel } from '../../hooks';
+import { useFullscreenState } from '../../hooks/useFullscreenState';
+import type {
+  FilterPreset,
+  FilterState,
+  FilterStats,
+} from '../../types/filter';
+import {
+  DEFAULT_FILTER_STATE,
+  FILTER_CATEGORIES,
+  PRESET_CONFIGS,
+} from '../../types/filter';
+import type { POI } from '../../types/poi';
+import { ErrorBoundary } from '../ui/ErrorBoundary';
+import './FilterPanel.css';
+import { VirtualizedFilterOptions } from './VirtualizedFilterOptions';
 
 /**
  * FilterPanel Component - 最新のWebベストプラクティス対応版
@@ -67,10 +75,12 @@ const FilterPanelErrorFallback: React.FC = () => (
  * React 18+ Concurrent Features 対応
  */
 const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
-  ({ pois, filterState, onFilterChange, className = "" }) => {
+  ({ pois, filterState, onFilterChange, className = '' }) => {
     // 状態管理
     const [isExpanded, setIsExpanded] = useState(false);
-    const [activeCategories, setActiveCategories] = useState<string[]>(["display"]);
+    const [activeCategories, setActiveCategories] = useState<string[]>([
+      'display',
+    ]);
 
     // React 18+ Concurrent Features
     // 重い処理を遅延させてUIの応答性を保つ
@@ -100,7 +110,7 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
         snack: deferredFilterState.showSnacks,
       };
 
-      const visibleCount = deferredPois.filter((poi) => {
+      const visibleCount = deferredPois.filter(poi => {
         if (!poi.sourceSheet) return true;
         const sheetName = poi.sourceSheet.toLowerCase();
         for (const [keyword, shouldShow] of Object.entries(filterMap)) {
@@ -145,7 +155,7 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
       const updateHeight = () => {
         if (!contentRef.current) return;
         const height = isExpanded ? contentRef.current.scrollHeight : 0;
-        contentRef.current.style.setProperty("--content-height", `${height}px`);
+        contentRef.current.style.setProperty('--content-height', `${height}px`);
       };
 
       // ResizeObserver を使用してより精密な高さ監視
@@ -185,9 +195,11 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
         });
 
         // アクセシビリティ: 変更をアナウンス
-        announceToScreenReader(`フィルター ${key} が ${newValue ? "有効" : "無効"} になりました`);
+        announceToScreenReader(
+          `フィルター ${key} が ${newValue ? '有効' : '無効'} になりました`
+        );
       },
-      [filterState, onFilterChange, announceToScreenReader],
+      [filterState, onFilterChange, announceToScreenReader]
     );
 
     // プリセット適用ハンドラー（型安全性向上 + React 18 startTransition）
@@ -206,68 +218,90 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
         });
 
         // プリセットに応じてカテゴリの開閉状態を更新
-        if (preset !== "none") {
-          const categoryMappings: Record<Exclude<FilterPreset, "none">, string[]> = {
-            gourmet: ["dining", "display"],
-            facilities: ["facilities", "display"],
-            nightlife: ["nightlife", "display"],
-            all: FILTER_CATEGORIES.map((category) => category.id),
-            default: ["dining", "display"],
+        if (preset !== 'none') {
+          const categoryMappings: Record<
+            Exclude<FilterPreset, 'none'>,
+            string[]
+          > = {
+            gourmet: ['dining', 'display'],
+            facilities: ['facilities', 'display'],
+            nightlife: ['nightlife', 'display'],
+            all: FILTER_CATEGORIES.map(category => category.id),
+            default: ['dining', 'display'],
           };
           setActiveCategories(categoryMappings[preset]);
         } else {
-          setActiveCategories(["display"]);
+          setActiveCategories(['display']);
         }
 
         // アクセシビリティ: プリセット適用をアナウンス
         announceToScreenReader(`${config.name}プリセットを適用しました`);
       },
-      [onFilterChange, announceToScreenReader],
+      [onFilterChange, announceToScreenReader]
     );
 
     // カテゴリの開閉切り替え（型安全性向上）
     const toggleCategory = useCallback(
       (categoryId: string) => {
-        setActiveCategories((prev) => {
+        setActiveCategories(prev => {
           const isActive = prev.includes(categoryId);
           const newCategories = isActive
-            ? prev.filter((id) => id !== categoryId)
+            ? prev.filter(id => id !== categoryId)
             : [...prev, categoryId];
 
           // アクセシビリティ: カテゴリ状態変更をアナウンス
-          const category = FILTER_CATEGORIES.find((cat) => cat.id === categoryId);
+          const category = FILTER_CATEGORIES.find(cat => cat.id === categoryId);
           if (category) {
             announceToScreenReader(
-              `${category.label}カテゴリを${isActive ? "折りたたみ" : "展開"}ました`,
+              `${category.label}カテゴリを${isActive ? '折りたたみ' : '展開'}ました`
             );
           }
 
           return newCategories;
         });
       },
-      [announceToScreenReader],
+      [announceToScreenReader]
     );
 
     // プリセットボタンのレンダリング（メモ化）
     const renderPresetButtons = useMemo(
       () => (
-        <div className="filter-presets" role="group" aria-label="フィルタープリセット">
+        <div
+          className="filter-presets"
+          role="group"
+          aria-label="フィルタープリセット"
+        >
           {[
-            { preset: "facilities" as const, icon: "🏢", label: "施設", title: "施設のみ表示" },
             {
-              preset: "gourmet" as const,
-              icon: "🍽️",
-              label: "グルメ",
-              title: "一般的な飲食店のみ表示（スナック除く）",
+              preset: 'facilities' as const,
+              icon: '🏢',
+              label: '施設',
+              title: '施設のみ表示',
             },
             {
-              preset: "nightlife" as const,
-              icon: "🍸",
-              label: "夜遊び",
-              title: "ナイトライフ（スナック）のみ表示",
+              preset: 'gourmet' as const,
+              icon: '🍽️',
+              label: 'グルメ',
+              title: '一般的な飲食店のみ表示（スナック除く）',
             },
-            { preset: "none" as const, icon: "❌", label: "クリア", title: "すべて非表示" },
-            { preset: "all" as const, icon: "✅", label: "全表示", title: "すべて表示" },
+            {
+              preset: 'nightlife' as const,
+              icon: '🍸',
+              label: '夜遊び',
+              title: 'ナイトライフ（スナック）のみ表示',
+            },
+            {
+              preset: 'none' as const,
+              icon: '❌',
+              label: 'クリア',
+              title: 'すべて非表示',
+            },
+            {
+              preset: 'all' as const,
+              icon: '✅',
+              label: '全表示',
+              title: 'すべて表示',
+            },
           ].map(({ preset, icon, label, title }) => (
             <button
               key={preset}
@@ -288,18 +322,22 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
           ))}
         </div>
       ),
-      [handlePresetApply, setFocusedElementId],
+      [handlePresetApply, setFocusedElementId]
     );
 
     // カテゴリフィルターのレンダリング（メモ化）
     const renderCategoryFilters = useMemo(
       () => (
-        <div className="filter-categories" role="group" aria-label="カテゴリ別フィルター">
-          {FILTER_CATEGORIES.map((category) => (
+        <div
+          className="filter-categories"
+          role="group"
+          aria-label="カテゴリ別フィルター"
+        >
+          {FILTER_CATEGORIES.map(category => (
             <div key={category.id} className="filter-category">
               <button
                 className={`category-header ${
-                  activeCategories.includes(category.id) ? "active" : ""
+                  activeCategories.includes(category.id) ? 'active' : ''
                 }`}
                 onClick={() => {
                   toggleCategory(category.id);
@@ -307,7 +345,9 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
                 aria-expanded={activeCategories.includes(category.id)}
                 aria-controls={`category-${category.id}`}
                 aria-label={`${category.label}カテゴリを${
-                  activeCategories.includes(category.id) ? "折りたたむ" : "展開する"
+                  activeCategories.includes(category.id)
+                    ? '折りたたむ'
+                    : '展開する'
                 }`}
                 onFocus={() => {
                   setFocusedElementId(`category-${category.id}`);
@@ -320,7 +360,7 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
                 <span className="category-label">{category.label}</span>
                 <span
                   className={`expand-icon ${
-                    activeCategories.includes(category.id) ? "expanded" : ""
+                    activeCategories.includes(category.id) ? 'expanded' : ''
                   }`}
                   aria-hidden="true"
                 >
@@ -338,10 +378,12 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
                   <VirtualizedFilterOptions
                     options={[...category.options]}
                     selectedOptions={Object.keys(filterState).filter(
-                      (key) => filterState[key as keyof FilterState],
+                      key => filterState[key as keyof FilterState]
                     )}
                     onOptionChange={(optionKey, selected) => {
-                      if (selected !== filterState[optionKey as keyof FilterState]) {
+                      if (
+                        selected !== filterState[optionKey as keyof FilterState]
+                      ) {
                         handleFilterToggle(optionKey as keyof FilterState);
                       }
                     }}
@@ -352,15 +394,21 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
           ))}
         </div>
       ),
-      [activeCategories, filterState, handleFilterToggle, toggleCategory, setFocusedElementId],
+      [
+        activeCategories,
+        filterState,
+        handleFilterToggle,
+        toggleCategory,
+        setFocusedElementId,
+      ]
     );
 
     // パネルコンテンツのレンダリング
     const renderPanelContent = () => (
       <section
         ref={panelRef}
-        className={`filter-panel ${!isExpanded ? "collapsed" : ""} ${
-          isFullscreen ? "fullscreen-mode" : ""
+        className={`filter-panel ${!isExpanded ? 'collapsed' : ''} ${
+          isFullscreen ? 'fullscreen-mode' : ''
         } ${className}`}
         data-fullscreen={isFullscreen}
         data-testid="filter-panel"
@@ -376,7 +424,7 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
             data-expanded={isExpanded}
             aria-expanded={isExpanded}
             aria-controls="filter-content"
-            aria-label={`フィルターパネルを${isExpanded ? "折りたたむ" : "展開する"}`}
+            aria-label={`フィルターパネルを${isExpanded ? '折りたたむ' : '展開する'}`}
             data-testid="filter-toggle"
           >
             <span className="filter-icon" aria-hidden="true">
@@ -389,7 +437,10 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
             >
               ({stats.visible}/{stats.total})
             </span>
-            <span className={`expand-icon ${isExpanded ? "expanded" : ""}`} aria-hidden="true">
+            <span
+              className={`expand-icon ${isExpanded ? 'expanded' : ''}`}
+              aria-hidden="true"
+            >
               ▼
             </span>
           </button>
@@ -412,8 +463,10 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
               <span className="stats-separator">/</span>
               <span className="stats-total">{stats.total}件中</span>
             </div>
-            {stats.hidden > 0 && <div className="stats-hidden">{stats.hidden}件が非表示</div>}
-            {process.env.NODE_ENV === "development" && stats.performance ? (
+            {stats.hidden > 0 && (
+              <div className="stats-hidden">{stats.hidden}件が非表示</div>
+            )}
+            {process.env.NODE_ENV === 'development' && stats.performance ? (
               <div className="stats-debug" title="パフォーマンス情報">
                 フィルター処理: {stats.performance.filterTime.toFixed(2)}ms
               </div>
@@ -440,19 +493,21 @@ const FilterPanelComponent: React.FC<FilterPanelProps> = memo(
           : renderPanelContent()}
 
         {/* 開発時のデバッグ表示 */}
-        {process.env.NODE_ENV === "development" && isFullscreen ? (
-          <div className="fullscreen-debug-indicator">✅ Fullscreen Active - Enhanced Panel</div>
+        {process.env.NODE_ENV === 'development' && isFullscreen ? (
+          <div className="fullscreen-debug-indicator">
+            ✅ Fullscreen Active - Enhanced Panel
+          </div>
         ) : null}
       </>
     );
-  },
+  }
 );
 
 // コンポーネント名を設定（デバッグ用）
-FilterPanelComponent.displayName = "FilterPanel";
+FilterPanelComponent.displayName = 'FilterPanel';
 
 // エラーバウンダリ付きのエクスポート
-export const FilterPanel: React.FC<FilterPanelProps> = (props) => (
+export const FilterPanel: React.FC<FilterPanelProps> = props => (
   <ErrorBoundary
     fallback={<FilterPanelErrorFallback />}
     enableErrorReporting={false}

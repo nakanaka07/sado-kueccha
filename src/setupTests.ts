@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
-import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // テスト環境のセットアップ
-Object.defineProperty(global, "ResizeObserver", {
+Object.defineProperty(global, 'ResizeObserver', {
   value: class ResizeObserver {
     observe() {}
     unobserve() {}
@@ -12,7 +12,7 @@ Object.defineProperty(global, "ResizeObserver", {
 });
 
 // Google Maps APIの簡単なモック
-Object.defineProperty(window, "google", {
+Object.defineProperty(window, 'google', {
   value: {
     maps: {
       Map: vi.fn(),

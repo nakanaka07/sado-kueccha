@@ -6,9 +6,9 @@
  * @since 2025-01-27
  */
 
-import type React from "react";
-import { memo, useCallback, useEffect, useState } from "react";
-import "./PerformanceDebugger.css";
+import type React from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
+import './PerformanceDebugger.css';
 
 interface SimpleMetrics {
   fps: number;
@@ -20,7 +20,7 @@ interface PerformanceDebuggerProps {
   /** デバッガーの表示制御 */
   enabled?: boolean;
   /** 位置 */
-  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   /** 透明度 */
   opacity?: number;
 }
@@ -29,7 +29,11 @@ interface PerformanceDebuggerProps {
  * 簡易パフォーマンスデバッガー
  */
 export const PerformanceDebugger: React.FC<PerformanceDebuggerProps> = memo(
-  ({ enabled = process.env.NODE_ENV === "development", position = "top-right", opacity = 0.9 }) => {
+  ({
+    enabled = process.env.NODE_ENV === 'development',
+    position = 'top-right',
+    opacity = 0.9,
+  }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [metrics, setMetrics] = useState<SimpleMetrics>({
       fps: 0,
@@ -85,15 +89,15 @@ export const PerformanceDebugger: React.FC<PerformanceDebuggerProps> = memo(
       if (!enabled) return;
 
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.ctrlKey && event.shiftKey && event.key === "P") {
+        if (event.ctrlKey && event.shiftKey && event.key === 'P') {
           event.preventDefault();
-          setIsVisible((prev) => !prev);
+          setIsVisible(prev => !prev);
         }
       };
 
-      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown);
       return () => {
-        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener('keydown', handleKeyDown);
       };
     }, [enabled]);
 
@@ -138,7 +142,9 @@ export const PerformanceDebugger: React.FC<PerformanceDebuggerProps> = memo(
           <div className="performance-debugger__metrics">
             <div className="metric">
               <span className="metric__label">FPS:</span>
-              <span className={`metric__value ${metrics.fps < 30 ? "metric__value--warning" : ""}`}>
+              <span
+                className={`metric__value ${metrics.fps < 30 ? 'metric__value--warning' : ''}`}
+              >
                 {metrics.fps}
               </span>
             </div>
@@ -147,7 +153,7 @@ export const PerformanceDebugger: React.FC<PerformanceDebuggerProps> = memo(
               <span className="metric__label">Frame Time:</span>
               <span
                 className={`metric__value ${
-                  metrics.frameTime > 16.67 ? "metric__value--warning" : ""
+                  metrics.frameTime > 16.67 ? 'metric__value--warning' : ''
                 }`}
               >
                 {metrics.frameTime}ms
@@ -166,7 +172,7 @@ export const PerformanceDebugger: React.FC<PerformanceDebuggerProps> = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
-PerformanceDebugger.displayName = "PerformanceDebugger";
+PerformanceDebugger.displayName = 'PerformanceDebugger';

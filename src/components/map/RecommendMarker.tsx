@@ -1,9 +1,9 @@
-import { AdvancedMarker } from "@vis.gl/react-google-maps";
-import type { FC } from "react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import type { POI } from "../../types/poi";
-import { ASSETS } from "../../utils/assets";
-import "./RecommendMarker.css";
+import { AdvancedMarker } from '@vis.gl/react-google-maps';
+import type { FC } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import type { POI } from '../../types/poi';
+import { ASSETS } from '../../utils/assets';
+import './RecommendMarker.css';
 
 interface RecommendMarkerProps {
   poi: POI;
@@ -37,7 +37,7 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
       if (!markerElement) return;
 
       const observer = new IntersectionObserver(
-        (entries) => {
+        entries => {
           const [entry] = entries;
           if (entry) {
             setIsVisible(entry.isIntersecting);
@@ -54,8 +54,8 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
         },
         {
           threshold: 0.1,
-          rootMargin: "50px",
-        },
+          rootMargin: '50px',
+        }
       );
 
       observer.observe(markerElement);
@@ -75,7 +75,7 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
 
       // will-change プロパティを動的に設定
       if (markerRef.current) {
-        markerRef.current.style.willChange = "transform, opacity";
+        markerRef.current.style.willChange = 'transform, opacity';
       }
 
       animationFrameRef.current = requestAnimationFrame(() => {
@@ -85,7 +85,7 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
 
           // アニメーション完了後に will-change を削除
           if (markerRef.current) {
-            markerRef.current.style.willChange = "auto";
+            markerRef.current.style.willChange = 'auto';
           }
         }, 600);
       });
@@ -111,24 +111,28 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
 
     // クラス名の動的生成（useMemoで最適化）
     const markerClasses = [
-      "recommend-marker",
-      "recommend-marker-special",
-      shouldBounce && "recommend-marker-bounce",
-      isHighlighted && "recommend-marker-highlighted",
+      'recommend-marker',
+      'recommend-marker-special',
+      shouldBounce && 'recommend-marker-bounce',
+      isHighlighted && 'recommend-marker-highlighted',
     ]
       .filter(Boolean)
-      .join(" ");
+      .join(' ');
 
     return (
-      <AdvancedMarker position={poi.position} onClick={handleClick} zIndex={1000}>
+      <AdvancedMarker
+        position={poi.position}
+        onClick={handleClick}
+        zIndex={1000}
+      >
         <div
           ref={markerRef}
           className={markerClasses}
           role="button"
           tabIndex={0}
-          aria-label={`おすすめスポット: ${poi.name || "おすすめ"}`}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+          aria-label={`おすすめスポット: ${poi.name || 'おすすめ'}`}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               handleClick();
             }
@@ -151,9 +155,9 @@ const RecommendMarker: FC<RecommendMarkerProps> = memo(
         </div>
       </AdvancedMarker>
     );
-  },
+  }
 );
 
-RecommendMarker.displayName = "RecommendMarker";
+RecommendMarker.displayName = 'RecommendMarker';
 
 export default RecommendMarker;

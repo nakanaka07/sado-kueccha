@@ -3,14 +3,14 @@
  * 地図上の興味地点を表現する型安全な実装
  */
 
-import type { Brand, Result, TimestampMs } from "./common";
-import type { LatLngLiteral } from "./google-maps";
+import type { Brand, Result, TimestampMs } from './common';
+import type { LatLngLiteral } from './google-maps';
 
 // POI関連のブランド型
-export type POIId = Brand<string, "POIId">;
-export type ClusterPOIId = Brand<string, "ClusterPOIId">;
-export type GenreId = Brand<string, "GenreId">;
-export type DistrictId = Brand<string, "DistrictId">;
+export type POIId = Brand<string, 'POIId'>;
+export type ClusterPOIId = Brand<string, 'ClusterPOIId'>;
+export type GenreId = Brand<string, 'GenreId'>;
+export type DistrictId = Brand<string, 'DistrictId'>;
 
 /**
  * 営業時間の詳細定義
@@ -66,7 +66,7 @@ export interface POIDetails {
   readonly images?: readonly string[];
   readonly rating?: number;
   readonly reviewCount?: number;
-  readonly priceRange?: "budget" | "moderate" | "expensive" | "luxury";
+  readonly priceRange?: 'budget' | 'moderate' | 'expensive' | 'luxury';
   readonly accessibility?: {
     readonly wheelchairAccessible?: boolean;
     readonly hasParking?: boolean;
@@ -109,7 +109,7 @@ export interface POICluster {
   readonly pois: readonly POI[];
   readonly bounds?: google.maps.LatLngBounds;
   readonly level: number; // クラスターの階層レベル
-  readonly priority?: "high" | "medium" | "low";
+  readonly priority?: 'high' | 'medium' | 'low';
   readonly metadata?: {
     readonly averageRating?: number;
     readonly popularGenres?: readonly GenreId[];
@@ -136,31 +136,34 @@ export interface ClusterablePOI extends POI {
  * より具体的な営業状態を表現
  */
 export type ParsedHours =
-  | { readonly type: "closed" }
-  | { readonly type: "24h" }
-  | { readonly type: "unknown" }
+  | { readonly type: 'closed' }
+  | { readonly type: '24h' }
+  | { readonly type: 'unknown' }
   | {
-      readonly type: "multiple";
-      readonly periods: ReadonlyArray<{ readonly start: number; readonly end: number }>;
+      readonly type: 'multiple';
+      readonly periods: ReadonlyArray<{
+        readonly start: number;
+        readonly end: number;
+      }>;
     }
-  | { readonly type: "normal"; readonly start: number; readonly end: number }
-  | { readonly type: "irregular"; readonly note: string };
+  | { readonly type: 'normal'; readonly start: number; readonly end: number }
+  | { readonly type: 'irregular'; readonly note: string };
 
 /**
  * 営業ステータスの種類
  * より詳細なステータス表現
  */
 export type StatusType =
-  | "open"
-  | "closed"
-  | "unknown"
-  | "24h"
-  | "time-outside"
-  | "confirmation-needed"
-  | "temporarily-closed"
-  | "permanently-closed"
-  | "opening-soon"
-  | "closing-soon";
+  | 'open'
+  | 'closed'
+  | 'unknown'
+  | '24h'
+  | 'time-outside'
+  | 'confirmation-needed'
+  | 'temporarily-closed'
+  | 'permanently-closed'
+  | 'opening-soon'
+  | 'closing-soon';
 
 /**
  * 営業時間表示用の情報
@@ -206,7 +209,7 @@ export interface POISearchCriteria {
   readonly hasParking?: boolean;
   readonly cashlessOnly?: boolean;
   readonly minRating?: number;
-  readonly priceRange?: ReadonlyArray<POIDetails["priceRange"]>;
+  readonly priceRange?: ReadonlyArray<POIDetails['priceRange']>;
 }
 
 /**
@@ -243,54 +246,54 @@ export interface POIValidationResult {
   readonly errors: ReadonlyArray<{
     readonly field: keyof POI;
     readonly message: string;
-    readonly severity: "error" | "warning" | "info";
+    readonly severity: 'error' | 'warning' | 'info';
   }>;
   readonly suggestions?: readonly string[];
 }
 
 // 型ガード関数
 export const isPOI = (value: unknown): value is POI => {
-  if (typeof value !== "object" || value === null) return false;
+  if (typeof value !== 'object' || value === null) return false;
 
   const candidate = value as Record<string, unknown>;
   return (
-    "id" in candidate &&
-    "name" in candidate &&
-    "position" in candidate &&
-    "genre" in candidate &&
-    typeof candidate.id === "string" &&
-    typeof candidate.name === "string" &&
-    typeof candidate.genre === "string"
+    'id' in candidate &&
+    'name' in candidate &&
+    'position' in candidate &&
+    'genre' in candidate &&
+    typeof candidate.id === 'string' &&
+    typeof candidate.name === 'string' &&
+    typeof candidate.genre === 'string'
   );
 };
 
 export const isPOICluster = (value: unknown): value is POICluster => {
-  if (typeof value !== "object" || value === null) return false;
+  if (typeof value !== 'object' || value === null) return false;
 
   const candidate = value as Record<string, unknown>;
   return (
-    "id" in candidate &&
-    "center" in candidate &&
-    "size" in candidate &&
-    "pois" in candidate &&
-    typeof candidate.id === "string" &&
-    typeof candidate.size === "number" &&
+    'id' in candidate &&
+    'center' in candidate &&
+    'size' in candidate &&
+    'pois' in candidate &&
+    typeof candidate.id === 'string' &&
+    typeof candidate.size === 'number' &&
     Array.isArray(candidate.pois)
   );
 };
 
 export const isStatusType = (value: string): value is StatusType => {
   const validStatuses: StatusType[] = [
-    "open",
-    "closed",
-    "unknown",
-    "24h",
-    "time-outside",
-    "confirmation-needed",
-    "temporarily-closed",
-    "permanently-closed",
-    "opening-soon",
-    "closing-soon",
+    'open',
+    'closed',
+    'unknown',
+    '24h',
+    'time-outside',
+    'confirmation-needed',
+    'temporarily-closed',
+    'permanently-closed',
+    'opening-soon',
+    'closing-soon',
   ];
   return validStatuses.includes(value as StatusType);
 };
@@ -299,10 +302,13 @@ export const isStatusType = (value: string): value is StatusType => {
  * POI操作のヘルパー型
  */
 export type POIOperation =
-  | { type: "create"; poi: Omit<POI, "id" | "createdAt" | "updatedAt"> }
-  | { type: "update"; id: POIId; changes: Partial<POI> }
-  | { type: "delete"; id: POIId }
-  | { type: "bulk_update"; updates: ReadonlyArray<{ id: POIId; changes: Partial<POI> }> };
+  | { type: 'create'; poi: Omit<POI, 'id' | 'createdAt' | 'updatedAt'> }
+  | { type: 'update'; id: POIId; changes: Partial<POI> }
+  | { type: 'delete'; id: POIId }
+  | {
+      type: 'bulk_update';
+      updates: ReadonlyArray<{ id: POIId; changes: Partial<POI> }>;
+    };
 
 /**
  * POI操作結果の型
@@ -324,8 +330,13 @@ export interface POIContextValue {
   readonly clusters: readonly POICluster[];
   readonly loading: boolean;
   readonly error?: Error;
-  readonly searchPOIs: (criteria: POISearchCriteria) => Promise<POISearchResult>;
+  readonly searchPOIs: (
+    criteria: POISearchCriteria
+  ) => Promise<POISearchResult>;
   readonly getPOIById: (id: POIId) => POI | undefined;
-  readonly updatePOI: (id: POIId, changes: Partial<POI>) => Promise<POIOperationResult>;
+  readonly updatePOI: (
+    id: POIId,
+    changes: Partial<POI>
+  ) => Promise<POIOperationResult>;
   readonly validatePOI: (poi: Partial<POI>) => POIValidationResult;
 }
