@@ -15,12 +15,13 @@ Vite + Vitest **パッケージマネージャー**: pnpm **用途**: 佐渡島�
 
 - **フロントエンド**: React 19.1.0, TypeScript ~5.8.3
 - **ビルドツール**: Vite ^6.3.5
-- **テストフレームワーク**: Vitest ^3.1.4, @testing-library/react ^16.3.0
-- **地図ライブラリ**: @vis.gl/react-google-maps ^1.5.2,
+- **テストフレームワーク**: Vitest ^3.2.4, @testing-library/react ^16.3.0
+- **地図ライブラリ**: @vis.gl/react-google-maps ^1.5.3,
   @googlemaps/markerclusterer ^2.5.3
 - **スタイリング**: CSS Modules + 純粋 CSS
-- **リンター**: ESLint ^9.28.0 (Flat Config)
-- **フォーマッター**: Prettier
+- **リンター**: ESLint ^9.29.0 (Flat Config)
+- **フォーマッター**: Prettier ^3.4.2
+- **パッケージマネージャー**: pnpm ^10.12.2
 
 ### ディレクトリ構造
 
@@ -67,11 +68,13 @@ type FilterState = 'active' | 'inactive' | 'pending';
 ### React コンポーネント
 
 - **関数コンポーネント**: 常に関数コンポーネントを使用
+- **React 19 機能**: use フック、Server Components（準備段階）を適切に活用
 - **フック**: カスタムフックは `use` で開始
 - **Props**: 明示的なインターフェース定義
 - **メモ化**: パフォーマンスが重要な部分で React.memo, useMemo, useCallback を適
   切に使用
 - **ファイル命名**: PascalCase でコンポーネント名と一致
+- **Error Boundaries**: エラー処理にはError Boundaryを活用
 
 ```typescript
 // ✅ 推奨
@@ -120,8 +123,11 @@ export const Map: React.FC<MapProps> = ({
 
 - **仮想化**: 大量データの表示時は VirtualList コンポーネントを使用
 - **遅延読み込み**: React.lazy + Suspense での動的インポート
+- **React 19 最適化**: Concurrent Features、Automatic Batching を活用
 - **バッチレンダリング**: useBatchRendering フックでの描画最適化
 - **Web Workers**: 重い処理は workers/ ディレクトリ内で実装
+- **Bundle Splitting**: Vite の動的インポートでチャンク分割
+- **Critical CSS**: 重要スタイルの優先読み込み
 
 ### テスト
 
@@ -153,6 +159,8 @@ describe("MapComponent", () => {
 4. **アクセシビリティ**: ARIA 属性やセマンティクス HTML を使用
 5. **エラーハンドリング**: 適切なエラー境界とフォールバック
 6. **テスタビリティ**: テストしやすい構造での実装
+7. **セキュリティ**: XSS対策、CSP準拠、安全なAPI呼び出し
+8. **SEO**: 適切なメタタグ、構造化データの活用
 
 ### 避けるべきパターン
 
@@ -297,22 +305,26 @@ GitHub Copilotを使用する際、改善指示の意味を正確に理解して
 
 - [ ] `pnpm type-check` で TypeScript エラーなし
 - [ ] `pnpm lint` で ESLint エラーなし
-- [ ] `pnpm test` でテスト通過
+- [ ] `pnpm test:run` でテスト通過
+- [ ] `pnpm format:check` でフォーマット確認
 - [ ] 新規機能にはテストを追加
 - [ ] パフォーマンス影響の確認
+- [ ] アクセシビリティの確認
 
 ### パフォーマンス指標
 
 - **バンドルサイズ**: 500KB 以下を維持
-- **初期表示**: 3 秒以内
+- **初期表示**: 3 秒以内（Core Web Vitals 準拠）
 - **マーカー描画**: 1000 個まで滑らかに表示
 - **フィルタリング**: 100ms 以内でレスポンス
+- **LCP**: 2.5秒以内、**FID**: 100ms以内、**CLS**: 0.1以下
 
 ### ブラウザ対応
 
-- **現代ブラウザ**: Chrome, Firefox, Safari, Edge（最新版）
-- **モバイル**: iOS Safari, Chrome Mobile
+- **現代ブラウザ**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **モバイル**: iOS Safari 14+, Chrome Mobile 90+
 - **レスポンシブ**: 320px〜1920px の幅に対応
+- **PWA**: Progressive Web App として動作
 
 ## 📚 参考リソース
 
@@ -321,6 +333,9 @@ GitHub Copilotを使用する際、改善指示の意味を正確に理解して
 - [Vite Guide](https://vitejs.dev/guide/)
 - [Vitest Documentation](https://vitest.dev/)
 - [Google Maps Platform](https://developers.google.com/maps/documentation)
+- [Web Accessibility Guidelines (WCAG)](https://www.w3.org/WAI/WCAG21/quickref/)
+- [Core Web Vitals](https://web.dev/vitals/)
+- [PWA Best Practices](https://web.dev/progressive-web-apps/)
 
 ---
 

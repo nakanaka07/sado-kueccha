@@ -9,14 +9,13 @@ const App = lazy(() => import('./app/App'));
 import './critical.css';
 
 import { isDevelopment, isProduction, validateAppConfig } from './utils/env';
+import { devOnly, logger, performanceLogger } from './utils/logger';
 import { initializeApp as initializeAppValidation } from './utils/runtime-validation';
 
 // 非クリティカル CSS の遅延読み込み（パフォーマンス最適化）
 const loadNonCriticalStyles = (): void => {
   void import('./index.css').catch((error: unknown) => {
-    if (isDevelopment()) {
-      console.warn('⚠️ Non-critical styles loading failed:', error);
-    }
+    devOnly.warn('Non-critical styles loading failed', error, 'main');
   });
 };
 
@@ -58,22 +57,22 @@ const validateEnvironment = (): void => {
     // 既存の検証も実行
     validateAppConfig();
   } catch (error) {
-    if (isDevelopment()) {
-      console.warn('⚠️ Environment validation error:', error);
-      console.warn(
-        'アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。'
-      );
-    }
+    devOnly.warn('Environment validation error', error, 'main');
+    devOnly.warn(
+      'アプリケーションが正常に動作しない可能性があります。.env ファイルを確認してください。',
+      undefined,
+      'main'
+    );
 
     if (isProduction()) {
-      console.error('❌ Production environment validation failed', error);
+      logger.error('Production environment validation failed', error, 'main');
     }
   }
 };
 
 // 🚨 グローバルエラーハンドリング: 未処理のPromise拒否をキャッチ
 const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
-  console.error('🚨 Unhandled Promise Rejection:', event.reason);
+  logger.error('Unhandled Promise Rejection', event.reason, 'main');
 
   // Core Web Vitalsに影響するエラーの追跡
   if (isProduction()) {
@@ -86,15 +85,19 @@ const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
 
 // 🚨 グローバルエラーハンドリング: JavaScript実行時エラーをキャッチ
 const handleError = (event: ErrorEvent): void => {
-  console.error('🚨 JavaScript Error:', {
-    message: event.message,
-    filename: event.filename,
-    lineno: event.lineno,
-    colno: event.colno,
-    error: event.error as Error | undefined,
-    timestamp: Date.now(),
-    userAgent: navigator.userAgent,
-  });
+  logger.error(
+    'JavaScript Error',
+    {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error as Error | undefined,
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+    },
+    'main'
+  );
 
   if (isProduction()) {
     // Error reporting will be integrated in future versions
@@ -108,7 +111,7 @@ window.addEventListener('error', handleError);
 // 📊 パフォーマンス監視とCore Web Vitals追跡
 if (isDevelopment()) {
   // React DevTools のパフォーマンストラッキングを有効化
-  performance.mark('app-start');
+  performanceLogger.start('app-initialization');
 
   // Web Vitals 測定開始マーク
   performance.mark('vitals-measurement-start');
@@ -122,20 +125,33 @@ const registerServiceWorker = (): void => {
   }
 
   try {
-    // TODO: PWA機能は現在無効化（型定義の問題により）
-    // 将来のリファクタリングで再有効化予定
-    console.warn('🔧 PWA機能は現在無効化されています');
+    // PWA機能の有効化（本番環境のみ）
+    if (isProduction()) {
+      // Service Workerの登録
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => {
+          logger.info(
+            'Service Worker registered successfully',
+            {
+              scope: registration.scope,
+            },
+            'pwa'
+          );
 
-    // PWA機能は本番環境でのみ有効にする予定
-    // if (import.meta.env.PROD) {
-    //   const pwaModule = await import('virtual:pwa-register');
-    //   const { registerSW } = pwaModule;
-    //   // ... PWA registration logic
-    // }
-  } catch (error) {
-    if (isDevelopment()) {
-      console.warn('❌ SW registration failed:', error);
+          // Service Workerの更新チェック
+          registration.addEventListener('updatefound', () => {
+            devOnly.info('Service Worker update found', undefined, 'pwa');
+          });
+        })
+        .catch((error: unknown) => {
+          logger.warn('Service Worker registration failed', error, 'pwa');
+        });
+    } else {
+      devOnly.info('PWA機能は本番環境でのみ有効です', undefined, 'pwa');
     }
+  } catch (error) {
+    devOnly.warn('SW registration failed', error, 'main');
   }
 };
 
@@ -152,12 +168,12 @@ const initWebVitals = (): void => {
       const entries = list.getEntries();
       const lcp = entries[entries.length - 1];
       // LCP計測のみ実行、ログ出力は開発環境のみ
-      if (
-        isDevelopment() &&
-        lcp?.startTime !== undefined &&
-        lcp.startTime > 2500
-      ) {
-        console.warn('📊 LCP遅延:', Math.round(lcp.startTime));
+      if (lcp?.startTime !== undefined && lcp.startTime > 2500) {
+        devOnly.warn(
+          'LCP遅延',
+          { duration: Math.round(lcp.startTime) },
+          'performance'
+        );
       }
     }).observe({ type: 'largest-contentful-paint', buffered: true });
 
@@ -177,8 +193,12 @@ const initWebVitals = (): void => {
         }
       }
       // CLS計測のみ実行、ログ出力は開発環境のみ
-      if (isDevelopment() && clsValue > 0.1) {
-        console.warn('📊 CLS閾値超過:', Math.round(clsValue * 1000) / 1000);
+      if (clsValue > 0.1) {
+        devOnly.warn(
+          'CLS閾値超過',
+          { value: Math.round(clsValue * 1000) / 1000 },
+          'performance'
+        );
       }
     }).observe({ type: 'layout-shift', buffered: true });
 
@@ -191,17 +211,19 @@ const initWebVitals = (): void => {
         if (typeof eventTiming.processingStart === 'number') {
           const fid = eventTiming.processingStart - entry.startTime;
           // FID計測のみ実行、ログ出力は開発環境のみ
-          if (isDevelopment() && fid > 100) {
-            console.warn('📊 FID遅延:', Math.round(fid));
+          if (fid > 100) {
+            devOnly.warn(
+              'FID遅延',
+              { duration: Math.round(fid) },
+              'performance'
+            );
           }
         }
       }
     }).observe({ type: 'first-input', buffered: true });
   } catch (error) {
     // Performance Observer非対応ブラウザでは無視
-    if (isDevelopment()) {
-      console.warn('⚠️ Performance Observer not supported:', error);
-    }
+    devOnly.warn('Performance Observer not supported', error, 'performance');
   }
 };
 
@@ -230,9 +252,7 @@ const initializeApp = (): void => {
     // Step 5: 最適化されたデータプリロードを並行して開始（ノンブロッキング）
     void import('./services/preload').then(({ preloadManager }) => {
       preloadManager.startOptimizedPreload().catch((error: unknown) => {
-        if (isDevelopment()) {
-          console.warn('⚠️ プリロード失敗:', error);
-        }
+        devOnly.warn('プリロード失敗', error, 'main');
       });
     });
 
@@ -252,9 +272,7 @@ const initializeApp = (): void => {
 
     // Step 8: パフォーマンス測定 (開発環境)
     if (isDevelopment()) {
-      performance.mark('app-rendered');
-      performance.measure('app-initialization', 'app-start', 'app-rendered');
-      // パフォーマンス測定のみ実行（ログ出力なし）
+      performanceLogger.end('app-initialization');
     }
 
     // Step 9: Service Worker登録
@@ -263,7 +281,7 @@ const initializeApp = (): void => {
     // Step 10: Web Vitals測定初期化
     initWebVitals();
   } catch (error) {
-    console.error('❌ Failed to initialize application:', error);
+    logger.error('Failed to initialize application', error, 'main');
 
     // フォールバック: シンプルなエラーメッセージを表示
     const rootElement = document.getElementById('root');
