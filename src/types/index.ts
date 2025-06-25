@@ -4,8 +4,7 @@
  * 最新のTypeScript 5.x に対応した型安全な実装
  */
 
-// 環境変数型定義をグローバルに適用（最初にインポート）
-import './env.js';
+// 環境変数型定義は env.d.ts で自動的に読み込まれます
 
 // 共通型（基盤となるユーティリティ型）
 export type {
@@ -45,12 +44,13 @@ export type {
 export type {
   BusinessHoursInfo,
   BusinessHoursPeriod,
-  ClusterPOIId,
   ClusterablePOI,
+  ClusterPOIId,
   ContactInfo,
   DailyBusinessHours,
   DistrictId,
   GenreId,
+  ParsedHours,
   POI,
   POICluster,
   POIContextValue,
@@ -62,7 +62,6 @@ export type {
   POISearchResult,
   POIUpdateHistory,
   POIValidationResult,
-  ParsedHours,
   StatusConfig,
   StatusType,
   WeeklyBusinessHours,
@@ -146,9 +145,9 @@ export type {
   SheetMetadata,
   SheetOperationResult,
   SheetSchema,
-  SheetTransformConfig,
   SheetsConfig,
   SheetsContextValue,
+  SheetTransformConfig,
   SpreadsheetId,
 } from './sheets';
 

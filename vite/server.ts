@@ -17,9 +17,14 @@ export class ServerConfigValidationError extends Error {
  * サーバー設定の型定義
  */
 interface ServerConfig {
+  host: string;
+  port: number;
+  strictPort: boolean;
+  open: boolean;
   hmr: {
     overlay: boolean;
     port: number;
+    clientPort?: number;
   };
   watch: {
     usePolling: boolean;
@@ -44,9 +49,19 @@ interface ProxyOptions {
 export function validateServerConfig(config: ServerConfig): void {
   const errors: string[] = [];
 
+  // ポート設定の検証
+  if (config.port <= 0 || config.port > 65535) {
+    errors.push('サーバーポートは1-65535の範囲で設定してください');
+  }
+
   // HMR設定の検証
   if (config.hmr.port <= 0 || config.hmr.port > 65535) {
     errors.push('HMRポートは1-65535の範囲で設定してください');
+  }
+
+  // HMRとサーバーのポートが同じでないことを確認
+  if (config.port === config.hmr.port) {
+    errors.push('サーバーポートとHMRポートは異なる値を設定してください');
   }
 
   // プロキシ設定の検証
@@ -90,10 +105,17 @@ export function createServerConfig(
   httpsConfig: HttpsConfig | boolean | undefined
 ): ServerConfig {
   const config: ServerConfig = {
+    // 基本設定
+    host: '0.0.0.0', // すべてのネットワークインターフェースでリッスン
+    port: 5173,
+    strictPort: false,
+    open: false,
+
     // HMR設定
     hmr: {
       overlay: false, // エラーオーバーレイを無効化
       port: 24678, // HMR専用ポート
+      clientPort: undefined, // ブラウザ側で自動検出
     },
 
     // ファイル監視設定

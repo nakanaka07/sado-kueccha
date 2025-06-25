@@ -42,13 +42,15 @@
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.inlayHints.parameterNames.enabled": "all",
   "typescript.inlayHints.variableTypes.enabled": true,
   "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
   "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
   "typescript.inlayHints.parameterTypes.enabled": true,
   "typescript.suggest.completeFunctionCalls": true,
+  "typescript.suggest.includeCompletionsForImportStatements": true,
+  "typescript.suggest.includeCompletionsWithSnippetText": true,
 
   // ⚛️ React 開発支援
   "emmet.includeLanguages": {
@@ -56,11 +58,14 @@
     "javascript": "javascriptreact"
   },
   "react.snippets.enabled": true,
+  "typescript.suggest.classMemberSnippets.enabled": false,
 
   // 🎨 ファイル関連設定
   "files.associations": {
     "*.css": "css",
-    "*.tsx": "typescriptreact"
+    "*.tsx": "typescriptreact",
+    "*.module.css": "css",
+    "vite.config.*": "typescript"
   },
   "files.eol": "\n",
   "files.insertFinalNewline": true,
@@ -163,6 +168,9 @@
   "editor.inlayHints.enabled": "on",
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": true,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "editor.suggest.preview": true,
+  "editor.suggest.shareSuggestSelections": true,
 
   // 🔗 Git 設定強化
   "git.autofetch": true,
@@ -176,6 +184,9 @@
   "workbench.startupEditor": "newUntitledFile",
   "workbench.editor.enablePreview": false,
   "workbench.editor.closeOnFileDelete": true,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 10,
+  "workbench.tree.indent": 20,
 
   // 📊 問題・診断設定
   "problems.decorations.enabled": true,
@@ -208,7 +219,11 @@
     "tsconfig",
     "vite",
     "sado",
-    "kueccha"
+    "kueccha",
+    "geolocation",
+    "coords",
+    "latlon",
+    "viewport"
   ],
 
   // 🎨 UI カスタマイズ
@@ -218,6 +233,64 @@
     "editorRuler.foreground": "#333333"
   },
 
-  // 🔧 終端設定
-  "terminal.integrated.defaultProfile.windows": "PowerShell"
+  // 🔧 ターミナル設定強化
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": ["-NoLogo", "-ExecutionPolicy", "Bypass"]
+    }
+  },
+  "terminal.integrated.env.windows": {
+    "FORCE_COLOR": "1",
+    "NODE_OPTIONS": "--max-old-space-size=8192"
+  },
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.showWelcome": false,
+  "terminal.integrated.persistentSessionReviveProcess": "never",
+  "terminal.integrated.enablePersistentSessions": false,
+
+  // 🤖 AI拡張機能設定
+  "claude.autoStart": false,
+  "claude.enableTerminalIntegration": false,
+  "claude.disableSSE": true,
+
+  // 🚀 GitHub Copilot 設定強化
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": false,
+    "plaintext": false
+  },
+  "github.copilot.advanced.inlineSuggestCount": 3,
+  "github.copilot.chat.localeOverride": "ja",
+
+  // 🎯 インポート最適化設定は上記TypeScript設定に統合済み
+
+  // 🔧 開発体験向上設定
+  "editor.suggest.insertMode": "replace",
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.tabCompletion": "on",
+  "editor.parameterHints.enabled": true,
+
+  // 📊 パフォーマンス監視設定
+  "typescript.preferences.noSemicolons": false,
+  "typescript.preferences.quoteStyle": "double",
+  "javascript.preferences.quoteStyle": "double",
+
+  // 🎨 UI改善設定
+  "editor.stickyScroll.enabled": true,
+  "editor.accessibilitySupport": "auto",
+  "workbench.tree.enableStickyScroll": true,
+  "workbench.list.smoothScrolling": true,
+
+  // 🔍 検索・ナビゲーション強化
+  "search.searchOnType": true,
+  "search.smartCase": true,
+  "workbench.commandPalette.experimental.suggestCommands": true,
+
+  // 🛡️ セキュリティ設定
+  "security.workspace.trust.untrustedFiles": "prompt",
+  "extensions.ignoreRecommendations": false,
+  "telemetry.telemetryLevel": "error"
 }

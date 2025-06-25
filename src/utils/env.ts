@@ -15,7 +15,18 @@ export const getEnvValue = (
   value: string | undefined,
   defaultValue = ''
 ): string => {
-  return value || defaultValue;
+  // プロダクション環境でのランタイムエラーを防ぐための安全なチェック
+  if (!value) {
+    if (defaultValue === '' && import.meta.env.DEV) {
+      console.warn(
+        `⚠️ 環境変数が未設定です。デフォルト値を使用します: ${defaultValue}`
+      );
+    }
+    return defaultValue;
+  }
+
+  // すでに文字列として渡されているので、そのまま返す
+  return value;
 };
 
 /**
@@ -28,8 +39,11 @@ export const getEnvNumber = (
   value: string | undefined,
   defaultValue: number
 ): number => {
-  const numValue = Number(value);
-  return isNaN(numValue) ? defaultValue : numValue;
+  if (typeof value === 'string') {
+    const numValue = Number(value);
+    return isNaN(numValue) ? defaultValue : numValue;
+  }
+  return defaultValue;
 };
 
 /**
@@ -42,8 +56,10 @@ export const getEnvBoolean = (
   value: string | undefined,
   defaultValue: boolean
 ): boolean => {
-  if (value === undefined || value === '') return defaultValue;
-  return value === 'true' || value === '1' || value === 'yes';
+  if (typeof value === 'string') {
+    return value === 'true' || value === '1' || value === 'yes';
+  }
+  return defaultValue;
 };
 
 /**
@@ -111,67 +127,94 @@ const DEFAULT_CONFIG = {
  */
 export const getAppConfig = () => {
   const sheetsConfig = getSheetsConfig();
+  const {
+    VITE_APP_NAME,
+    VITE_APP_VERSION,
+    VITE_BASE_PATH,
+    BASE_URL,
+    VITE_GOOGLE_MAPS_API_KEY,
+    VITE_GOOGLE_MAPS_MAP_ID,
+    VITE_GOOGLE_SPREADSHEET_ID,
+    VITE_GOOGLE_SHEETS_API_KEY,
+    VITE_EMAILJS_SERVICE_ID,
+    VITE_EMAILJS_TEMPLATE_ID,
+    VITE_EMAILJS_PUBLIC_KEY,
+    VITE_CACHE_TTL,
+    VITE_API_TIMEOUT,
+    VITE_BATCH_SIZE,
+    VITE_MAX_RETRIES,
+    VITE_DEBUG_MODE,
+    VITE_ENABLE_CONSOLE_LOGS,
+    VITE_FEATURE_OFFLINE_MODE,
+    VITE_FEATURE_PWA_INSTALL,
+    VITE_FEATURE_GEOLOCATION,
+    MODE,
+  } = import.meta.env;
 
   return {
     // 🏗️ 基本アプリケーション設定
     app: {
-      name: getEnvValue(import.meta.env.VITE_APP_NAME, 'sado-kueccha'),
-      version: getEnvValue(import.meta.env.VITE_APP_VERSION, '0.1.0'),
+      name: getEnvValue(VITE_APP_NAME as string | undefined, 'sado-kueccha'),
+      version: getEnvValue(VITE_APP_VERSION as string | undefined, '0.1.0'),
       basePath: getEnvValue(
-        import.meta.env.VITE_BASE_PATH,
+        VITE_BASE_PATH as string | undefined,
         DEFAULT_CONFIG.BASE_PATH
       ),
-      baseUrl: import.meta.env.BASE_URL || '/',
+      baseUrl: BASE_URL || '/',
     },
 
     // 🗺️ Google Maps関連
     maps: {
-      apiKey: getEnvValue(import.meta.env.VITE_GOOGLE_MAPS_API_KEY),
+      apiKey: getEnvValue(VITE_GOOGLE_MAPS_API_KEY as string | undefined),
       mapId: getEnvValue(
-        import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
+        VITE_GOOGLE_MAPS_MAP_ID as string | undefined,
         DEFAULT_CONFIG.GOOGLE_MAPS_MAP_ID
       ),
     },
 
     // 📊 データソース関連
     data: {
-      spreadsheetId: getEnvValue(import.meta.env.VITE_GOOGLE_SPREADSHEET_ID),
-      sheetsApiKey: getEnvValue(import.meta.env.VITE_GOOGLE_SHEETS_API_KEY),
+      spreadsheetId: getEnvValue(
+        VITE_GOOGLE_SPREADSHEET_ID as string | undefined
+      ),
+      sheetsApiKey: getEnvValue(
+        VITE_GOOGLE_SHEETS_API_KEY as string | undefined
+      ),
       sheets: sheetsConfig,
     },
 
     // 📧 EmailJS設定
     email: {
-      serviceId: getEnvValue(import.meta.env.VITE_EMAILJS_SERVICE_ID),
-      templateId: getEnvValue(import.meta.env.VITE_EMAILJS_TEMPLATE_ID),
-      publicKey: getEnvValue(import.meta.env.VITE_EMAILJS_PUBLIC_KEY),
+      serviceId: getEnvValue(VITE_EMAILJS_SERVICE_ID as string | undefined),
+      templateId: getEnvValue(VITE_EMAILJS_TEMPLATE_ID as string | undefined),
+      publicKey: getEnvValue(VITE_EMAILJS_PUBLIC_KEY as string | undefined),
     },
 
     // ⚡ パフォーマンス設定
     performance: {
       cacheTtl: getEnvNumber(
-        import.meta.env.VITE_CACHE_TTL,
+        VITE_CACHE_TTL as string | undefined,
         DEFAULT_CONFIG.CACHE_TTL
       ),
       apiTimeout: getEnvNumber(
-        import.meta.env.VITE_API_TIMEOUT,
+        VITE_API_TIMEOUT as string | undefined,
         DEFAULT_CONFIG.API_TIMEOUT
       ),
       batchSize: getEnvNumber(
-        import.meta.env.VITE_BATCH_SIZE,
+        VITE_BATCH_SIZE as string | undefined,
         DEFAULT_CONFIG.BATCH_SIZE
       ),
       maxRetries: getEnvNumber(
-        import.meta.env.VITE_MAX_RETRIES,
+        VITE_MAX_RETRIES as string | undefined,
         DEFAULT_CONFIG.MAX_RETRIES
       ),
     },
 
     // 🔧 開発・デバッグ設定
     debug: {
-      mode: getEnvBoolean(import.meta.env.VITE_DEBUG_MODE, false),
+      mode: getEnvBoolean(VITE_DEBUG_MODE as string | undefined, false),
       enableLogs: getEnvBoolean(
-        import.meta.env.VITE_ENABLE_CONSOLE_LOGS,
+        VITE_ENABLE_CONSOLE_LOGS as string | undefined,
         false
       ),
     },
@@ -179,12 +222,15 @@ export const getAppConfig = () => {
     // 🚀 フィーチャーフラグ
     features: {
       offlineMode: getEnvBoolean(
-        import.meta.env.VITE_FEATURE_OFFLINE_MODE,
+        VITE_FEATURE_OFFLINE_MODE as string | undefined,
         true
       ),
-      pwaInstall: getEnvBoolean(import.meta.env.VITE_FEATURE_PWA_INSTALL, true),
+      pwaInstall: getEnvBoolean(
+        VITE_FEATURE_PWA_INSTALL as string | undefined,
+        true
+      ),
       geolocation: getEnvBoolean(
-        import.meta.env.VITE_FEATURE_GEOLOCATION,
+        VITE_FEATURE_GEOLOCATION as string | undefined,
         true
       ),
     },
@@ -193,7 +239,7 @@ export const getAppConfig = () => {
     env: {
       isDev: isDevelopment(),
       isProd: isProduction(),
-      mode: import.meta.env.MODE,
+      mode: MODE,
     },
   };
 };
@@ -202,7 +248,11 @@ export const getAppConfig = () => {
  * 🛡️ 必須環境変数の検証（アプリケーション用・強化版）
  */
 export const validateAppConfig = (): void => {
-  const { env } = import.meta;
+  const {
+    VITE_GOOGLE_MAPS_API_KEY,
+    VITE_GOOGLE_SPREADSHEET_ID,
+    VITE_GOOGLE_SHEETS_API_KEY,
+  } = import.meta.env;
 
   // 必須のAPIキー検証
   const requiredApiKeys = [
@@ -213,30 +263,64 @@ export const validateAppConfig = (): void => {
 
   validateRequiredEnvVars(
     {
-      VITE_GOOGLE_MAPS_API_KEY: env.VITE_GOOGLE_MAPS_API_KEY,
-      VITE_GOOGLE_SPREADSHEET_ID: env.VITE_GOOGLE_SPREADSHEET_ID,
-      VITE_GOOGLE_SHEETS_API_KEY: env.VITE_GOOGLE_SHEETS_API_KEY,
+      VITE_GOOGLE_MAPS_API_KEY: getEnvValue(
+        VITE_GOOGLE_MAPS_API_KEY as string | undefined
+      ),
+      VITE_GOOGLE_SPREADSHEET_ID: getEnvValue(
+        VITE_GOOGLE_SPREADSHEET_ID as string | undefined
+      ),
+      VITE_GOOGLE_SHEETS_API_KEY: getEnvValue(
+        VITE_GOOGLE_SHEETS_API_KEY as string | undefined
+      ),
     },
     requiredApiKeys
   );
 
   // セキュリティチェック
   if (isProduction()) {
-    const sensitiveKeys = requiredApiKeys.filter(key => {
-      const value = env[key as keyof typeof env] as string | undefined;
-      return (
-        !value ||
-        (typeof value === 'string' &&
-          (value.includes('your_') ||
-            value.includes('example') ||
-            value.length < 10 || // 短すぎるAPIキー
-            value === 'test'))
-      );
-    });
+    const mapsKey = getEnvValue(VITE_GOOGLE_MAPS_API_KEY as string | undefined);
+    const spreadsheetId = getEnvValue(
+      VITE_GOOGLE_SPREADSHEET_ID as string | undefined
+    );
+    const sheetsKey = getEnvValue(
+      VITE_GOOGLE_SHEETS_API_KEY as string | undefined
+    );
 
-    if (sensitiveKeys.length > 0) {
+    const invalidKeys: string[] = [];
+
+    if (
+      !mapsKey ||
+      mapsKey.includes('your_') ||
+      mapsKey.includes('example') ||
+      mapsKey.length < 10 ||
+      mapsKey === 'test'
+    ) {
+      invalidKeys.push('VITE_GOOGLE_MAPS_API_KEY');
+    }
+
+    if (
+      !spreadsheetId ||
+      spreadsheetId.includes('your_') ||
+      spreadsheetId.includes('example') ||
+      spreadsheetId.length < 10 ||
+      spreadsheetId === 'test'
+    ) {
+      invalidKeys.push('VITE_GOOGLE_SPREADSHEET_ID');
+    }
+
+    if (
+      !sheetsKey ||
+      sheetsKey.includes('your_') ||
+      sheetsKey.includes('example') ||
+      sheetsKey.length < 10 ||
+      sheetsKey === 'test'
+    ) {
+      invalidKeys.push('VITE_GOOGLE_SHEETS_API_KEY');
+    }
+
+    if (invalidKeys.length > 0) {
       throw new Error(
-        `🚨 本番環境で無効なAPIキーが検出されました: ${sensitiveKeys.join(', ')}`
+        `🚨 本番環境で無効なAPIキーが検出されました: ${invalidKeys.join(', ')}`
       );
     }
   }

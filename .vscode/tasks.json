@@ -6,7 +6,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["install"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -20,31 +23,101 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["dev"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "isBackground": true,
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "shared"
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
       },
-      "problemMatcher": [
-        {
-          "pattern": [
-            {
-              "regexp": ".",
-              "file": 1,
-              "location": 2,
-              "message": 3
-            }
-          ],
-          "background": {
-            "activeOnStart": true,
-            "beginsPattern": ".",
-            "endsPattern": "ready in"
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error)\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
           }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "vite.*dev",
+          "endsPattern": "ready in"
         }
-      ]
+      },
+      "options": {
+        "env": {
+          "FORCE_COLOR": "1"
+        }
+      }
+    },
+    {
+      "label": "🚀 dev server (auto-stop)",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/dev-auto-stop.ps1"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error)\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "🚀 Starting sado-kueccha development server",
+          "endsPattern": "✅ Development server started"
+        }
+      },
+      "options": {
+        "env": {
+          "FORCE_COLOR": "1"
+        }
+      }
+    },
+    {
+      "label": "🛑 stop dev server",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/stop-dev-server.ps1"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
     },
     {
       "label": "🏗️ build",
@@ -68,7 +141,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["preview"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "dependsOn": "🏗️ build",
       "presentation": {
         "echo": true,
@@ -77,6 +153,74 @@
         "panel": "shared"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "🏗️ build & preview",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["build", "&&", "pnpm", "preview"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error)\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "building for production",
+          "endsPattern": "Local:.*http://localhost:[0-9]+"
+        }
+      }
+    },
+    {
+      "label": "👁️ preview only",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["preview"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error)\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "preview",
+          "endsPattern": "Local:.*http://localhost:[0-9]+"
+        }
+      }
     },
     {
       "label": "🧪 test",
@@ -94,42 +238,91 @@
         "focus": false,
         "panel": "shared"
       },
-      "problemMatcher": []
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^\\s*(.*)\\s+(FAIL|PASS)\\s+(.*)$",
+            "file": 3,
+            "severity": 2,
+            "message": 1
+          },
+          {
+            "regexp": "^\\s*❯\\s+(.*)$",
+            "message": 1
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Waiting for file changes",
+          "endsPattern": "watching for file changes"
+        }
+      }
     },
     {
       "label": "🧪 test:run",
       "type": "shell",
       "command": "pnpm",
       "args": ["test:run"],
-      "group": "test",
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
         "panel": "shared"
       },
-      "problemMatcher": []
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^\\s*(.*)\\s+(FAIL|PASS)\\s+(.*)$",
+            "file": 3,
+            "severity": 2,
+            "message": 1
+          },
+          {
+            "regexp": "^\\s*❯\\s+(.*)$",
+            "message": 1
+          }
+        ]
+      }
     },
     {
       "label": "📊 test:coverage",
       "type": "shell",
       "command": "pnpm",
       "args": ["test:coverage"],
-      "group": "test",
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
         "panel": "shared"
       },
-      "problemMatcher": []
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^\\s*(.*)\\s+(FAIL|PASS)\\s+(.*)$",
+            "file": 3,
+            "severity": 2,
+            "message": 1
+          }
+        ]
+      }
     },
     {
       "label": "🔍 type-check",
       "type": "shell",
       "command": "pnpm",
       "args": ["type-check"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -143,7 +336,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["lint"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -157,7 +353,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["lint:fix"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -171,7 +370,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["clean"],
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -185,7 +387,10 @@
       "type": "shell",
       "command": "pnpm",
       "args": ["ci"],
-      "group": "test",
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",

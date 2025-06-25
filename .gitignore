@@ -76,17 +76,14 @@ Desktop.ini
 # === 環境変数・機密情報 ===
 # 🔒 環境変数ファイル（セキュリティ重要）
 .env
-.env.*
-!.env.example
-!.env.template
-!.env.schema
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .env.staging.local
+.env.*.local
 
-# 🔐 追加のセキュリティファイル
+# ⚠️ 機密情報を含む可能性のあるファイル
 .envrc
 .secrets
 secrets.json

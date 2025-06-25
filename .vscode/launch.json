@@ -2,76 +2,189 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "🌐 Launch Edge (開発サーバー)",
+      "name": "🔥 Dev Server (Edge)",
       "type": "msedge",
       "request": "launch",
-      "url": "https://localhost:5173",
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true,
-      "userDataDir": false,
+      "url": "http://localhost:5173/",
+      "webRoot": "${workspaceFolder}/src",
+      "timeout": 20000,
       "runtimeArgs": [
+        "--new-window",
         "--disable-web-security",
-        "--disable-features=VizDisplayCompositor",
-        "--allow-running-insecure-content"
-      ]
+        "--disable-features=VizDisplayCompositor"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/dist/**/*.js",
+        "<node_internals>/**/*.js"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "trace": true,
+      "preLaunchTask": "🚀 dev server"
     },
     {
-      "name": "🔧 Launch Chrome (開発サーバー)",
+      "name": "🔥 Dev Server (Chrome)",
       "type": "chrome",
       "request": "launch",
-      "url": "https://localhost:5173",
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true,
-      "userDataDir": false,
+      "url": "http://localhost:5173/",
+      "webRoot": "${workspaceFolder}/src",
+      "timeout": 20000,
       "runtimeArgs": [
+        "--new-window",
         "--disable-web-security",
-        "--disable-features=VizDisplayCompositor",
-        "--allow-running-insecure-content"
-      ]
+        "--disable-features=VizDisplayCompositor"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/dist/**/*.js",
+        "<node_internals>/**/*.js"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "trace": true,
+      "preLaunchTask": "🚀 dev server"
     },
     {
-      "name": "📱 Launch Edge (モバイルビュー)",
+      "name": "📱 Mobile Debug (Edge)",
       "type": "msedge",
       "request": "launch",
-      "url": "https://localhost:5173",
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true,
-      "userDataDir": false,
+      "url": "http://localhost:5173/",
+      "webRoot": "${workspaceFolder}/src",
+      "timeout": 20000,
       "runtimeArgs": [
-        "--device-scale-factor=2",
-        "--force-device-scale-factor=2",
-        "--window-size=375,812"
-      ]
+        "--window-size=375,812",
+        "--device-scale-factor=3",
+        "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/dist/**/*.js",
+        "<node_internals>/**/*.js"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "preLaunchTask": "🚀 dev server"
     },
     {
-      "name": "🧪 Attach to Edge (既存プロセス)",
+      "name": "📱 Tablet Debug (Edge)",
       "type": "msedge",
-      "request": "attach",
-      "port": 9222,
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true
+      "request": "launch",
+      "url": "http://localhost:5173/",
+      "webRoot": "${workspaceFolder}/src",
+      "timeout": 20000,
+      "runtimeArgs": [
+        "--window-size=768,1024",
+        "--device-scale-factor=2",
+        "--user-agent=Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/dist/**/*.js",
+        "<node_internals>/**/*.js"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "preLaunchTask": "🚀 dev server"
     },
     {
-      "name": "🔍 Debug Tests",
+      "name": "🧪 Debug Tests (Vitest)",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
-      "args": ["run", "--reporter=verbose"],
+      "args": [
+        "run",
+        "--reporter=verbose",
+        "--no-coverage",
+        "--run"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
       "env": {
-        "NODE_ENV": "test"
-      }
+        "NODE_ENV": "test",
+        "VITEST_UI": "false"
+      },
+      "cwd": "${workspaceFolder}",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
     },
     {
-      "name": "🚀 Launch Preview Build",
+      "name": "🧪 Debug Specific Test",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": [
+        "run",
+        "${input:testFile}",
+        "--reporter=verbose",
+        "--no-coverage"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
+      "env": {
+        "NODE_ENV": "test",
+        "VITEST_UI": "false"
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "🚀 Preview Build (Edge)",
       "type": "msedge",
       "request": "launch",
-      "url": "http://localhost:4173",
+      "url": "http://localhost:4173/",
       "webRoot": "${workspaceFolder}/dist",
-      "sourceMaps": true,
-      "preLaunchTask": "build",
-      "userDataDir": false
+      "timeout": 30000,
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
+      "preLaunchTask": "🏗️ build & preview"
+    },
+    {
+      "name": "🚀 Preview Build (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4173/",
+      "webRoot": "${workspaceFolder}/dist",
+      "timeout": 30000,
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
+      "preLaunchTask": "🏗️ build & preview"
+    },
+    {
+      "name": "🌐 Production Preview",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:4173/",
+      "webRoot": "${workspaceFolder}/dist",
+      "timeout": 10000,
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
+    },
+    {
+      "name": "🔧 Attach to Running Dev Server",
+      "type": "msedge",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": "testFile",
+      "description": "Test file to debug",
+      "default": "",
+      "type": "promptString"
     }
   ]
 }

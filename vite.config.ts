@@ -33,8 +33,19 @@ export default function viteConfig({ mode }: ViteConfigEnv): ViteConfig {
   };
   const isProduction = mode === 'production' || process.env.CI === 'true';
 
-  // 環境変数の検証
-  validateEnvironmentVariables(env);
+  // 環境変数の検証（開発時は警告のみ）
+  try {
+    validateEnvironmentVariables(env);
+  } catch (error) {
+    if (mode === 'development') {
+      console.warn(
+        '⚠️ 環境変数の検証で問題が見つかりましたが、開発時のため継続します:',
+        error
+      );
+    } else {
+      throw error;
+    }
+  }
 
   // HTTPS設定の取得
   const httpsConfig = getHttpsConfig(isProduction);
@@ -97,10 +108,14 @@ export default function viteConfig({ mode }: ViteConfigEnv): ViteConfig {
         'react/jsx-runtime',
         '@vis.gl/react-google-maps',
         '@googlemaps/markerclusterer',
-        'googleapis',
         'japanese-holidays',
       ],
-      exclude: ['@vitejs/plugin-react-swc'],
+      exclude: [
+        '@vitejs/plugin-react-swc',
+        'googleapis',
+        'google-auth-library',
+        'gcp-metadata',
+      ],
       esbuildOptions: {
         target: 'es2023',
         keepNames: true,

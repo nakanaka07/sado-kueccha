@@ -3,18 +3,39 @@
 
 # Validate commit message format
 # Format: type(scope): subject
-# Example: feat(auth): add user authentication
-# Types: feat, fix, docs, style, refactor, test, chore
+# Example: feat(map): add marker clustering feature
+# Types: feat, fix, docs, style, refactor, test, chore, ci, build, perf, revert
 
-commit_regex='^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\(.+\))?: .{1,100}$'
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\([a-z0-9-]+\))?: .{1,100}$'
 
 if ! grep -qE "$commit_regex" "$1"; then
   echo "❌ Invalid commit message format!"
   echo ""
-  echo "Format: type(scope): subject"
-  echo "Example: feat(auth): add user authentication"
+  echo "📋 Required format: type(scope): subject"
   echo ""
-  echo "Types: feat, fix, docs, style, refactor, test, chore, ci, build, perf, revert"
+  echo "✅ Valid examples:"
+  echo "   feat(map): add marker clustering feature"
+  echo "   fix(ui): resolve mobile layout issue"
+  echo "   docs(readme): update installation guide"
+  echo "   refactor(hooks): optimize useFilterWorker performance"
+  echo ""
+  echo "📝 Available types:"
+  echo "   feat     - New feature"
+  echo "   fix      - Bug fix"
+  echo "   docs     - Documentation changes"
+  echo "   style    - Code style changes (formatting, etc.)"
+  echo "   refactor - Code refactoring"
+  echo "   test     - Adding or updating tests"
+  echo "   chore    - Maintenance tasks"
+  echo "   ci       - CI/CD changes"
+  echo "   build    - Build system changes"
+  echo "   perf     - Performance improvements"
+  echo "   revert   - Revert previous commit"
+  echo ""
+  echo "🎯 Common scopes for this project:"
+  echo "   map, ui, hooks, components, types, services, utils, config"
   echo ""
   exit 1
 fi
+
+echo "✅ Commit message format is valid!"

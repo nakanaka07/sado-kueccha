@@ -35,6 +35,8 @@
   "scripts": {
     "// === 開発・ビルド ===": "",
     "dev": "vite",
+    "dev:auto": "node scripts/dev-with-auto-stop.js",
+    "dev:ps": "powershell -ExecutionPolicy Bypass -File scripts/dev-auto-stop.ps1",
     "build": "pnpm type-check && vite build",
     "preview": "vite preview",
     "// === 品質チェック ===": "",
@@ -104,6 +106,7 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.1.2",
+    "open": "^10.1.2",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.3",

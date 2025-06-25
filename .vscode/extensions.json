@@ -8,7 +8,6 @@
     // ⚛️ React開発支援
     "ms-vscode.vscode-react-next",
     "formulahendry.auto-rename-tag",
-    "bradlc.vscode-tailwindcss",
 
     // 🧪 テスト・デバッグ強化
     "vitest.explorer",
@@ -24,6 +23,7 @@
     "christian-kohler.path-intellisense",
     "ms-vscode.vscode-json",
     "redhat.vscode-yaml",
+    "ms-vscode.vscode-css-modules",
 
     // 🔗 Git・コラボレーション
     "eamodio.gitlens",
@@ -40,13 +40,29 @@
     // 🎨 UI/UX開発支援
     "ms-vscode.vscode-css",
     "ms-vscode.vscode-html",
-    "ritwickdey.liveserver"
+    "ms-vscode.vscode-emmet",
+
+    // 🏗️ プロジェクト管理・ユーティリティ
+    "ms-vscode.vscode-workspace-trust",
+    "ms-vscode.vscode-project-manager"
   ],
   "unwantedRecommendations": [
-    // パフォーマンスを低下させる可能性のある拡張機能
+    // ❌ 使用しない言語・プラットフォーム
     "ms-vscode.vscode-pylance",
     "ms-python.python",
     "ms-vscode.cpptools",
-    "ms-vscode.vscode-java"
+    "ms-vscode.vscode-java",
+    "ms-dotnettools.csharp",
+    "rust-lang.rust-analyzer",
+
+    // ❌ 重複機能・非推奨拡張機能
+    "ms-vscode.live-server",
+    "ritwickdey.liveserver",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+
+    // ❌ パフォーマンス負荷の高い拡張機能
+    "ms-vscode.vscode-docker",
+    "ms-kubernetes-tools.vscode-kubernetes-tools"
   ]
 }

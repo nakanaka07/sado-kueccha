@@ -31,6 +31,8 @@ export function validateEnvironmentVariables(
 ): void {
   const requiredEnvVars: Array<keyof RequiredEnvironmentVariables> = [
     'VITE_BASE_PATH',
+  ];
+  const optionalEnvVars: Array<keyof RequiredEnvironmentVariables> = [
     'VITE_GOOGLE_MAPS_API_KEY',
   ];
   const isProduction =
@@ -38,6 +40,7 @@ export function validateEnvironmentVariables(
   const missingVars: string[] = [];
   const warningVars: string[] = [];
 
+  // 必須環境変数のチェック
   for (const varName of requiredEnvVars) {
     if (!env[varName]) {
       if (isProduction) {
@@ -52,6 +55,18 @@ export function validateEnvironmentVariables(
           `⚠️ 環境変数 ${varName} は "/" で始まる必要があります。現在の値: "${env[varName]}"`
         );
       }
+    }
+  }
+
+  // オプション環境変数のチェック
+  for (const varName of optionalEnvVars) {
+    if (!env[varName]) {
+      if (isProduction) {
+        warningVars.push(varName);
+      }
+      // 開発環境では警告のみ（以前とは異なり、すべてのオプション変数を警告として扱う）
+    } else {
+      // 値の妥当性チェック
       if (varName === 'VITE_GOOGLE_MAPS_API_KEY' && env[varName].length < 20) {
         console.warn(`⚠️ 環境変数 ${varName} の値が短すぎる可能性があります`);
       }
@@ -68,11 +83,25 @@ export function validateEnvironmentVariables(
 
   // 開発環境での警告
   if (warningVars.length > 0) {
-    console.warn(
-      `⚠️ 環境変数が設定されていません: ${warningVars.join(
-        ', '
-      )} - 開発環境では任意ですが推奨されます`
+    // 必須変数とオプション変数を分けて表示
+    const requiredWarnings = warningVars.filter(v =>
+      requiredEnvVars.includes(v as keyof RequiredEnvironmentVariables)
     );
+    const optionalWarnings = warningVars.filter(v =>
+      optionalEnvVars.includes(v as keyof RequiredEnvironmentVariables)
+    );
+
+    if (requiredWarnings.length > 0) {
+      console.warn(
+        `⚠️ 必須環境変数が設定されていません: ${requiredWarnings.join(', ')}`
+      );
+    }
+
+    if (optionalWarnings.length > 0) {
+      console.warn(
+        `💡 オプション環境変数が設定されていません: ${optionalWarnings.join(', ')} - 完全な機能を使用するには設定を推奨します`
+      );
+    }
   }
 
   // 成功ログ（開発時のみ）

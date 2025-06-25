@@ -5,6 +5,47 @@
  */
 
 /**
+ * PWA Plugin 型定義
+ */
+declare module 'virtual:pwa-register' {
+  interface RegisterSWOptions {
+    immediate?: boolean;
+    onNeedRefresh?: () => void;
+    onOfflineReady?: () => void;
+    onRegistered?: (
+      registration: ServiceWorkerRegistration | undefined
+    ) => void;
+    onRegisterError?: (error: Error) => void;
+  }
+
+  interface UpdateSWOptions {
+    onNeedRefresh?: () => void;
+    onOfflineReady?: () => void;
+  }
+
+  export function registerSW(
+    options?: RegisterSWOptions
+  ): (reloadPage?: boolean) => Promise<void>;
+}
+
+declare module 'virtual:pwa-register/react' {
+  import type { Dispatch, SetStateAction } from 'react';
+
+  export interface PwaReloadSWOptions {
+    onRegistered?: (
+      registration: ServiceWorkerRegistration | undefined
+    ) => void;
+    onRegisterError?: (error: Error) => void;
+  }
+
+  export function useRegisterSW(options?: PwaReloadSWOptions): {
+    needRefresh: [boolean, Dispatch<SetStateAction<boolean>>];
+    offlineReady: [boolean, Dispatch<SetStateAction<boolean>>];
+    updateServiceWorker: (reloadPage?: boolean) => Promise<void>;
+  };
+}
+
+/**
  * 必須環境変数の型定義
  */
 export interface RequiredEnvironmentVariables {

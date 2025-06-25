@@ -122,8 +122,8 @@ export const useAppState = (): UseAppStateReturn => {
       dispatch({ type: 'PRELOAD_START' });
       const startTime = performance.now();
 
-      // 開発環境では常に短い遅延のみでプリロードを完了
-      await new Promise<void>(resolve => setTimeout(resolve, 300));
+      // 開発環境では短い遅延のみでプリロードを完了
+      await new Promise<void>(resolve => setTimeout(resolve, 200)); // 300ms → 200ms に短縮
 
       // Google Maps APIのプリロードも省略して確実に完了
       // const { maps } = getAppConfig();
@@ -133,7 +133,7 @@ export const useAppState = (): UseAppStateReturn => {
       // }
 
       const endTime = performance.now();
-      const minDisplayTime = 300;
+      const minDisplayTime = 200; // 300ms → 200ms に短縮
       const remainingTime = Math.max(0, minDisplayTime - (endTime - startTime));
       await new Promise<void>(resolve => setTimeout(resolve, remainingTime));
 
@@ -198,7 +198,7 @@ export const useAppState = (): UseAppStateReturn => {
         }
 
         // 短い遅延で模擬データを返す
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300)); // 500ms → 300ms に短縮
         data = []; // 空配列で成功
 
         if (isDevelopment()) {
@@ -246,7 +246,13 @@ export const useAppState = (): UseAppStateReturn => {
   }, []);
 
   // 初期化処理 - 1回だけ実行されるように最適化
+  const hasInitialized = useRef(false);
   useEffect(() => {
+    // 重複実行を防ぐためのガード
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
     isComponentMountedRef.current = true;
 
     if (isDevelopment()) {
@@ -264,7 +270,13 @@ export const useAppState = (): UseAppStateReturn => {
   }, []); // 依存配列を空にして、マウント時に1回だけ実行
 
   // マップロード完了ハンドラー - useCallback最適化とエラーハンドリング
+  const mapLoadedRef = useRef(false);
   const handleMapLoaded = useCallback(() => {
+    // 重複実行を防ぐ
+    if (mapLoadedRef.current) {
+      return;
+    }
+
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
       console.log('[AppState] handleMapLoaded呼び出し - POI読み込み状況:', {
@@ -277,6 +289,8 @@ export const useAppState = (): UseAppStateReturn => {
     if (loadingState.poisLoading || loadingState.error) {
       return;
     }
+
+    mapLoadedRef.current = true; // 実行済みフラグを設定
 
     if (isDevelopment()) {
       // eslint-disable-next-line no-console
@@ -369,7 +383,7 @@ export const useAppState = (): UseAppStateReturn => {
     loadingState.error,
   ]);
 
-  // デバッグ用パフォーマンス監視 (開発環境のみ)
+  // デバッグ用パフォーマンス監視 (開発環境のみ) - 1回だけ実行に変更
   useEffect(() => {
     if (isDevelopment()) {
       const logPerformanceStats = () => {
@@ -383,11 +397,11 @@ export const useAppState = (): UseAppStateReturn => {
         }
       };
 
-      // 30秒間隔でパフォーマンス統計を出力（頻度を下げる）
-      const interval = setInterval(logPerformanceStats, 30000);
+      // 5秒後に1回だけ出力（interval削除）
+      const timeout = setTimeout(logPerformanceStats, 5000);
 
       return () => {
-        clearInterval(interval);
+        clearTimeout(timeout);
       };
     }
 
@@ -409,16 +423,21 @@ export const useAppState = (): UseAppStateReturn => {
     clearError,
   } as const satisfies UseAppStateReturn;
 
-  // 開発環境での状態デバッグ（条件付き）
+  // 開発環境での状態デバッグ（頻度制限付き）
+  const debugStateRef = useRef(0);
   if (isDevelopment() && (result.loading || result.error)) {
-    // eslint-disable-next-line no-console
-    console.log('[AppState] 現在の状態:', {
-      loading: result.loading,
-      mapLoading: result.mapLoading,
-      poisLoading: result.poisLoading,
-      poisCount: result.pois.length,
-      error: result.error,
-    });
+    debugStateRef.current++;
+    // 最初の5回のみログ出力（重複ログ削減）
+    if (debugStateRef.current <= 5) {
+      // eslint-disable-next-line no-console
+      console.log('[AppState] 現在の状態:', {
+        loading: result.loading,
+        mapLoading: result.mapLoading,
+        poisLoading: result.poisLoading,
+        poisCount: result.pois.length,
+        error: result.error,
+      });
+    }
   }
 
   return result;

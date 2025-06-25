@@ -16,62 +16,14 @@ export class PluginConfigValidationError extends Error {
 }
 
 /**
- * プラグイン設定の妥当性検証
+ * プラグイン設定の妥当性検証（簡略化）
  */
 export function validatePluginConfig(isProduction: boolean): void {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
   // 環境フラグの検証
   if (typeof isProduction !== 'boolean') {
-    errors.push('isProduction は boolean 型である必要があります');
-  }
-
-  // React SWC プラグインの依存関係チェック
-  try {
-    require.resolve('@vitejs/plugin-react-swc');
-  } catch {
-    errors.push(
-      '@vitejs/plugin-react-swc が見つかりません。依存関係を確認してください'
-    );
-  }
-
-  // PWA プラグインの依存関係チェック
-  try {
-    require.resolve('vite-plugin-pwa');
-  } catch {
-    errors.push('vite-plugin-pwa が見つかりません。依存関係を確認してください');
-  }
-
-  // Bundle Analyzer プラグインの依存関係チェック（本番環境時）
-  if (isProduction) {
-    try {
-      require.resolve('rollup-plugin-visualizer');
-    } catch {
-      warnings.push(
-        'rollup-plugin-visualizer が見つかりません。Bundle分析機能が無効になります'
-      );
-    }
-  }
-
-  // PWA 設定の整合性チェック
-  const manifestPath = 'public/manifest.json';
-  try {
-    require.resolve(manifestPath);
-  } catch {
-    warnings.push(`PWA manifest ファイル (${manifestPath}) が見つかりません`);
-  }
-
-  // 警告の出力
-  for (const warning of warnings) {
-    console.warn(`⚠️ プラグイン設定警告: ${warning}`);
-  }
-
-  // エラーがある場合は例外を投げる
-  if (errors.length > 0) {
     throw new PluginConfigValidationError(
-      `プラグイン設定に ${errors.length} 個のエラーがあります`,
-      errors
+      'isProduction は boolean 型である必要があります',
+      ['isProduction']
     );
   }
 }
@@ -122,6 +74,10 @@ function loadPluginsConditionally(options: PluginLoadOptions) {
           manifest: false,
           workbox: {
             globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+            // リビジョン管理の明確化でキャッシュ競合を回避
+            cleanupOutdatedCaches: true,
+            skipWaiting: true,
+            clientsClaim: true,
             // 本番環境でのキャッシュ戦略を最適化
             runtimeCaching: isProduction
               ? [

@@ -139,6 +139,49 @@ export const MapComponent = memo<MapComponentProps>(
       void updateActivePois();
     }, [externalPois, internalPois]);
 
+    // Google Maps API エラーハンドリング
+    useEffect(() => {
+      // グローバルエラーハンドラーを設定
+      const originalError = console.error;
+      const handleGoogleMapsError = (...args: unknown[]) => {
+        const message = args.join(' ');
+
+        // Google Maps API のリファラーエラーを検出
+        if (message.includes('RefererNotAllowedMapError')) {
+          setError(
+            'Google Maps API のリファラー制限エラーが発生しました。\n' +
+              '開発時は Google Cloud Console で以下のURLを許可してください：\n' +
+              '- https://localhost:5174\n' +
+              '- http://localhost:5174\n' +
+              '- https://localhost:5173\n' +
+              '- http://localhost:5173'
+          );
+        } else if (message.includes('Google Maps')) {
+          setError('Google Maps API でエラーが発生しました。');
+        }
+
+        // 元のエラーログも出力
+        originalError(...args);
+      };
+
+      // グローバルエラーリスナーを一時的に置き換え
+      console.error = handleGoogleMapsError;
+
+      // ウィンドウエラーリスナー
+      const windowErrorHandler = ({ message }: ErrorEvent) => {
+        if (message.includes('Google Maps')) {
+          handleGoogleMapsError(message);
+        }
+      };
+
+      window.addEventListener('error', windowErrorHandler);
+
+      return () => {
+        console.error = originalError;
+        window.removeEventListener('error', windowErrorHandler);
+      };
+    }, []);
+
     // フィルタリングロジックをメモ化（パフォーマンス最適化）
     const filterMap = useMemo(
       () => ({
