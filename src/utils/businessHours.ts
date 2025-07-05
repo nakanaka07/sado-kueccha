@@ -106,6 +106,11 @@ export function parseTimeString(timeStr: string): ParsedHours | null {
     return { type: 'closed' };
   }
 
+  // 営業時間不明
+  if (timeStr.includes('不明') || timeStr.includes('要確認')) {
+    return { type: 'unknown' };
+  }
+
   // 基本的な時間パターン（例: "09:00-18:00"）
   const timePattern = /(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/;
   const match = timePattern.exec(timeStr);

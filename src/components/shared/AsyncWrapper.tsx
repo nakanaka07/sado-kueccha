@@ -50,7 +50,7 @@ const AsyncWrapperComponent = <T,>({
   emptyComponent,
   retryFn,
   retryText = '再試行',
-  loadingMessage = '読み込み中...',
+  loadingMessage,
   emptyMessage = 'データがありません',
   testId = 'async-wrapper',
 }: AsyncWrapperProps<T>): React.ReactElement => {

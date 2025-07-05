@@ -79,29 +79,22 @@ export class ProgressiveDataLoader {
     }
 
     // Import services dynamically to avoid initial bundle bloat
-    const { sheetsService } = await import('../services/sheets');
+    const { googleSheetsService } = await import('../services');
 
     try {
-      const recommendedRows = await sheetsService.fetchSheetData(
-        'recommended',
-        'AB2:AX100'
-      );
-      const snackRows = await sheetsService.fetchSheetData('snack', 'AB2:AX50');
+      // 推奨データとスナックデータを取得
+      const recommendedData =
+        await googleSheetsService.fetchPOIData('recommended');
+      const snackData = await googleSheetsService.fetchPOIData('snacks');
 
       // Convert to POI (simplified for critical path)
       const criticalPOIs: POI[] = [];
 
       // Process recommended first
-      for (const [index, row] of recommendedRows.entries()) {
-        const poi = this.convertRowToPOI(row, `rec-${index}`, 'recommended');
-        if (poi) criticalPOIs.push(poi);
-      }
+      criticalPOIs.push(...recommendedData.slice(0, 20)); // 最初の20件
 
       // Add popular snack spots
-      for (const [index, row] of snackRows.slice(0, 10).entries()) {
-        const poi = this.convertRowToPOI(row, `snack-${index}`, 'snack');
-        if (poi) criticalPOIs.push(poi);
-      }
+      criticalPOIs.push(...snackData.slice(0, 10)); // 最初の10件
 
       // Cache with longer TTL for critical data
       cacheService.set(cacheKey, criticalPOIs, CACHE_CONFIG.TTL.SHEETS * 2);
@@ -130,12 +123,12 @@ export class ProgressiveDataLoader {
     }
 
     // Load remaining data in background
-    const { sheetsService } = await import('../services/sheets');
+    const { googleSheetsService } = await import('../services');
 
     try {
       const secondarySheets = [
         'parking',
-        'toilet',
+        'toilets',
         'akadomari_hamochi',
         'kanai_sawada',
         'ryotsu_aikawa',
@@ -145,24 +138,13 @@ export class ProgressiveDataLoader {
       // Process in smaller batches to avoid blocking
       for (const sheetName of secondarySheets) {
         try {
-          const rows = await sheetsService.fetchSheetData(
-            sheetName,
-            'AB2:AX200'
-          );
+          const pois = await googleSheetsService.fetchPOIData(sheetName);
 
-          for (const [index, row] of rows.entries()) {
-            const poi = this.convertRowToPOI(
-              row,
-              `${sheetName}-${index}`,
-              sheetName
-            );
-            if (poi) secondaryPOIs.push(poi);
+          // POIデータを直接使用（変換済み）
+          secondaryPOIs.push(...pois.slice(0, 50)); // 最初の50件
 
-            // Yield control periodically
-            if (index % 20 === 0) {
-              await new Promise(resolve => setTimeout(resolve, 0));
-            }
-          }
+          // Yield control periodically
+          await new Promise(resolve => setTimeout(resolve, 10));
         } catch (error) {
           if (isDevelopment()) {
             console.warn(`Failed to load ${sheetName}:`, error);
@@ -177,39 +159,6 @@ export class ProgressiveDataLoader {
         console.warn('Secondary data loading failed:', error);
       }
       return [];
-    }
-  }
-
-  /**
-   * Simplified POI conversion for performance
-   */
-  private convertRowToPOI(
-    row: string[],
-    id: string,
-    sourceSheet: string
-  ): POI | null {
-    try {
-      const name = row[0]?.trim();
-      const coordinates = row[1]?.trim();
-
-      if (!name || !coordinates) return null;
-
-      const [lngStr, latStr] = coordinates.split(',');
-      const lng = Number(lngStr?.trim());
-      const lat = Number(latStr?.trim());
-
-      if (isNaN(lat) || isNaN(lng)) return null;
-
-      return {
-        id: id as POI['id'],
-        name,
-        position: { lat, lng },
-        genre: (row[2]?.trim() || 'その他') as POI['genre'],
-        sourceSheet,
-        googleMapsUrl: `https://www.google.com/maps?q=${lat},${lng}`,
-      };
-    } catch {
-      return null;
     }
   }
 

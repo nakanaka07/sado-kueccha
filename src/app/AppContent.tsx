@@ -9,9 +9,6 @@ import { getAppConfig } from '../utils/env';
 import { APP_CONFIG, logConfigDebugInfo } from './AppConfig';
 import { useAppContext } from './hooks';
 
-// 最適化されたスタイルの遅延読み込み
-void import('../styles/filter-loading.css');
-
 // コンポーネントの遅延読み込み（Code Splitting最適化）
 const FilterPanel = lazy(() =>
   import('../components/filter/FilterPanel').then(module => ({

@@ -1,0 +1,152 @@
+/**
+ * Map コンポーネント専用スタイル
+ * 地図関連の最適化とインタラクション設定
+ *
+ * @version 1.0.0
+ * @since 2025-07-04
+ */
+
+/* ==========================================================================
+   地図コンテナの基本設定
+   ========================================================================== */
+
+.mapContainer {
+  /* 地図レンダリング最適化 */
+  contain: layout;
+
+  /* GPU加速 */
+  transform: translateZ(0);
+
+  /* タッチスクロール最適化 */
+  touch-action: pan-x pan-y;
+
+  /* レスポンシブ対応 */
+  width: 100%;
+  height: 100%;
+
+  /* 地図タイルの読み込み改善 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ==========================================================================
+   マーカー関連の最適化
+   ========================================================================== */
+
+.markerContainer {
+  /* マーカークラスタリングの最適化 */
+  contain: layout style paint;
+
+  /* ホバー時のパフォーマンス改善 */
+  transition: transform 150ms ease-out;
+}
+
+.markerContainer:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.recommendMarkerIcon {
+  /* おすすめマーカーの最適化 */
+  contain: layout style paint;
+
+  /* アニメーション最適化 */
+  will-change: transform;
+
+  /* 高DPI対応 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ==========================================================================
+   インフォウィンドウ最適化
+   ========================================================================== */
+
+.infoWindow {
+  /* レンダリング最適化 */
+  contain: layout style paint;
+
+  /* スムーズな表示・非表示 */
+  transition: opacity 200ms ease-out;
+
+  /* 最大幅設定 */
+  max-width: 300px;
+}
+
+.infoWindowContent {
+  /* 内容の最適化 */
+  contain: layout style;
+
+  /* 適切な余白 */
+  padding: 12px;
+
+  /* 読みやすさの改善 */
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   地図コントロール最適化
+   ========================================================================== */
+
+.mapControls {
+  /* コントロールの配置最適化 */
+  contain: layout;
+
+  /* GPU加速 */
+  transform: translateZ(0);
+
+  /* タッチ操作の改善 */
+  touch-action: manipulation;
+}
+
+.zoomControl {
+  /* ズームボタンの最適化 */
+  contain: layout style paint;
+
+  /* クリック反応の改善 */
+  transition: background-color 100ms ease-out;
+}
+
+.zoomControl:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   レスポンシブ対応
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .mapContainer {
+    /* モバイルでの最適化 */
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  .infoWindow {
+    /* モバイルでの最大幅調整 */
+    max-width: 280px;
+  }
+
+  .markerContainer:hover {
+    /* モバイルではホバー効果を無効化 */
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   アクセシビリティ対応
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .markerContainer,
+  .infoWindow,
+  .zoomControl {
+    transition: none;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .markerContainer {
+    outline: 2px solid currentColor;
+  }
+}

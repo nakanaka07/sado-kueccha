@@ -1,0 +1,208 @@
+/**
+ * パフォーマンス最適化用CSS Modules
+ * コンポーネント固有のパフォーマンス最適化スタイル + ユーティリティクラス
+ *
+ * @version 2.2.0
+ * @since 2025-06-30
+ * @updated 2025-07-04 - 新機能追加・最適化強化
+ */
+
+/* ==========================================================================
+   コンポーネント固有の最適化スタイル
+   ========================================================================== */
+
+/* 仮想化リスト最適化 */
+.virtualList {
+  /* 効率的なスクロール */
+  overflow-anchor: none;
+  contain: strict;
+
+  /* GPU加速 */
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+.virtualListItem {
+  /* アイテムの最適化 */
+  contain: layout style paint;
+
+  /* ホバー時のパフォーマンス最適化 */
+  transition: background-color 150ms ease-out;
+}
+
+.virtualListItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* フィルターオプション仮想化 */
+.filterOptionsVirtualized {
+  /* 仮想化スクロールの最適化 */
+  contain: strict;
+  overflow: hidden;
+}
+
+.filterOptionItem {
+  /* アイテムレンダリング最適化 */
+  contain: layout style paint;
+
+  /* クリックフィードバック最適化 */
+  transition:
+    background-color 100ms ease-out,
+    transform 100ms ease-out;
+}
+
+.filterOptionItem:active {
+  transform: scale(0.98);
+}
+
+/* マップコンテナ最適化 */
+.mapContainer {
+  /* 地図レンダリング最適化 */
+  contain: layout;
+
+  /* GPU加速 */
+  transform: translateZ(0);
+
+  /* タッチスクロール最適化 */
+  touch-action: pan-x pan-y;
+}
+
+/* ==========================================================================
+   ユーティリティクラス - 再利用可能な最適化
+   ========================================================================== */
+
+/* GPU関連ユーティリティ */
+.gpuAccelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.willChangeTransform {
+  will-change: transform;
+}
+
+.willChangeOpacity {
+  will-change: opacity;
+}
+
+.willChangeScroll {
+  will-change: scroll-position;
+}
+
+/* コンテインメントユーティリティ */
+.containLayout {
+  contain: layout;
+}
+
+.containStyle {
+  contain: style;
+}
+
+.containPaint {
+  contain: paint;
+}
+
+.containStrict {
+  contain: strict;
+}
+
+/* アニメーション最適化 */
+.smoothTransition {
+  transition: all 150ms ease-out;
+}
+
+.fastTransition {
+  transition: all 100ms ease-out;
+}
+
+/* ==========================================================================
+   デバッグ用パフォーマンス監視
+   ========================================================================== */
+
+.performanceDebug .virtualList {
+  outline: 2px solid rgba(0, 255, 0, 0.3);
+}
+
+.performanceDebug .filterPanel {
+  outline: 2px solid rgba(0, 0, 255, 0.3);
+}
+
+/* ==========================================================================
+   レスポンシブ対応とアクセシビリティ
+   ========================================================================== */
+
+/* prefers-reduced-motion 対応 */
+@media (prefers-reduced-motion: reduce) {
+  .filterOptionItem,
+  .virtualListItem,
+  .smoothTransition,
+  .fastTransition {
+    transition: none;
+  }
+}
+
+/* 高DPI対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .recommendMarkerIcon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* ==========================================================================
+   新機能: バッチレンダリング最適化
+   ========================================================================== */
+
+.batchRenderContainer {
+  /* バッチレンダリング用コンテナ */
+  contain: layout style paint;
+
+  /* レンダリング最適化 */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+.lazyLoadTrigger {
+  /* 遅延読み込みトリガー */
+  contain: layout;
+  height: 1px;
+
+  /* インビジブル要素 */
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   新機能: CSS Grid 最適化
+   ========================================================================== */
+
+.optimizedGrid {
+  /* CSS Grid のパフォーマンス最適化 */
+  display: grid;
+  contain: layout style;
+
+  /* Grid最適化 */
+  grid-template-rows: masonry; /* 実験的機能 */
+}
+
+.gridItem {
+  /* Grid アイテムの最適化 */
+  contain: layout style paint;
+
+  /* アスペクト比維持 */
+  aspect-ratio: auto;
+}
+
+/* ==========================================================================
+   新機能: フォントレンダリング最適化
+   ========================================================================== */
+
+.optimizedText {
+  /* テキストレンダリング最適化 */
+  text-rendering: optimizeSpeed;
+  font-display: swap;
+
+  /* サブピクセルレンダリング */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

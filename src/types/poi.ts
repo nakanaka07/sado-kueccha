@@ -13,6 +13,22 @@ export type GenreId = Brand<string, 'GenreId'>;
 export type DistrictId = Brand<string, 'DistrictId'>;
 
 /**
+ * POIのカテゴリ分類
+ */
+export type POICategory =
+  | 'recommended'
+  | 'sightseeing'
+  | 'food'
+  | 'shopping'
+  | 'accommodation'
+  | 'transportation'
+  | 'entertainment'
+  | 'nature'
+  | 'culture'
+  | 'sports'
+  | 'other';
+
+/**
  * 営業時間の詳細定義
  */
 export interface BusinessHoursPeriod {

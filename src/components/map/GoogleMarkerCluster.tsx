@@ -1,148 +1,208 @@
 import { AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import type { POI } from '../../types/poi';
 import { ASSETS } from '../../utils/assets';
 import './GoogleMarkerCluster.css';
 import RecommendMarker from './RecommendMarker';
 
+// 統合された設定とユーティリティ関数をインポート
+import {
+  CLUSTERING_CONFIG,
+  MARKER_CONFIGS,
+  getMarkerType,
+  getMaxMarkersForZoom,
+  isRecommendedPOI,
+  sortPOIsByPriority,
+} from './config';
+
 /**
- * 基本的なマーカー設定
+ * 統合されたGoogle Mapsマーカークラスター
+ * シンプルモードと高度モードを設定で切り替え可能
  */
-const MARKER_CONFIGS = {
-  toilet: {
-    keywords: ['トイレ', 'toilet', 'お手洗い'],
-    icon: ASSETS.ICONS.MARKERS.TOILETTE,
-    style: {
-      background: '#8B4513',
-      borderColor: '#654321',
-      glyphColor: 'white',
-    },
-  },
-  parking: {
-    keywords: ['駐車', 'parking', 'パーキング'],
-    icon: ASSETS.ICONS.MARKERS.PARKING,
-    style: {
-      background: '#2E8B57',
-      borderColor: '#1F5F3F',
-      glyphColor: 'white',
-    },
-  },
-  normal: {
-    keywords: [],
-    icon: null,
-    style: {
-      background: '#4285F4',
-      borderColor: '#1A73E8',
-      glyphColor: 'white',
-    },
-  },
-} as const;
-
 /**
- * マーカーの種類を判定
- */
-const getMarkerType = (poi: POI): keyof typeof MARKER_CONFIGS => {
-  const name = poi.name.toLowerCase();
-  const genre = poi.genre.toLowerCase();
-  const combined = `${name} ${genre}`;
-
-  if (
-    MARKER_CONFIGS.toilet.keywords.some(keyword => combined.includes(keyword))
-  ) {
-    return 'toilet';
-  }
-  if (
-    MARKER_CONFIGS.parking.keywords.some(keyword => combined.includes(keyword))
-  ) {
-    return 'parking';
-  }
-  return 'normal';
-};
-
-/**
- * おすすめPOIかどうかを判定
- */
-const isRecommendedPOI = (poi: POI): boolean => {
-  return poi.sourceSheet === 'recommended' || poi.genre === 'recommend';
-};
-
-/**
- * シンプルなGoogle Mapsマーカークラスター
+ * 統合されたGoogle Mapsマーカークラスター
+ * シンプルモードと高度モードを設定で切り替え可能
  */
 interface GoogleMarkerClusterProps {
   pois: POI[];
   onMarkerClick?: (poi: POI) => void;
   visible?: boolean;
+  config?: {
+    mode?: 'simple' | 'advanced';
+    maxMarkers?: Record<number, number>;
+    enableAnimations?: boolean;
+    enablePulse?: boolean;
+  };
 }
 
 const GoogleMarkerCluster = memo<GoogleMarkerClusterProps>(
-  ({ pois, onMarkerClick, visible = true }) => {
+  ({ pois, onMarkerClick, visible = true, config }) => {
     const map = useMap();
+
+    // 設定をマージ（型安全版）
+    const mergedConfig = useMemo(() => {
+      return {
+        mode: config?.mode ?? CLUSTERING_CONFIG.mode,
+        maxMarkers: config?.maxMarkers ?? CLUSTERING_CONFIG.maxMarkers,
+        enableAnimations:
+          config?.enableAnimations ?? CLUSTERING_CONFIG.enableAnimations,
+        enablePulse: config?.enablePulse ?? CLUSTERING_CONFIG.enablePulse,
+      };
+    }, [config]);
 
     // マーカークリックハンドラー
     const handleMarkerClick = useCallback(
       (poi: POI) => {
+        if (process.env.NODE_ENV === 'development') {
+          // Development logging
+          // eslint-disable-next-line no-console
+          console.log('[MarkerCluster] Marker clicked:', poi.name);
+        }
         onMarkerClick?.(poi);
       },
       [onMarkerClick]
     );
+
+    // アイコン設定の動的更新（ASSETSと統合）
+    const getMarkerIcon = useCallback((type: keyof typeof MARKER_CONFIGS) => {
+      switch (type) {
+        case 'toilet':
+          return ASSETS.ICONS.MARKERS.TOILETTE;
+        case 'parking':
+          return ASSETS.ICONS.MARKERS.PARKING;
+        default:
+          return null;
+      }
+    }, []);
+
+    // 現在のズームレベルを取得
+    const zoom = map?.getZoom() || 10;
+
+    // パフォーマンス制限とPOIの優先度ソート
+    const { processedPOIs, totalCount } = useMemo(() => {
+      const maxMarkers = getMaxMarkersForZoom(zoom);
+      const sortedPOIs = sortPOIsByPriority(pois);
+      const limited = sortedPOIs.slice(0, maxMarkers);
+
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[MarkerCluster] Zoom: ${zoom}, Max: ${maxMarkers}, Showing: ${limited.length}/${pois.length}`
+        );
+      }
+
+      return {
+        processedPOIs: limited,
+        totalCount: pois.length,
+      };
+    }, [pois, zoom]);
+
+    // POIを通常マーカーとおすすめマーカーに分離
+    const { normalPOIs, recommendedPOIs } = useMemo(() => {
+      const normal: POI[] = [];
+      const recommended: POI[] = [];
+
+      processedPOIs.forEach(poi => {
+        if (isRecommendedPOI(poi)) {
+          recommended.push(poi);
+        } else {
+          normal.push(poi);
+        }
+      });
+
+      return { normalPOIs: normal, recommendedPOIs: recommended };
+    }, [processedPOIs]);
 
     // 表示制御
     if (!visible || !map) {
       return null;
     }
 
-    // 現在のズームレベルを取得
-    const zoom = map.getZoom() || 10;
-
-    // パフォーマンス制限
-    const maxMarkers = zoom >= 15 ? 200 : zoom >= 12 ? 100 : 50;
-    const limitedPOIs = pois.slice(0, maxMarkers);
-
     return (
       <>
+        {/* パフォーマンス情報（開発時のみ） */}
+        {process.env.NODE_ENV === 'development' ? (
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              zIndex: 1000,
+              pointerEvents: 'none',
+            }}
+          >
+            Markers: {processedPOIs.length}/{totalCount} | Zoom: {zoom}
+          </div>
+        ) : null}
+
         {/* 通常のマーカー */}
-        {limitedPOIs
-          .filter(poi => !isRecommendedPOI(poi))
-          .map(poi => {
-            const markerType = getMarkerType(poi);
-            const config = MARKER_CONFIGS[markerType];
+        {normalPOIs.map(poi => {
+          const markerType = getMarkerType(poi);
+          const markerConfig = MARKER_CONFIGS[markerType];
+          const icon = getMarkerIcon(markerType);
 
-            return (
-              <AdvancedMarker
-                key={poi.id}
-                position={poi.position}
-                onClick={() => {
-                  handleMarkerClick(poi);
-                }}
-                title={poi.name}
-              >
-                <Pin
-                  background={config.style.background}
-                  borderColor={config.style.borderColor}
-                  glyphColor={config.style.glyphColor}
-                  scale={zoom >= 15 ? 1.2 : 1.0}
-                />
-              </AdvancedMarker>
-            );
-          })}
+          // 設定が取得できない場合のフォールバック
+          if (!markerConfig) {
+            return null;
+          }
 
-        {/* おすすめマーカー */}
-        {limitedPOIs
-          .filter(poi => isRecommendedPOI(poi))
-          .map(poi => (
-            <RecommendMarker
-              key={`recommend-${poi.id}`}
-              poi={poi}
+          return (
+            <AdvancedMarker
+              key={poi.id}
+              position={poi.position}
               onClick={() => {
                 handleMarkerClick(poi);
               }}
-            />
-          ))}
+              title={poi.name}
+              zIndex={100}
+            >
+              {mergedConfig.mode === 'simple' || !icon ? (
+                <Pin
+                  background={markerConfig.style.background}
+                  borderColor={markerConfig.style.borderColor}
+                  glyphColor={markerConfig.style.glyphColor}
+                  scale={zoom >= 15 ? 1.2 : 1.0}
+                />
+              ) : (
+                <div className="custom-marker-icon">
+                  <img
+                    src={icon}
+                    alt={`${markerType} marker`}
+                    width={zoom >= 15 ? 32 : 24}
+                    height={zoom >= 15 ? 32 : 24}
+                    style={{
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                    }}
+                  />
+                </div>
+              )}
+            </AdvancedMarker>
+          );
+        })}
+
+        {/* おすすめマーカー */}
+        {recommendedPOIs.map(poi => (
+          <RecommendMarker
+            key={`recommend-${poi.id}`}
+            poi={poi}
+            onClick={() => {
+              handleMarkerClick(poi);
+            }}
+            showLabel={zoom >= 14}
+            isHighlighted={false}
+          />
+        ))}
       </>
     );
   }
 );
+
+GoogleMarkerCluster.displayName = 'GoogleMarkerCluster';
 
 GoogleMarkerCluster.displayName = 'GoogleMarkerCluster';
 

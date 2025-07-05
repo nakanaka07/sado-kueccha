@@ -109,14 +109,17 @@ class SimplePreloadManager {
       }
 
       // バックグラウンドでシートサービスを読み込み
-      const { sheetsService } = await import('./sheets');
-      const criticalPOIs = await sheetsService.fetchPOIsOptimized();
+      const { googleSheetsService } = await import('./sheets/index');
+      const criticalPOIs = await googleSheetsService.fetchAllPOIData();
+
+      // 配列からPOIを抽出（Record<string, POI[]>からPOI[]に変換）
+      const allPOIs = Object.values(criticalPOIs).flat();
 
       // キャッシュに保存
-      cacheService.set('critical-pois', criticalPOIs, 7200000); // 2時間
+      cacheService.set('critical-pois', allPOIs, 7200000); // 2時間
 
       if (isDevelopment()) {
-        console.warn(`✅ 重要POIデータ読み込み完了: ${criticalPOIs.length}件`);
+        console.warn(`✅ 重要POIデータ読み込み完了: ${allPOIs.length}件`);
       }
     } catch (error) {
       if (isDevelopment()) {

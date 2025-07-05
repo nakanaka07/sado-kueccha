@@ -1,0 +1,31 @@
+/**
+ * 基本パフォーマンス設定
+ * 全体的なパフォーマンス最適化の基盤
+ *
+ * @version 2.0.0
+ * @since 2025-06-30
+ */
+
+/* GPU加速の基本設定 */
+.gpuAccelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* コンテインメントの基本設定 */
+.contained {
+  contain: layout style paint;
+}
+
+/* スクロール最適化の基本設定 */
+.optimizedScroll {
+  overflow-anchor: none;
+  scroll-behavior: smooth;
+}
+
+/* アンチエイリアシング改善 */
+.antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

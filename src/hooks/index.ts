@@ -6,7 +6,7 @@ export { useBatchRendering } from './useBatchRendering';
 export { useBusinessHours } from './useBusinessHours';
 export { useDebounce } from './useDebounce';
 export { useFilterStats } from './useFilterStats';
-export { useFilterWorker } from './useFilterWorker';
+// export { useFilterWorker } from './useFilterWorker'; // 未使用のため無効化
 export { useFullscreenPanel } from './useFullscreenPanel';
 export { useFullscreenState } from './useFullscreenState';
 export { useIncrementalMarkerRendering } from './useIncrementalMarkerRendering';

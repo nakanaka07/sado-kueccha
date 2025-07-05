@@ -1,0 +1,245 @@
+/**
+ * FilterPanel コンポーネント専用スタイル
+ * フィルタリング機能の最適化とUX向上
+ *
+ * @version 1.0.0
+ * @since 2025-07-04
+ */
+
+/* ==========================================================================
+   フィルターパネル基本設定
+   ========================================================================== */
+
+.filterPanel {
+  /* パネル全体の最適化 */
+  contain: layout style paint;
+
+  /* GPU加速 */
+  transform: translateZ(0);
+
+  /* 適切な配置 */
+  position: relative;
+  z-index: 100;
+
+  /* スクロール最適化 */
+  overflow-anchor: none;
+}
+
+.filterPanelContent {
+  /* コンテンツ領域の最適化 */
+  contain: layout style;
+
+  /* スクロール改善 */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* 適切な余白 */
+  padding: 16px;
+}
+
+/* ==========================================================================
+   フィルターオプション仮想化
+   ========================================================================== */
+
+.filterOptionsVirtualized {
+  /* 仮想化スクロールの最適化 */
+  contain: strict;
+  overflow: hidden;
+
+  /* パフォーマンス改善 */
+  will-change: scroll-position;
+}
+
+.filterOptionItem {
+  /* アイテムレンダリング最適化 */
+  contain: layout style paint;
+
+  /* インタラクション改善 */
+  cursor: pointer;
+
+  /* スムーズなフィードバック */
+  transition:
+    background-color 100ms ease-out,
+    transform 100ms ease-out,
+    box-shadow 100ms ease-out;
+
+  /* 適切な余白 */
+  padding: 8px 12px;
+  margin: 2px 0;
+
+  /* 角丸設定 */
+  border-radius: 6px;
+}
+
+.filterOptionItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filterOptionItem:active {
+  transform: scale(0.98);
+}
+
+.filterOptionItemSelected {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgb(59, 130, 246);
+}
+
+/* ==========================================================================
+   検索・フィルター入力
+   ========================================================================== */
+
+.searchInput {
+  /* 入力フィールドの最適化 */
+  contain: layout style paint;
+
+  /* スムーズなフォーカス */
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+
+  /* 適切なサイズ */
+  width: 100%;
+  padding: 10px 12px;
+
+  /* スタイリング */
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgb(59, 130, 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ==========================================================================
+   カテゴリフィルター
+   ========================================================================== */
+
+.categoryFilter {
+  /* カテゴリセクションの最適化 */
+  contain: layout style;
+
+  /* 適切な間隔 */
+  margin-bottom: 16px;
+}
+
+.categoryTitle {
+  /* タイトルのスタイリング */
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+
+  /* アクセシビリティ */
+  user-select: none;
+}
+
+.categoryOptions {
+  /* オプション一覧の最適化 */
+  contain: layout style;
+
+  /* 適切な配置 */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   フィルター統計・結果表示
+   ========================================================================== */
+
+.filterStats {
+  /* 統計表示の最適化 */
+  contain: layout style paint;
+
+  /* 配置設定 */
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  margin-bottom: 16px;
+
+  /* テキストスタイル */
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.clearFiltersButton {
+  /* クリアボタンの最適化 */
+  contain: layout style paint;
+
+  /* インタラクション */
+  cursor: pointer;
+  transition:
+    background-color 150ms ease-out,
+    color 150ms ease-out;
+
+  /* スタイリング */
+  background: none;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.clearFiltersButton:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.clearFiltersButton:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   レスポンシブ対応
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .filterPanel {
+    /* モバイルでの配置調整 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  .filterPanelContent {
+    /* モバイルでの余白調整 */
+    padding: 12px;
+  }
+
+  .searchInput {
+    /* モバイルでのタッチ操作改善 */
+    font-size: 16px; /* ズーム防止 */
+    touch-action: manipulation;
+  }
+}
+
+/* ==========================================================================
+   アクセシビリティ対応
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .filterOptionItem,
+  .searchInput,
+  .clearFiltersButton {
+    transition: none;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .filterOptionItem {
+    border: 1px solid currentColor;
+  }
+
+  .filterOptionItemSelected {
+    background-color: HighlightText;
+    color: Highlight;
+  }
+}

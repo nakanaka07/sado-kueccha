@@ -1,0 +1,14 @@
+{
+  "name": "detect-unused-css",
+  "version": "1.0.0",
+  "description": "未使用CSSクラスの検出ツール",
+  "main": "detect-unused-css.js",
+  "type": "module",
+  "scripts": {
+    "detect": "node detect-unused-css.js"
+  },
+  "devDependencies": {
+    "glob": "^10.3.10",
+    "chalk": "^5.3.0"
+  }
+}

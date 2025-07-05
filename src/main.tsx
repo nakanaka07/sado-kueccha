@@ -65,14 +65,22 @@ const validateEnvironment = (): void => {
     );
 
     if (isProduction()) {
-      logger.error('Production environment validation failed', error, 'main');
+      logger.error(
+        'Production environment validation failed',
+        error instanceof Error ? error : undefined,
+        'main'
+      );
     }
   }
 };
 
 // 🚨 グローバルエラーハンドリング: 未処理のPromise拒否をキャッチ
 const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
-  logger.error('Unhandled Promise Rejection', event.reason, 'main');
+  logger.error(
+    'Unhandled Promise Rejection',
+    event.reason instanceof Error ? event.reason : undefined,
+    'main'
+  );
 
   // Core Web Vitalsに影響するエラーの追跡
   if (isProduction()) {
@@ -85,19 +93,10 @@ const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
 
 // 🚨 グローバルエラーハンドリング: JavaScript実行時エラーをキャッチ
 const handleError = (event: ErrorEvent): void => {
-  logger.error(
-    'JavaScript Error',
-    {
-      message: event.message,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-      error: event.error as Error | undefined,
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-    },
-    'main'
-  );
+  const errorInfo = new Error(`JavaScript Error: ${event.message}`);
+  errorInfo.name = 'JavaScriptError';
+
+  logger.error('JavaScript Error', errorInfo, 'main');
 
   if (isProduction()) {
     // Error reporting will be integrated in future versions
@@ -281,7 +280,11 @@ const initializeApp = (): void => {
     // Step 10: Web Vitals測定初期化
     initWebVitals();
   } catch (error) {
-    logger.error('Failed to initialize application', error, 'main');
+    logger.error(
+      'Failed to initialize application',
+      error instanceof Error ? error : undefined,
+      'main'
+    );
 
     // フォールバック: シンプルなエラーメッセージを表示
     const rootElement = document.getElementById('root');

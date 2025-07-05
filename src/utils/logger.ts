@@ -122,7 +122,11 @@ class Logger {
         console.warn(fullMessage, entry.data);
         break;
       case 'error':
-        console.error(fullMessage, entry.data);
+        // エラーログは安全な方法で出力
+        console.error(fullMessage);
+        if (entry.data) {
+          console.log('Error details:', entry.data);
+        }
         break;
     }
   }
@@ -133,13 +137,7 @@ class Logger {
   private persistLog(entry: LogEntry): void {
     if (!this.config.enablePersistence) return;
 
-    // バッファに追加
-    this.logBuffer.push(entry);
-
-    // バッファサイズ制限
-    if (this.logBuffer.length > this.config.maxLogEntries) {
-      this.logBuffer.shift();
-    }
+    this.addToBuffer(entry);
 
     // 本番環境では重要なログのみローカルストレージに保存
     if (entry.level === 'error' || entry.level === 'warn') {
@@ -159,6 +157,23 @@ class Logger {
       } catch (_error) {
         // ローカルストレージエラーは無視
       }
+    }
+  }
+
+  /**
+   * バッファへの安全な追加
+   */
+  private addToBuffer(entry: LogEntry): void {
+    try {
+      this.logBuffer.push(entry);
+
+      // バッファサイズ制限
+      if (this.logBuffer.length > this.config.maxLogEntries) {
+        this.logBuffer.shift(); // 古いエントリを削除
+      }
+    } catch (error) {
+      // バッファ追加失敗時は無視（無限ループ防止）
+      console.warn('Log buffer addition failed:', error);
     }
   }
 
@@ -203,8 +218,41 @@ class Logger {
   /**
    * エラーログ
    */
-  error(message: string, data?: unknown, context?: string): void {
-    this.log('error', message, data, context);
+  error(message: string, error?: Error, context?: string): void {
+    if (!this.shouldLog('error')) return;
+
+    const logEntry = this.createLogEntry('error', message, error, context);
+
+    // エラーオブジェクトの場合はスタックトレースを追加
+    if (error instanceof Error) {
+      logEntry.data = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        cause: error.cause,
+      };
+    }
+
+    this.addToBuffer(logEntry);
+    this.outputToConsole(logEntry);
+  }
+
+  /**
+   * パフォーマンス測定用ログ
+   */
+  performance(message: string, startTime: number, context?: string): void {
+    if (!this.shouldLog('info')) return;
+
+    const duration = performance.now() - startTime;
+    const logEntry = this.createLogEntry(
+      'info',
+      message,
+      { duration },
+      context
+    );
+
+    this.addToBuffer(logEntry);
+    this.outputToConsole(logEntry);
   }
 
   /**

@@ -1,0 +1,58 @@
+/**
+ * ユーティリティクラス
+ * 再利用可能な小さなパフォーマンス最適化
+ *
+ * @version 2.0.0
+ * @since 2025-06-30
+ */
+
+/* GPU関連ユーティリティ */
+.gpu-accelerated {
+  transform: translateZ(0);
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+/* コンテインメントユーティリティ */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-style {
+  contain: style;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+/* アニメーション最適化 */
+.smooth-transition {
+  transition: all 150ms ease-out;
+}
+
+.fast-transition {
+  transition: all 100ms ease-out;
+}
+
+/* レスポンシブ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-transition,
+  .fast-transition {
+    transition: none;
+  }
+}

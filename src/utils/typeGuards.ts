@@ -62,7 +62,18 @@ export function isValidDateString(value: unknown): value is string {
   if (!isValidString(value)) return false;
 
   const date = new Date(value);
-  return !Number.isNaN(date.getTime());
+
+  // NaNでないことを確認
+  if (Number.isNaN(date.getTime())) return false;
+
+  // 元の文字列がISO形式の場合、元の値と解析後の値を比較
+  // 2024-02-31 のような無効な日付が自動補正されないことを確認
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const reconstructed = date.toISOString().split('T')[0];
+    return reconstructed === value;
+  }
+
+  return true;
 }
 
 /**

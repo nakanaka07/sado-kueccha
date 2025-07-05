@@ -8,11 +8,21 @@ import type React from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SADO_ISLAND } from '../../constants';
+import {
+  googleSheetsService,
+  removeDuplicatePOIs,
+} from '../../services/sheets';
+import {
+  combineModuleClasses,
+  PerformanceStyles,
+} from '../../styles/constants';
 import type { FilterState } from '../../types/filter';
 import type { POI } from '../../types/poi';
 import { getAppConfig } from '../../utils/env';
 import { InfoWindow } from './InfoWindow';
 import './Map.css';
+import { MapErrorBoundary } from './MapErrorBoundary';
+import { MapLoadingStates } from './MapLoadingStates';
 
 // MapインスタンスをキャプチャするためのComponent
 const MapInstanceCapture = memo<{
@@ -109,7 +119,7 @@ interface MapComponentProps {
 
 export const MapComponent = memo<MapComponentProps>(
   ({
-    className = 'map-container',
+    className = combineModuleClasses(PerformanceStyles.mapContainer),
     onMapLoaded,
     enableClickableIcons = false,
     filterState,
@@ -119,7 +129,6 @@ export const MapComponent = memo<MapComponentProps>(
   }) => {
     const [internalPois, setInternalPois] = useState<POI[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
     // リスナー管理用のRef
     const zoomListenerRef = useRef<google.maps.MapsEventListener | null>(null);
@@ -130,55 +139,19 @@ export const MapComponent = memo<MapComponentProps>(
     const [activePois, setActivePois] = useState<POI[]>([]);
 
     useEffect(() => {
-      const updateActivePois = async () => {
+      const updateActivePois = () => {
         const basePois = externalPois ?? internalPois;
-        const { removeDuplicatePOIs } = await import('../../services/sheets');
         setActivePois(removeDuplicatePOIs(basePois));
       };
 
-      void updateActivePois();
+      updateActivePois();
     }, [externalPois, internalPois]);
 
-    // Google Maps API エラーハンドリング
+    // Google Maps API エラーハンドリング（MapErrorBoundaryに委譲）
     useEffect(() => {
-      // グローバルエラーハンドラーを設定
-      const originalError = console.error;
-      const handleGoogleMapsError = (...args: unknown[]) => {
-        const message = args.join(' ');
-
-        // Google Maps API のリファラーエラーを検出
-        if (message.includes('RefererNotAllowedMapError')) {
-          setError(
-            'Google Maps API のリファラー制限エラーが発生しました。\n' +
-              '開発時は Google Cloud Console で以下のURLを許可してください：\n' +
-              '- https://localhost:5174\n' +
-              '- http://localhost:5174\n' +
-              '- https://localhost:5173\n' +
-              '- http://localhost:5173'
-          );
-        } else if (message.includes('Google Maps')) {
-          setError('Google Maps API でエラーが発生しました。');
-        }
-
-        // 元のエラーログも出力
-        originalError(...args);
-      };
-
-      // グローバルエラーリスナーを一時的に置き換え
-      console.error = handleGoogleMapsError;
-
-      // ウィンドウエラーリスナー
-      const windowErrorHandler = ({ message }: ErrorEvent) => {
-        if (message.includes('Google Maps')) {
-          handleGoogleMapsError(message);
-        }
-      };
-
-      window.addEventListener('error', windowErrorHandler);
-
+      // グローバルエラーハンドラーは MapErrorBoundary が処理するため削除
       return () => {
-        console.error = originalError;
-        window.removeEventListener('error', windowErrorHandler);
+        // クリーンアップのみ実行
       };
     }, []);
 
@@ -271,18 +244,18 @@ export const MapComponent = memo<MapComponentProps>(
 
       const loadPOIs = async () => {
         try {
-          const { fetchPOIs } = await import('../../services/sheets');
-          const data = await fetchPOIs();
+          const data = await googleSheetsService.fetchPOIData('recommended');
+          const processedData = removeDuplicatePOIs(data);
           if (isMounted) {
-            setInternalPois(data);
+            setInternalPois(processedData);
             setIsLoading(false);
-            setError(null);
           }
         } catch (error) {
           console.error('POIデータの読み込みに失敗しました:', error);
           if (isMounted) {
-            setError('POIデータの読み込みに失敗しました');
             setIsLoading(false);
+            // エラーは MapErrorBoundary が処理
+            throw error;
           }
         }
       };
@@ -336,75 +309,54 @@ export const MapComponent = memo<MapComponentProps>(
       };
     }, []);
 
-    // エラーハンドリング
+    // エラーハンドリング（MapErrorBoundaryに委譲）
     if (!googleMapsApiKey) {
-      return (
-        <div className={className}>
-          <div className="map-error">
-            地図を読み込めません（APIキーが設定されていません）
-          </div>
-        </div>
-      );
+      throw new Error('地図を読み込めません（APIキーが設定されていません）');
     }
 
     if (!mapId) {
-      return (
-        <div className={className}>
-          <div className="map-error">
-            地図を読み込めません（Map IDが設定されていません）
-          </div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className={className}>
-          <div className="map-error">地図の読み込みに失敗しました</div>
-        </div>
-      );
+      throw new Error('地図を読み込めません（Map IDが設定されていません）');
     }
 
     if (isLoading || (externalPois !== undefined && isPoisLoading)) {
       return (
-        <div className={className}>
-          <div className="map-loading">地図を読み込み中...</div>
-        </div>
+        <MapLoadingStates
+          className={className}
+          isLoading={isLoading}
+          isPoisLoading={isPoisLoading}
+        />
       );
     }
 
     return (
       <div className={className}>
-        <APIProvider
-          {...apiProviderConfig}
-          onError={() => {
-            setError('地図の読み込みに失敗しました');
-          }}
-        >
-          <Map
-            {...mapOptions}
-            style={{ width: '100%', height: '400px' }}
-            onClick={() => {
-              setSelectedPoi(null);
-            }}
-            onCameraChanged={_event => {
-              // カメラ変更時の処理（必要に応じて）
-            }}
-          >
-            <MapInstanceCapture onMapLoad={handleMapLoad} />
-            {children}
-            {selectedPoi ? (
-              <InfoWindow
-                poi={selectedPoi}
-                onClose={() => {
-                  setSelectedPoi(null);
-                }}
-              />
-            ) : null}
-            {/* 最適化されたマーカークラスタリングを使用 */}
-            <POIMarkers pois={filteredPois} onPoiClick={handlePoiClick} />
-          </Map>
-        </APIProvider>
+        <MapErrorBoundary>
+          <APIProvider {...apiProviderConfig}>
+            <Map
+              {...mapOptions}
+              style={{ width: '100%', height: '400px' }}
+              onClick={() => {
+                setSelectedPoi(null);
+              }}
+              onCameraChanged={_event => {
+                // カメラ変更時の処理（必要に応じて）
+              }}
+            >
+              <MapInstanceCapture onMapLoad={handleMapLoad} />
+              {children}
+              {selectedPoi ? (
+                <InfoWindow
+                  poi={selectedPoi}
+                  onClose={() => {
+                    setSelectedPoi(null);
+                  }}
+                />
+              ) : null}
+              {/* 最適化されたマーカークラスタリングを使用 */}
+              <POIMarkers pois={filteredPois} onPoiClick={handlePoiClick} />
+            </Map>
+          </APIProvider>
+        </MapErrorBoundary>
       </div>
     );
   }

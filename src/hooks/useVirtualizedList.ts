@@ -14,6 +14,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+/**
+ * 仮想化リストの制御ハンドル
+ */
+export interface VirtualListHandle {
+  /** 特定のインデックスにスクロールする */
+  scrollToIndex: (index: number) => void;
+  /** 先頭にスクロールする */
+  scrollToTop: () => void;
+  /** 末尾にスクロールする */
+  scrollToBottom: () => void;
+  /** 現在のスクロール位置を取得 */
+  getScrollTop: () => number;
+  /** スクロール位置をリセット */
+  resetScroll: () => void;
+}
+
 interface VirtualizedListOptions {
   /** アイテムの総数 */
   itemCount: number;
@@ -42,6 +58,14 @@ interface VirtualizedListResult {
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
   /** 特定のインデックスにスクロールする関数 */
   scrollToIndex: (index: number) => void;
+  /** 先頭にスクロールする関数 */
+  scrollToTop: () => void;
+  /** 末尾にスクロールする関数 */
+  scrollToBottom: () => void;
+  /** 現在のスクロール位置を取得する関数 */
+  getScrollTop: () => number;
+  /** スクロール位置をリセットする関数 */
+  resetScroll: () => void;
   /** 現在のスクロール位置 */
   scrollTop: number;
 }
@@ -101,6 +125,29 @@ export const useVirtualizedList = (
     [itemHeight]
   );
 
+  // 先頭にスクロール
+  const scrollToTop = useCallback(() => {
+    if (!scrollElementRef.current) return;
+    scrollElementRef.current.scrollTop = 0;
+    setScrollTop(0);
+  }, []);
+
+  // 末尾にスクロール
+  const scrollToBottom = useCallback(() => {
+    if (!scrollElementRef.current) return;
+    const maxScrollTop = (itemCount - 1) * itemHeight;
+    scrollElementRef.current.scrollTop = maxScrollTop;
+    setScrollTop(maxScrollTop);
+  }, [itemCount, itemHeight]);
+
+  // 現在のスクロール位置を取得
+  const getScrollTop = useCallback(() => scrollTop, [scrollTop]);
+
+  // スクロール位置をリセット
+  const resetScroll = useCallback(() => {
+    scrollToTop();
+  }, [scrollToTop]);
+
   // スクロールイベントリスナーの設定
   useEffect(() => {
     const scrollElement = scrollElementRef.current;
@@ -121,6 +168,10 @@ export const useVirtualizedList = (
     offsetBottom,
     scrollElementRef,
     scrollToIndex,
+    scrollToTop,
+    scrollToBottom,
+    getScrollTop,
+    resetScroll,
     scrollTop,
   };
 };

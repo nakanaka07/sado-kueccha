@@ -16,6 +16,10 @@ import type React from 'react';
 import { memo } from 'react';
 import type { VirtualListProps } from '../../hooks';
 import { useVirtualizedList } from '../../hooks';
+import {
+  PerformanceStyles,
+  combineModuleClasses,
+} from '../../styles/constants';
 
 /**
  * 仮想化リストコンポーネント
@@ -62,7 +66,10 @@ export const VirtualList: React.FC<VirtualListProps> = memo(
     return (
       <div
         ref={scrollElementRef}
-        className={`virtual-list ${className}`}
+        className={combineModuleClasses(
+          PerformanceStyles.virtualList,
+          className
+        )}
         style={{
           height,
           overflow: 'auto',

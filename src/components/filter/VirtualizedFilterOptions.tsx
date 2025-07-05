@@ -14,6 +14,10 @@
 
 import type React from 'react';
 import { memo, useCallback, useMemo } from 'react';
+import {
+  PerformanceStyles,
+  combineModuleClasses,
+} from '../../styles/constants';
 import type { FilterOption } from '../../types/filter';
 import { VirtualList } from '../shared';
 
@@ -52,7 +56,10 @@ const FilterOptionItem: React.FC<{
   return (
     <div
       style={style}
-      className={`filter-option-item ${isSelected ? 'filter-option-item--selected' : ''}`}
+      className={combineModuleClasses(
+        PerformanceStyles.filterOptionItem,
+        isSelected ? 'filter-option-item--selected' : ''
+      )}
     >
       <label className="filter-option-label" htmlFor={optionId}>
         <input
@@ -149,7 +156,11 @@ export const VirtualizedFilterOptions: React.FC<VirtualizedFilterOptionsProps> =
       // 大量のアイテムの場合は仮想化リスト
       return (
         <div
-          className={`filter-options filter-options--virtualized ${className}`}
+          className={combineModuleClasses(
+            'filter-options',
+            PerformanceStyles.filterOptionsVirtualized,
+            className
+          )}
         >
           <VirtualList
             itemCount={filteredOptions.length}
